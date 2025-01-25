@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 from decouple import config, Csv
 
 BASE_URL = config("BASE_URL", default='http://127.0.0.1:8000')
@@ -165,7 +165,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 # whitenoise/nginx
-STATIC_URL = "static/"
+# STATIC_URL = "static/"
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'theme/static'),  # Add theme static files
+]
 
 # nginx
 MEDIA_URL = "media/"
