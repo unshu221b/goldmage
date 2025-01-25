@@ -2,13 +2,12 @@
   "name": "goldmage",
   "private": true,
   "scripts": {
-    "postinstall": "cd src/theme && npm install",
-    "build": "cd src/theme && npm run build"
+    "build": "cd src/theme/static_src && npm run build"
   },
   "engines": {
-    "node": "20.17"
+    "node": "20.x"
   },
   "cacheDirectories": [
-    "src/theme/node_modules"
+    "src/theme/static_src/node_modules"
   ]
 } 
