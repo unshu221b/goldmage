@@ -1,0 +1,14 @@
+{
+  "name": "goldmage",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd src/theme && npm install",
+    "build": "cd src/theme && npm run build"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "cacheDirectories": [
+    "src/theme/node_modules"
+  ]
+} 
