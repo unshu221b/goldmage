@@ -6,7 +6,7 @@
     "build": "cd src/theme && npm run build"
   },
   "engines": {
-    "node": "20.x"
+    "node": "20.17"
   },
   "cacheDirectories": [
     "src/theme/node_modules"
