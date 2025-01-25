@@ -10,6 +10,9 @@
     "dev": "cross-env NODE_ENV=development tailwindcss --postcss -i ./src/styles.css -o ../static/css/dist/styles.css -w",
     "tailwindcss": "node ./node_modules/tailwindcss/lib/cli.js"
   },
+  "engines": {
+    "node": "20.17"
+  },
   "keywords": [],
   "author": "",
   "license": "MIT",
