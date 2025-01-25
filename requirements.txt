@@ -6,3 +6,4 @@ django-htmx
 django-tailwind[reload]
 dj-database-url
 psycopg[binary]
+gunicorn

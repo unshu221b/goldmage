@@ -19,12 +19,12 @@ BASE_URL = config("BASE_URL", default='http://127.0.0.1:8000')
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config("EMAIL_HOST", cast=str, default=None)
 EMAIL_PORT = config("EMAIL_PORT", cast=str, default='587') # Recommended
-EMAIL_ADDRESS = "hungrypy@gmail.com"
+EMAIL_ADDRESS = "charleslung221b@gmail.com"
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", cast=str, default=None)
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", cast=str, default=None)
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)  # Use EMAIL_PORT 587 for TLS
 
-ADMIN_USER_NAME=config("ADMIN_USER_NAME", default="Justin")
+ADMIN_USER_NAME=config("ADMIN_USER_NAME", default="Charles")
 ADMIN_USER_EMAIL=config("ADMIN_USER_EMAIL", default=None)
 
 MANAGERS=[]
@@ -44,7 +44,7 @@ TEMPLATE_DIR = BASE_DIR / "templates"
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-)m9pn5k+cz^l1pos#-_dr@nqcmqtynn1xo9f$b=6uney85a+cl"
+SECRET_KEY = config("SECRET_KEY", default="django-insecure-)m9pn5k+cz^l1pos#-_dr@nqcmqtynn1xo9f$b=6uney85a+cl")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

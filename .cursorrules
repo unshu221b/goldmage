@@ -5,10 +5,10 @@
 - Github: https://github.com/unshu221b
 
 # Project
-- Repo url: https://github.com/unshu221b/Cursor-Django
-- Root folder: /opt/cursor/projects/Cursor-Django
+- Repo url: https://github.com/unshu221b/goldmage
+- Root folder: /opt/cursor/projects/goldmage
 - Runtime: Python 3.12
-- Python Environment: `venv` at `D:\Users\MASK221B\Desktop\Course-Platform\venv`
+- Python Environment: `venv` at `D:\Users\MASK221B\Desktop\goldmage\venv`
 - Django root folder: `src`
-- Django project name: `cfehome`
+- Django project name: `goldmage`
 - Django run command: `venv/bin/python src/manage.py runserver 0.0.0.0:8000`
