@@ -13,9 +13,6 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "rimraf": "^5.0.5"
-  },
   "devDependencies": {
     "flowbite": "^2.5.1",
     "@tailwindcss/aspect-ratio": "^0.4.2",
@@ -26,6 +23,7 @@
     "postcss-import": "^15.1.0",
     "postcss-nested": "^6.0.1",
     "postcss-simple-vars": "^7.0.1",
+    "rimraf": "^5.0.5",
     "tailwindcss": "^3.4.0"
   }
 }

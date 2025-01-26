@@ -2,7 +2,8 @@
   "name": "goldmage",
   "private": true,
   "scripts": {
-    "build": "cd src/theme/static_src && npm run build"
+    "build:tailwind": "cd src/theme/static_src && npm install && npm run build",
+    "heroku-postbuild": "npm run build:tailwind && python manage.py collectstatic --noinput"
   },
   "engines": {
     "node": "20.x"
