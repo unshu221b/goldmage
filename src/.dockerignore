@@ -1,7 +1,6 @@
-.env.prod
 .DS_Store
 local-cdn/media/
-.kube/
+.env.prod
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

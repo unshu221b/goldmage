@@ -44,12 +44,14 @@ TEMPLATE_DIR = BASE_DIR / "templates"
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY", default="django-insecure-)m9pn5k+cz^l1pos#-_dr@nqcmqtynn1xo9f$b=6uney85a+cl")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['goldmage-54dfbd546fce.herokuapp.com']
+DEBUG = str(os.environ.get("DEBUG")) == "True"
+ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS")
+ALLOWED_HOSTS = []
+if ENV_ALLOWED_HOSTS:
+    ALLOWED_HOSTS = [ENV_ALLOWED_HOSTS]
 
 
 # Application definition
@@ -78,7 +80,6 @@ INTERNAL_IPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -119,6 +120,43 @@ WSGI_APPLICATION = "cfehome.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+# DB_USERNAME = os.environ.get("POSTGRES_USER")
+# DB_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+# DB_DATABASE = os.environ.get("POSTGRES_DB")
+# DB_HOST = os.environ.get("POSTGRES_HOST")
+# DB_PORT = os.environ.get("POSTGRES_PORT")
+# DB_IS_AVAIL = all([
+#     DB_USERNAME,
+#     DB_PASSWORD,
+#     DB_DATABASE,
+#     DB_HOST,
+#     DB_PORT
+# ])
+# DB_IGNORE_SSL=os.environ.get("DB_IGNORE_SSL") == "true"
+
+# if DB_IS_AVAIL:
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.postgresql",
+#             "NAME": DB_DATABASE,
+#             "USER": DB_USERNAME,
+#             "PASSWORD": DB_PASSWORD,
+#             "HOST": DB_HOST,
+#             "PORT": DB_PORT,
+#         }
+#     }
+#     if not DB_IGNORE_SSL:
+#          DATABASES["default"]["OPTIONS"] = {
+#             "sslmode": "require"
+#          }
+
 DATABASE_URL = config('DATABASE_URL', default=None)
 if DATABASE_URL is not None:
     import dj_database_url
@@ -129,7 +167,6 @@ if DATABASE_URL is not None:
             conn_health_checks=False,
         )
     }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -170,7 +207,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
