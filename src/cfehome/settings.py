@@ -69,7 +69,8 @@ INSTALLED_APPS = [
     "theme", # django-tailwind theme app
     # internal
     "courses",
-    "emails"
+    "emails",
+    "storages"
 ]
 
 TAILWIND_APP_NAME="theme" # django-tailwind theme app
@@ -213,12 +214,7 @@ USE_TZ = True
 # STATIC_URL = "static/"
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'src/static'),
-    os.path.join(BASE_DIR, 'src/theme/static'),  # Add theme static files
-]
 
 # nginx
 MEDIA_URL = "media/"
@@ -236,3 +232,15 @@ CLOUDINARY_PUBLIC_API_KEY = config("CLOUDINARY_PUBLIC_API_KEY", default="")
 CLOUDINARY_SECRET_API_KEY= config("CLOUDINARY_SECRET_API_KEY")
 
 NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"  # Typical Windows path
+
+STATIC_ROOT = BASE_DIR / 'staticfiles-cdn'
+STATICFILES_DIRS= [
+    BASE_DIR / "staticfiles",
+]
+
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'src/static'),
+#     os.path.join(BASE_DIR, 'src/theme/static'),  # Add theme static files
+# ]
+
+from .cdn.conf import * # noqa
