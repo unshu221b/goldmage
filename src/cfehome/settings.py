@@ -216,8 +216,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'theme/static'),  # Add theme static files
+    os.path.join(BASE_DIR, 'src/static'),
+    os.path.join(BASE_DIR, 'src/theme/static'),  # Add theme static files
 ]
 
 # nginx
