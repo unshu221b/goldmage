@@ -18,20 +18,27 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
+from django.http import HttpResponse
 
-from emails.views import verify_email_token_view, email_token_login_view, logout_btn_hx_view
+from emails.views import verify_email_token_view, resend_verification_email
 from . import views
 
 
+
+def health_check(request):
+    return HttpResponse("OK")
+
 urlpatterns = [
-    path("", views.home_view),
-    path("login/", views.login_logout_template_view),
-    path("logout/", views.login_logout_template_view),
-    path('hx/login/', email_token_login_view),
-    path('hx/logout/', logout_btn_hx_view),
+    path("", views.home_view, name="home"),
+    path("dashboard/", views.dashboard_view, name="dashboard"),
+    path("login/", views.login_view, name="login"),
+    path("logout/", views.logout_view, name="logout"),
+    path("signup/", views.signup_view, name="signup"),
     path('verify/<uuid:token>/', verify_email_token_view),
+    path('resend-verification/', resend_verification_email, name='resend_verification'),
     path("courses/", include("courses.urls")),
     path("admin/", admin.site.urls),
+    path('health/', health_check, name='health_check'),
 ]
 
 if settings.DEBUG:

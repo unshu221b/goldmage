@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Goldmage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'dist/my.css' %}">  
+</head>
+<body class="bg-gm">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8 bg-gm p-8 rounded-lg">
+            <!-- Logo -->
+            <div class="text-center">
+                <img class="mx-auto h-12 w-auto" src="{% static 'img/logo.png' %}" alt="Goldmage">
+                <h2 class="mt-6 text-3xl font-bold text-white">Create your account</h2>
+            </div>
+
+            <!-- Error Messages -->
+            {% if messages %}
+            <div class="rounded-md bg-red-500 bg-opacity-10 p-4">
+                {% for message in messages %}
+                <p class="text-sm text-red-400">{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Signup Form -->
+            <form class="mt-8 space-y-6" method="POST" action="{% url 'signup' %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <!-- Email Input -->
+                    <div>
+                        <label for="email" class="sr-only">Email address</label>
+                        <input id="email" name="email" type="email" required 
+                            class="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-700 
+                            bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 
+                            focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Email address">
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="space-y-2">
+                        <label for="password" class="sr-only">Password</label>
+                        <input id="password" name="password" type="password" required 
+                            class="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-700 
+                            bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 
+                            focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Password">
+                        
+                        <!-- Password Requirements -->
+                        <div class="passwordmust text-sm text-gray-400 pl-2 space-y-1">
+                            Password must: 
+                            <div id="length-requirement" class="flex items-center space-x-1">
+                                <span class="text-red-500">✕</span>
+                                <span>be at least 8 characters long</span>
+                            </div>
+                            <div id="uppercase-requirement" class="flex items-center space-x-1">
+                                <span class="text-red-500">✕</span>
+                                <span>contain at least 1 uppercase letter</span>
+                            </div>
+                            <div id="special-requirement" class="flex items-center space-x-1">
+                                <span class="text-red-500">✕</span>
+                                <span>contain at least 1 special character</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confirm Password Input -->
+                    <div>
+                        <label for="confirm_password" class="sr-only">Confirm Password</label>
+                        <input id="confirm_password" name="confirm_password" type="password" required 
+                            class="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-700 
+                            bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 
+                            focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Confirm Password">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" 
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent 
+                        text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 
+                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                        Create Account
+                    </button>
+                </div>
+            </form>
+
+            <!-- Login Link -->
+            <div class="text-center text-sm">
+                <span class="text-gray-400">Already have an account?</span>
+                <a href="{% url 'login' %}" class="font-medium text-blue-500 hover:text-blue-400 transition-colors"> 
+                    Sign In
+                </a>
+            </div>
+
+            <!-- Divider -->
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-700"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-gray-800 text-gray-400">OR</span>
+                </div>
+            </div>
+
+            <!-- OAuth Buttons -->
+            <div class="space-y-4">
+                <!-- Same OAuth buttons as login page -->
+            </div>
+
+            <!-- Footer Links -->
+            <div class="flex justify-center space-x-4 text-sm text-gray-400">
+                <a href="#" class="hover:text-white transition-colors">Terms of Use</a>
+                <span>|</span>
+                <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this script before closing body tag -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const lengthReq = document.getElementById('length-requirement');
+        const upperReq = document.getElementById('uppercase-requirement');
+        const specialReq = document.getElementById('special-requirement');
+        
+        function updateRequirements(password) {
+            // Check length
+            if (password.length >= 8) {
+                lengthReq.querySelector('span').textContent = '✓';
+                lengthReq.querySelector('span').classList.remove('text-red-500');
+                lengthReq.querySelector('span').classList.add('text-green-500');
+            } else {
+                lengthReq.querySelector('span').textContent = '✕';
+                lengthReq.querySelector('span').classList.remove('text-green-500');
+                lengthReq.querySelector('span').classList.add('text-red-500');
+            }
+            
+            // Check uppercase
+            if (/[A-Z]/.test(password)) {
+                upperReq.querySelector('span').textContent = '✓';
+                upperReq.querySelector('span').classList.remove('text-red-500');
+                upperReq.querySelector('span').classList.add('text-green-500');
+            } else {
+                upperReq.querySelector('span').textContent = '✕';
+                upperReq.querySelector('span').classList.remove('text-green-500');
+                upperReq.querySelector('span').classList.add('text-red-500');
+            }
+            
+            // Check special character
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+                specialReq.querySelector('span').textContent = '✓';
+                specialReq.querySelector('span').classList.remove('text-red-500');
+                specialReq.querySelector('span').classList.add('text-green-500');
+            } else {
+                specialReq.querySelector('span').textContent = '✕';
+                specialReq.querySelector('span').classList.remove('text-green-500');
+                specialReq.querySelector('span').classList.add('text-red-500');
+            }
+        }
+        
+        passwordInput.addEventListener('input', function() {
+            updateRequirements(this.value);
+        });
+    });
+    </script>
+</body>
+</html> 

@@ -27,6 +27,9 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)  # Use EMAIL_PO
 ADMIN_USER_NAME=config("ADMIN_USER_NAME", default="Charles")
 ADMIN_USER_EMAIL=config("ADMIN_USER_EMAIL", default=None)
 
+# Custom user model
+AUTH_USER_MODEL = 'emails.Email'
+
 MANAGERS=[]
 ADMINS=[]
 if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
@@ -44,12 +47,14 @@ TEMPLATE_DIR = BASE_DIR / "templates"
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY="TEerjMj18ndOIoqxLSOp1I3jWk4tNrE1U1us6++dXKlQmun3c76sk8CyuW52MtlC"
+# SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = str(os.environ.get("DEBUG")) == "True"
+# DEBUG = str(os.environ.get("DEBUG")) == "True"
+DEBUG = "True"
 ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS")
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "0.0.0.0", "localhost"]
 if ENV_ALLOWED_HOSTS:
     ALLOWED_HOSTS = [ENV_ALLOWED_HOSTS]
 
@@ -88,6 +93,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 if DEBUG:
@@ -157,6 +163,12 @@ WSGI_APPLICATION = "cfehome.wsgi.application"
 #          DATABASES["default"]["OPTIONS"] = {
 #             "sslmode": "require"
 #          }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 DATABASE_URL = config('DATABASE_URL', default=None)
 if DATABASE_URL is not None:
@@ -168,13 +180,6 @@ if DATABASE_URL is not None:
             conn_health_checks=False,
         )
     }
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -210,10 +215,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-# whitenoise/nginx
-# STATIC_URL = "static/"
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
+
 
 
 # nginx
@@ -231,16 +233,29 @@ CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME", default="")
 CLOUDINARY_PUBLIC_API_KEY = config("CLOUDINARY_PUBLIC_API_KEY", default="")
 CLOUDINARY_SECRET_API_KEY= config("CLOUDINARY_SECRET_API_KEY")
 
-NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"  # Typical Windows path
+# NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"  # Typical Windows path
+NPM_BIN_PATH = "/usr/bin/npm"
 
+# whitenoise/nginx
+# STATIC_URL = "static/"
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles-cdn'
-STATICFILES_DIRS= [
-    BASE_DIR / "staticfiles",
+# STATICFILES_DIRS= [
+#     BASE_DIR / "staticfiles",
+#     BASE_DIR / "theme/static",
+# ]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'theme/static'),
+    os.path.join(BASE_DIR, 'static'),
 ]
 
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'src/static'),
-#     os.path.join(BASE_DIR, 'src/theme/static'),  # Add theme static files
-# ]
+# Make sure this is before the STATICFILES_STORAGE setting
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 from .cdn.conf import * # noqa

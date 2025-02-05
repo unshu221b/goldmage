@@ -5,22 +5,18 @@
   <meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="{% static 'dist/my.css' %}">
   {% tailwind_css %}
   
-  <title>{% block head_title %}Hello World from Course Platform
-  {% endblock head_title %}</title>
+  <title>{% block head_title %}GoldMage - Online Learning Platform{% endblock head_title %}</title>
 </head>
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include 'base/navbar.html' %}
   
-
-    <div class="{% if '/logout' in request.path or '/login' in request.path%} {% else %}px-4 mx-auto max-w-screen-xl{% endif %}">
-    {% block content %}
-    <h1 class="text-3xl font-bold underline">
-        Hello world from base!
-      </h1>
-    {% endblock content %}
+  <div class="{% if '/logout' in request.path or '/login' in request.path %}{% else %}w-full{% endif %}">
+    {% block content %}{% endblock content %}
   </div>
-    {% include 'base/js.html' %}
+
+  {% include 'base/js.html' %}
 </body>
 </html>

@@ -1,3 +1,4 @@
+{% load static %}
 {% load django_htmx %}
 <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cloudinary-video-player/2.0.5/cld-video-player.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -8,6 +9,41 @@
 
 
 <script defer>
+
+    document.addEventListener('DOMContentLoaded', function() {
+       const stickyFooter = document.getElementById('sticky-footer');
+       const realFooter = document.querySelector('footer'); // Get the real footer
+       
+       if (!stickyFooter || !realFooter) {
+           console.error('Required elements not found.');
+           return;
+       }
+
+       let lastScrollTop = 0;
+       const offset = 100; // Offset before the footer when we want the sticky footer to disappear
+
+       window.addEventListener('scroll', function() {
+           let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+           let footerPosition = realFooter.getBoundingClientRect().top;
+           let windowHeight = window.innerHeight;
+
+           if (scrollTop > lastScrollTop) {
+               // Scrolling down
+               if (footerPosition > windowHeight + offset) {
+                   // Show sticky footer only if we're not near the real footer
+                   stickyFooter.classList.add('visible');
+               } else {
+                   // Hide sticky footer when near the real footer
+                   stickyFooter.classList.remove('visible');
+               }
+           } else if (scrollTop === 0) {
+               // Back to top
+               stickyFooter.classList.remove('visible');
+           }
+
+           lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; // For Mobile or negative scrolling
+       });
+   });
 
     function renderVideoElement(videoPlayerElement) {
         const currentVideoId = videoPlayerElement.getAttribute('id')
@@ -34,4 +70,30 @@
     }
 
     document.addEventListener('DOMContentLoaded', renderAllVideos)
+
+    document.querySelectorAll('[data-accordion-component="AccordionItemButton"]').forEach(button => {
+    button.addEventListener('click', () => {
+        // Toggle aria-expanded
+        const expanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', !expanded);
+        
+        // Find the panel
+        const panelId = button.getAttribute('aria-controls');
+        const panel = document.getElementById(panelId);
+        
+        // Toggle hidden attribute
+        if (panel) {
+            panel.hidden = expanded;
+        }
+        
+        // Rotate the icon
+        const icon = button.querySelector('.mc-accordion__icon');
+        if (icon) {
+                icon.style.transform = expanded ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
+        });
+    });
+
 </script>
+<script src="{% static 'js/thumbnails.js' %}"></script>
+<script src="{% static 'js/testimonials.js' %}"></script>
