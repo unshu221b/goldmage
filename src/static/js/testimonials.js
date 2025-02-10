@@ -8,17 +8,18 @@ document.addEventListener('DOMContentLoaded', function() {
             title: 'Founder & Teacher, USA'
         },
         {
-            image: '/static/img/20220805.jpg',
+            image: '/static/img/ac-001.webp',
             text: '"The quality of instruction and production is unmatched. Each class feels like a documentary film and master\'s degree rolled into one."',
             name: 'Michael',
             title: 'Software Engineer, Canada'
         },
         {
-            image: '/static/img/20220806.jpg',
+            image: '/static/img/ac-002.webp',
             text: '"The platform has transformed how I approach learning. The insights from industry leaders are invaluable."',
             name: 'Sarah',
             title: 'Creative Director, UK'
         }
+
     ];
 
     let currentIndex = 0;

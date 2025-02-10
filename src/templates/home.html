@@ -1,46 +1,47 @@
 {% extends 'base.html' %}
 
 {% block head_title %}
-  Welcome to GoldMage - Learn from the Best
+  歡迎來到金法師 - 向最優秀的導師學習
 {% endblock head_title %}
 
 {% block content %}
 <main class="mc-page__content lg:py-16">
+  <div class="gold-glow gold-0"></div>
   <!-- Hero Section -->
   {% include 'base/hero.html' %}
 
   <!-- New Section: What You'll Get -->
   <section class="bg-gm">
     <div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16"> 
-      <h1 class="mb-4 text-2xl font-semibold leading-none tracking-tight md:text-xl lg:text-4xl text-gray-500 px-4 mx-auto max-w-screen-xl text-center">What You'll Get</h1>
+      <h1 class="mb-4 text-2xl font-semibold leading-none tracking-tight md:text-xl lg:text-4xl text-gray-500 px-4 mx-auto max-w-screen-xl text-center">您將獲得的內容</h1>
       <ul class="text-white mc-mb-9 mc-mb-md-9">
         <li class="mc-py-3 mc-py-md-2 mc-px-10 mc-px-md-4">
-          <span class="d-none d-md-inline-block mc-text-h3">Access our full library of 200+ classes</span>
-          <span class="d-md-none mc-text-h2">Access our full library of 200+ classes</span>
+          <span class="d-none d-md-inline-block mc-text-h3">完整存取超過200堂課程的資料庫</span>
+          <span class="d-md-none mc-text-h2">完整存取超過200堂課程的資料庫</span>
         </li>
         <li class="mc-py-3 mc-py-md-2 mc-px-10 mc-px-md-4">
-          <span class="d-none d-md-inline-block mc-text-h3">Watch on your computer, TV, phone, or tablet</span>
-          <span class="d-md-none mc-text-h2">Watch on your computer, TV, phone, or tablet</span>
+          <span class="d-none d-md-inline-block mc-text-h3">可在電腦、電視、手機或平板上觀看</span>
+          <span class="d-md-none mc-text-h2">可在電腦、電視、手機或平板上觀看</span>
         </li>
         <li class="mc-py-3 mc-py-md-2 mc-px-10 mc-px-md-4">
-          <span class="d-none d-md-inline-block mc-text-h3">Learn on the go with audio-only lessons</span>
-          <span class="d-md-none mc-text-h2">Learn on the go with audio-only lessons</span>
+          <span class="d-none d-md-inline-block mc-text-h3">透過純音頻課程隨時學習</span>
+          <span class="d-md-none mc-text-h2">透過純音頻課程隨時學習</span>
         </li>
         <li class="mc-py-3 mc-py-md-2 mc-px-10 mc-px-md-4">
-          <span class="d-none d-md-inline-block mc-text-h3">Download and watch offline (select plans)</span>
-          <span class="d-md-none mc-text-h2">Download and watch offline (select plans)</span>
+          <span class="d-none d-md-inline-block mc-text-h3">下載課程離線觀看（特定方案）</span>
+          <span class="d-md-none mc-text-h2">下載課程離線觀看（特定方案）</span>
         </li>
         <li class="mc-py-3 mc-py-md-2 mc-px-10 mc-px-md-4">
-          <span class="d-none d-md-inline-block mc-text-h3">Unlock improved learning with class guides</span>
-          <span class="d-md-none mc-text-h2">Unlock improved learning with class guides</span>
+          <span class="d-none d-md-inline-block mc-text-h3">透過課程指南提升學習效果</span>
+          <span class="d-md-none mc-text-h2">透過課程指南提升學習效果</span>
         </li>
         <li class="mc-py-3 mc-py-md-2 mc-px-10 mc-px-md-4">
-          <span class="d-none d-md-inline-block mc-text-h3">Share with family and friends who live with you</span>
-          <span class="d-md-none mc-text-h2">Share with family and friends who live with you</span>
+          <span class="d-none d-md-inline-block mc-text-h3">與同住的家人和朋友一起分享學習</span>
+          <span class="d-md-none mc-text-h2">與同住的家人和朋友一起分享學習</span>
         </li>
       </ul>
       <a href="#" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-button hover:bg-primary-button focus:ring-4 focus:ring-primary-300">
-      Learn more
+      了解更多
       </a>
     </div>
   </section>  
@@ -51,64 +52,64 @@
     <div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16">
       <!-- Main Heading -->
       <h1 class="mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl lg:text-6xl text-white">
-        Meet the world's best. <br> New classes added every month.
+        與世界頂尖大師相遇 <br> 每月更新精彩課程
       </h1>
       <div class="category-container font-bold">
         <button class="category-button active" data-category="trending">
           <span class="icon">⭐</span>
-          <span>Trending</span>
+          <span>熱門推薦</span>
         </button>
         <button class="category-button" data-category="acting">
           <span class="icon">🎭</span>
-          <span>Acting & Performing Arts</span>
+          <span>表演藝術</span>
         </button>
         <button class="category-button">
           <span class="icon">💼</span>
-          <span>Business & Entrepreneurship</span>
+          <span>商業與創業</span>
         </button>
         <button class="category-button">
           <span class="icon">🏛️</span>
-          <span>Community & Government</span>
+          <span>社群與政府</span>
         </button>
         <button class="category-button">
           <span class="icon">🍽️</span>
-          <span>Food & Drink</span>
+          <span>美食與飲品</span>
         </button>
         <button class="category-button">
           <span class="icon">🎨</span>
-          <span>Art & Design</span>
+          <span>藝術與設計</span>
         </button>
         <button class="category-button">
           <span class="icon">🎮</span>
-          <span>Games & Digital Media</span>
+          <span>遊戲與數位媒體</span>
         </button>
         <button class="category-button">
           <span class="icon">🎬</span>
-          <span>Film & TV</span>
+          <span>電影與電視</span>
         </button>
         <button class="category-button">
           <span class="icon">😊</span>
-          <span>Health & Wellness</span>
+          <span>健康與養生</span>
         </button>
         <button class="category-button">
           <span class="icon">🎵</span>
-          <span>Music</span>
+          <span>音樂</span>
         </button>
         <button class="category-button">
           <span class="icon">🏞️</span>
-          <span>Outdoor Adventures & Events</span>
+          <span>戶外冒險與活動</span>
         </button>
         <button class="category-button">
           <span class="icon">🔬</span>
-          <span>Science & Technology</span>
+          <span>科學與科技</span>
         </button>
         <button class="category-button">
           <span class="icon">🏃</span>
-          <span>Sports & Athletics</span>
+          <span>運動與體育</span>
         </button>
         <button class="category-button">
           <span class="icon">📚</span>
-          <span>Writing</span>
+          <span>寫作</span>
         </button>
       </div>
   <!-- Featured Courses Section -->
@@ -133,98 +134,102 @@
 
   <section class="bg-gm">
     <div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16"> 
-      <h1 class="mc-pb-sm-5 text-2xl font-bold leading-none tracking-tight md:text-xl lg:text-4xl text-white px-4 mx-auto max-w-screen-xl text-center">Start your journey today.</h1>
+      <h1 class="mc-pb-sm-5 text-2xl font-bold leading-none tracking-tight md:text-xl lg:text-4xl text-white px-4 mx-auto max-w-screen-xl text-center">今天就開始您的學習之旅</h1>
       <ul class="mc-mb-8 mc-text--center mc-pb-sm-4">
         <div class="flex-md-row justify-content-center d-flex">
           <div class="justify-content-center d-flex flex-row">
             <span>
-              <span class="text-gray-500 text-08opacity">200+ classes.Starting at </span> 
-              <span class="text-white font-bold">$10/month</span>, 
-              <span class="text-gray-500 text-08opacity">billed annually.</span>
+              <span class="text-gray-500 text-08opacity">超過200堂課程，起價僅需 </span> 
+              <span class="text-white font-bold">每月$10</span>， 
+              <span class="text-gray-500 text-08opacity">年費方案</span>
             </span>
           </div>
         </div>
       </ul>
       <div class="flex flex-col mb-8 lg:mb-16 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-        <a href="#" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-button hover:bg-primary-button focus:ring-4 focus:ring-primary-300">
-            Sign Up
+        <a href="/signup" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-primary-button hover:bg-primary-button focus:ring-4 focus:ring-primary-300">
+            立即註冊
+
             <svg class="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
         </a>
         <a href="#" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-secondary-button hover:bg-secondary-button border border-gray-300 focus:ring-4 focus:ring-gray-100">
             <svg class="mr-2 -ml-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"></path></svg>
-            Explore Classes
+            探索課程
         </a>  
     </div>
     </div>
   </section>
 
+
   <div class="" style="padding: 16px 32px;">
     <div class="econcompare-808">
       <div class="flex justify-center p-2">
-        <img alt="本20冊1ヶ月で読む場合こんなにお得" src="/static/img/hptest101.webp" style="max-width: 386px; width: 100%;">
+        <img alt="閱讀20本書一個月可以省下這麼多" src="/static/img/hptest101.webp" style="max-width: 386px; width: 100%;">
       </div>
 
       <div class="econGrid-container" style="position: relative;">
         <div class="con845 econGrid-container econGrid-item econGrid-grid-xs-6">
           <div class="econGrid-item econGrid-grid-xs-12">
-            <p class="econTypo-root font847 econTypo-body1 econAlignCenter" style="color: rgb(120, 124, 132);">通常</p>
+            <p class="econTypo-root font847 econTypo-body1 econAlignCenter text-xl md:text-2xl text-white">一般閱讀</p>
           </div>
+
           <div class="justifyCenter853 econGrid-container econGrid-item econGrid-grid-xs-12">
-            <img alt="" src="/static/media/books_compare_normal.b038febe.webp" width="120" height="205">
+            <img alt="" src="/static/img/9to5.webp" width="200" height="200">
           </div>
+
           <div class="bt849 dpa850 econGrid-item econGrid-grid-xs-12">
-            <p class="econTypo-root font848 econTypo-body1">費用</p>
+            <p class="econTypo-root font848 econTypo-body1 text-lg md:text-xl">費用</p>
             <div class="mdaf851">
-              <p class="econTypo-root font852 econTypo-body1" style="color: rgb(79, 83, 92);">
-                30,000
-                <span class="econTypo-root econTypo-body1" style="font-size: 20px; font-weight: 700;">円</span>
+              <p class="econTypo-root font852 econTypo-body1 text-2xl md:text-3xl text-white">
+                2000
+                <span class="econTypo-root econTypo-body1" style="font-size: 24px; font-weight: 700;">元</span>
               </p>
             </div>
           </div>
           <div class="bt849 dpa850 econGrid-item econGrid-grid-xs-12">
-            <p class="econTypo-root font848 econTypo-body1">時間</p>
+            <p class="econTypo-root font848 econTypo-body1 text-lg md:text-xl">時間</p>
             <div class="mdaf851">
-              <p class="econTypo-root font852 econTypo-body1" style="color: rgb(79, 83, 92);">
+              <p class="econTypo-root font852 econTypo-body1 text-2xl md:text-3xl text-white">
                 120
-                <span class="econTypo-root econTypo-body1" style="font-size: 20px; font-weight: 700;">時間</span>
+                <span class="econTypo-root econTypo-body1" style="font-size: 24px; font-weight: 700;">小時</span>
               </p>
-              <p class="econTypo-root econTypo-body1" style="color: rgb(79, 83, 92); font-size: 10px; font-weight: 700;">1冊あたり6時間</p>
+              <p class="econTypo-root econTypo-body1 text-sm md:text-base text-white" style="font-weight: 700;">每本書需要6小時</p>
             </div>
           </div>
         </div>
         <div class="border846 econGrid-container econGrid-item econGrid-grid-xs-6">
           <div class="econGrid-item econGrid-grid-xs-12">
-            <p class="econTypo-root font847 econTypo-body1 econAlignCenter" style="color: rgb(63, 198, 255);">Dラボなら</p>
+            <p class="econTypo-root font847 econTypo-body1 econAlignCenter text-xl md:text-2xl" style="color: #F8CF40;">使用金法師</p>
           </div>
           <div class="justifyCenter853 econGrid-container econGrid-item econGrid-grid-xs-12">
             <img alt="" src="/static/media/books_compare_dlab.6191d7ba.webp" width="120" height="205">
           </div>
           <div class="bt849 dpa850 econGrid-item econGrid-grid-xs-12">
-            <p class="econTypo-root font848 econTypo-body1">費用</p>
+            <p class="econTypo-root font848 econTypo-body1 text-lg md:text-xl">費用</p>
             <div class="mdaf851">
-              <p class="econTypo-root font852 econTypo-body1" style="color: rgb(251, 153, 63);">
-                1,333
-                <span class="econTypo-root econTypo-body1" style="font-size: 20px; font-weight: 700;">円</span>
+              <p class="econTypo-root font852 econTypo-body1 text-2xl md:text-3xl" style="color: #F8CF40;">
+                80
+                <span class="econTypo-root econTypo-body1" style="font-size: 24px; font-weight: 700;">元</span>
               </p>
             </div>
           </div>
           <div class="bt849 dpa850 econGrid-item econGrid-grid-xs-12">
-            <p class="econTypo-root font848 econTypo-body1">時間</p>
+            <p class="econTypo-root font848 econTypo-body1 text-lg md:text-xl">時間</p>
             <div class="mdaf851">
-              <p class="econTypo-root font852 econTypo-body1" style="color: rgb(251, 153, 63);">
+              <p class="econTypo-root font852 econTypo-body1 text-2xl md:text-3xl" style="color: #F8CF40;">
                 1
-                <span class="econTypo-root econTypo-body1" style="font-size: 20px; font-weight: 700;">日</span>
+                <span class="econTypo-root econTypo-body1" style="font-size: 24px; font-weight: 700;">天</span>
                 10
-                <span class="econTypo-root econTypo-body1" style="font-size: 20px; font-weight: 700;">分</span>
+                <span class="econTypo-root econTypo-body1" style="font-size: 24px; font-weight: 700;">分鐘</span>
               </p>
-              <p class="econTypo-root econTypo-body1" style="color: rgb(251, 153, 63); font-size: 10px; font-weight: 700;">月4～5時間</p>
+              <p class="econTypo-root econTypo-body1 text-sm md:text-base" style="color: #F8CF40; font-weight: 700;">每月只需4～5小時</p>
             </div>
           </div>
         </div>
         <div class="pos854">
           <svg width="53" height="31" viewBox="0 0 53 31" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0.79541 7.94092H45.271V22.8301H0.79541V7.94092Z" fill="#08AEF4"></path>
-            <path d="M52.0391 15.3855L40.4367 28.7098L40.4367 2.06127L52.0391 15.3855Z" fill="#08AEF4"></path>
+            <path d="M0.79541 7.94092H45.271V22.8301H0.79541V7.94092Z" fill="#0071FF"></path>
+            <path d="M52.0391 15.3855L40.4367 28.7098L40.4367 2.06127L52.0391 15.3855Z" fill="#0071FF"></path>
           </svg>
         </div>
       </div>
@@ -232,7 +237,7 @@
   </div>
 
   <div class="testimonial-section text-white py-16">
-    <h2 class="text-center text-3xl font-bold mb-8">See what our members are saying.</h2>
+    <h2 class="text-center text-3xl font-bold mb-8">聽聽我們的會員怎麼說</h2>
     <div class="testimonial-container flex justify-center items-center">
         <!-- Hide arrows on mobile, show on md (768px) and up -->
         <button class="prev-button bg-gray-800 rounded-full p-2 mx-4 hidden md:block">
@@ -240,11 +245,11 @@
                 <path d="M15 19l-7-7 7-7"></path>
             </svg>
         </button>
-        <img src="/static/img/20220804.jpg" alt="Member Image" class="rounded-lg mx-4" style="max-width: 200px;">
+        <img src="/static/img/20220804.jpg" alt="會員照片" class="rounded-lg mx-4" style="max-width: 200px;">
         <div class="testimonial-card bg-gray-800 p-8 rounded-lg max-w-md">
-            <p class="mb-4">"I've watched 36 MasterClasses by tuning in while I'm in the bathroom, eating, and doing chores around the house. MasterClass teaches us how to live—with passion, grit, humility, and with a process that makes our life journeys something to savor instead."</p>
-            <p class="font-bold">Clarissa</p>
-            <p>Founder & Teacher, USA</p>
+            <p class="mb-4">"我在洗手間、吃飯和做家務時收看了36堂大師課。金法師教導我們如何生活——以熱情、毅力、謙遜的態度，以及一個讓我們的人生旅程值得品味的過程。"</p>
+            <p class="font-bold">克拉麗莎</p>
+            <p>創辦人兼教師，美國</p>
         </div>
         <button class="next-button bg-gray-800 rounded-full p-2 mx-4 hidden md:block">
             <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
@@ -258,84 +263,166 @@
         <span class="dot bg-white rounded-full w-2 h-2 mx-1"></span>
     </div>
   </div>
-  
-    <h2 class="text-white text-center text-3xl font-bold mb-8">Frequently asked questions.</h2>
-    <div class="accordion row-accordion">
-      <div class="accordion-item col-md-8 offset-md-2 mb-4">
-        <div data-accordion-component="AccordionItem" class="mc-accordion__item mc-mb-4">
-          <div data-accordion-component="AccordionItemHeading" aria-level="4" role="heading" class="accordion__heading">
-            <div class="mc-accordion__button mc-p-4 mc-mb-1 undefined flex justify-between items-center w-full" id="accordion__heading-faq.general.question1" aria-disabled="false" aria-expanded="false" aria-controls="accordion__panel-faq.general.question1" role="button" tabindex="0" data-accordion-component="AccordionItemButton">
-              <p class="mc-text--bold">What is MasterClass?</p>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" fill="none" viewBox="0 0 24 24" aria-hidden="true" role="img" class="mc-icon mc-icon--md mc-ml-5 mc-accordion__icon undefined">
-                <path fill="currentColor" fill-rule="evenodd" d="M2.325 7.322a1.12 1.12 0 0 1 1.572 0L12 15.344l8.103-8.022a1.12 1.12 0 0 1 1.572 0c.433.43.433 1.126 0 1.556l-8.89 8.8a1.12 1.12 0 0 1-1.57 0l-8.89-8.8a1.09 1.09 0 0 1 0-1.556" clip-rule="evenodd"></path>
-              </svg>
-            </div>
-          </div>
-          <div data-accordion-component="AccordionItemPanel" class="accordion__panel" id="accordion__panel-faq.general.question1" hidden="">
-            <div class="mc-p-4 mc-pt-0 mc-mb-1 undefined">
-              <p class="mc-opacity--hinted">MasterClass is the streaming platform that makes it possible for anyone to watch or listen to hundreds of video lessons taught by 200+ of the world's best.</p> 
-              <br> 
-              <p class="mc-opacity--hinted">Whether it be in business and leadership, photography, cooking, writing, acting, music, sports and more, MasterClass delivers a world class online learning experience. Video lessons are available anytime, anywhere on your smartphone, personal computer, Apple TV and FireTV streaming media players.</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div class="accordion-item col-md-8 offset-md-2 mb-4">
-        <div data-accordion-component="AccordionItem" class="mc-accordion__item mc-mb-4">
-          <div data-accordion-component="AccordionItemHeading" aria-level="4" role="heading" class="accordion__heading">
-            <div class="mc-accordion__button mc-p-4 mc-mb-1 undefined flex justify-between items-center w-full" id="accordion__heading-faq.general.question2" aria-disabled="false" aria-expanded="false" aria-controls="accordion__panel-faq.general.question2" role="button" tabindex="0" data-accordion-component="AccordionItemButton">
-              <p class="mc-text--bold">What is included in a MasterClass membership?</p>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" fill="none" viewBox="0 0 24 24" aria-hidden="true" role="img" class="mc-icon mc-icon--md mc-ml-5 mc-accordion__icon undefined">
-                <path fill="currentColor" fill-rule="evenodd" d="M2.325 7.322a1.12 1.12 0 0 1 1.572 0L12 15.344l8.103-8.022a1.12 1.12 0 0 1 1.572 0c.433.43.433 1.126 0 1.556l-8.89 8.8a1.12 1.12 0 0 1-1.57 0l-8.89-8.8a1.09 1.09 0 0 1 0-1.556" clip-rule="evenodd"></path>
-              </svg>
-            </div>
+  <section id="membership-plan-box" data-scroll-id="membership-tile" class="martop-20 lg:mb-16 mb-10 flex flex-col items-center gap-8 px-4">
+    <div class="relative h-fit w-[300px] rounded-lg p-px text-left sm:p-px md:w-[376px] lg:w-[440px] xl:w-[450px]">
+      <div class="gradient-background absolute left-0 top-0 h-full w-full rounded-lg p-px lg:rounded-2xl"></div>
+      <div class="bg-stark relative z-10 flex h-full min-h-fit flex-col items-center gap-6 rounded-lg p-6 py-12 opacity-[0.975] md:py-16 lg:gap-12 lg:rounded-2xl xl:px-12">
+        <!-- Plan Header -->
+        <header class="text-center lg:mt-3">
+          <div>
+            <h2 class="xl:leading-11 font-base mb-1 uppercase tracking-widest md:whitespace-nowrap md:text-xl lg:text-2xl lg:tracking-[0.25rem] xl:text-[2rem]">
+              年度學費方案
+            </h2> 
           </div>
-          <div data-accordion-component="AccordionItemPanel" class="accordion__panel" id="accordion__panel-faq.general.question2" hidden="">
-            <div class="mc-p-4 mc-pt-0 mc-mb-1 undefined">
-              <p class="mc-opacity--hinted">Your MasterClass membership includes unlimited access to all classes, new classes as they launch, downloadable workbooks, and our smartphone and TV apps.</p>
+        </header>
+        <div class="text-primary flex h-full max-w-96 flex-col gap-6 text-center lg:gap-10">
+          <p class="text-primary text-[11px] font-light leading-5 lg:text-[0.875rem] xl:text-base/7">
+            立即註冊，即可完整存取金法師學院所有現有和未來課程，每月新增四堂精彩課程。
+          </p> 
+          <div class="flex h-full min-h-20 flex-col justify-center gap-4 xl:gap-6">
+            <div>
+              <p class="text-primary text-lg/5 font-semibold lg:text-2xl/5 xl:text-3xl/6">
+                <span>HK$960</span> 
+              </p> 
+              <p class="text-tertiary text-[0.75rem]/6 lg:text-sm/8">
+                （年繳方案）
+              </p>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="accordion-item col-md-8 offset-md-2 mb-4">
-        <div data-accordion-component="AccordionItem" class="mc-accordion__item mc-mb-4">
-          <div data-accordion-component="AccordionItemHeading" aria-level="4" role="heading" class="accordion__heading">
-            <div class="mc-accordion__button mc-p-4 mc-mb-1 undefined flex justify-between items-center w-full" id="accordion__heading-faq.general.question3" aria-disabled="false" aria-expanded="false" aria-controls="accordion__panel-faq.general.question3" role="button" tabindex="0" data-accordion-component="AccordionItemButton">
-              <p class="mc-text--bold">Where can I watch?</p>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" fill="none" viewBox="0 0 24 24" aria-hidden="true" role="img" class="mc-icon mc-icon--md mc-ml-5 mc-accordion__icon undefined">
-                <path fill="currentColor" fill-rule="evenodd" d="M2.325 7.322a1.12 1.12 0 0 1 1.572 0L12 15.344l8.103-8.022a1.12 1.12 0 0 1 1.572 0c.433.43.433 1.126 0 1.556l-8.89 8.8a1.12 1.12 0 0 1-1.57 0l-8.89-8.8a1.09 1.09 0 0 1 0-1.556" clip-rule="evenodd"></path>
-              </svg>
-            </div>
-          </div>
-          <div data-accordion-component="AccordionItemPanel" class="accordion__panel" id="accordion__panel-faq.general.question3" hidden="">
-            <div class="mc-p-4 mc-pt-0 mc-mb-1 undefined">
-              <p class="mc-opacity--hinted">With MasterClass, you can learn and be inspired anytime, anywhere, including your smartphone, personal computer, Apple TV, Amazon Fire TV, and Roku players and devices.</p>
-            </div>
-          </div>
-        </div>
+      <!-- Action Button -->
+        <a tabindex="0" 
+           role="link" 
+           href="/signup?from=membership" 
+           class="text-2xs/3 px-6 py-3 tracking-[0.28em] md:px-8 md:py-5 md:text-sm/4 xl:px-12 xl:py-6 font-montserrat group relative m-px flex h-fit items-center justify-center whitespace-nowrap font-normal uppercase text-white w-1/2 mx-auto tracking-widest svelte-13w7uxb" 
+           data-testid="enroll-button" 
+           disabled="false" 
+           id="enroll-button" 
+           type="submit"
+        >
+          <span class="relative z-10">Enroll now</span> 
+          <span class="clipped bg-linear-gradient absolute -left-[1.5px] -top-[1.5px] z-0 h-[calc(100%+3px)] w-[calc(100%+3px)] opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 group-focus-visible:opacity-100"></span> 
+          <span class="clipped bg-brand absolute -left-[1.5px] -top-[1.5px] z-0 h-[calc(100%+3px)] w-[calc(100%+3px)] opacity-100 transition-opacity duration-300 ease-out group-hover:opacity-0 group-focus-visible:opacity-0"></span>
+        </a>
       </div>
+      </div>
+    </section>
+      
 
-      <div class="accordion-item col-md-8 offset-md-2 mb-4">
-        <div data-accordion-component="AccordionItem" class="mc-accordion__item mc-mb-4">
-          <div data-accordion-component="AccordionItemHeading" aria-level="4" role="heading" class="accordion__heading">
-            <div class="mc-accordion__button mc-p-4 mc-mb-1 undefined flex justify-between items-center w-full" id="accordion__heading-faq.general.question4" aria-disabled="false" aria-expanded="false" aria-controls="accordion__panel-faq.general.question4" role="button" tabindex="0" data-accordion-component="AccordionItemButton">
-              <p class="mc-text--bold">How much does MasterClass cost?</p>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" fill="none" viewBox="0 0 24 24" aria-hidden="true" role="img" class="mc-icon mc-icon--md mc-ml-5 mc-accordion__icon undefined">
-                <path fill="currentColor" fill-rule="evenodd" d="M2.325 7.322a1.12 1.12 0 0 1 1.572 0L12 15.344l8.103-8.022a1.12 1.12 0 0 1 1.572 0c.433.43.433 1.126 0 1.556l-8.89 8.8a1.12 1.12 0 0 1-1.57 0l-8.89-8.8a1.09 1.09 0 0 1 0-1.556" clip-rule="evenodd"></path>
-              </svg>
+
+       <!-- New Mailing List Section -->
+      <section data-scroll-id="newsletter" class="relative flex flex-col items-center gap-8 px-4">
+        <div class="font-montserrat max-w-2xl text-center">
+          <div class="flex flex-col items-center gap-5 sm:gap-8">
+            <h3 class="font-montserrat xl:text-[45px]/18 2xl:text-[2.75rem]/16 3xl:text-4xl/18 sm:text-2xl/11 text-center text-lg/8 font-extralight uppercase tracking-[0.175em] xl:tracking-widest flex items-center gap-4">
+              <span class="xl:text-3xl/13 2xl:text-[2rem]/11 flex items-center gap-4 sm:text-2xl"> 
+                <span class="sm:whitespace-nowrap text-center">Join the Mailing List</span>
+              </span>
+            </h3> 
+            <p class="3xl:text-[18px] text-xs/5 font-light sm:leading-8 2xl:text-base">Be the first to experience exclusive content, receive real-time updates, and participate in
+              live events.
+            </p> 
+            <form class="mt-2 flex w-full flex-col items-center gap-6 md:-mt-6">
+              <input type="email" required="" placeholder="Email Address" autocomplete="email" class="placeholder:text-tertiary h-14 w-full rounded-sm border-b-2 border-b-neutral-700 bg-neutral-900 p-4 text-center text-neutral-400 outline-0 placeholder:text-center focus:border-neutral-400 focus:outline-none md:h-[75%] md:w-4/5 xl:p-6" pattern="[^@]+@[^@]+\.[^@]+" title="The email address must include a domain name"> 
+              <button role="button" class="lg primaryText flex h-fit items-center justify-center whitespace-nowrap text-secondary uppercase hover:underline svelte-qt3urw" id="mailing-list-sign-up-button" data-testid="mailing-list-sign-up-button" type="submit">Join now</button>
+            </form>
+            
+            <form class="max-w-sm mx-auto">
+              <label for="email-address-icon" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your Email</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
+                  <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 16">
+                    <path d="m10.036 8.278 9.258-7.79A1.979 1.979 0 0 0 18 0H2A1.987 1.987 0 0 0 .641.541l9.395 7.737Z"/>
+                    <path d="M11.241 9.817c-.36.275-.801.425-1.255.427-.428 0-.845-.138-1.187-.395L0 2.6V14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2.5l-8.759 7.317Z"/>
+                  </svg>
+                </div>
+                <input type="text" id="email-address-icon" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="name@flowbite.com">
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </section>
+
+      <h2 class="text-white text-center text-3xl font-bold mb-8">常見問題</h2>
+      <div class="accordion row-accordion">
+        <div class="accordion-item col-md-8 offset-md-2 mb-4">
+          <div data-accordion-component="AccordionItem" class="mc-accordion__item mc-mb-4">
+            <div data-accordion-component="AccordionItemHeading" aria-level="4" role="heading" class="accordion__heading">
+              <div class="mc-accordion__button mc-p-4 mc-mb-1 undefined flex justify-between items-center w-full" id="accordion__heading-faq.general.question1" aria-disabled="false" aria-expanded="false" aria-controls="accordion__panel-faq.general.question1" role="button" tabindex="0" data-accordion-component="AccordionItemButton">
+                <p class="mc-text--bold">什麼是金法師？</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" fill="none" viewBox="0 0 24 24" aria-hidden="true" role="img" class="mc-icon mc-icon--md mc-ml-5 mc-accordion__icon undefined">
+                  <path fill="currentColor" fill-rule="evenodd" d="M2.325 7.322a1.12 1.12 0 0 1 1.572 0L12 15.344l8.103-8.022a1.12 1.12 0 0 1 1.572 0c.433.43.433 1.126 0 1.556l-8.89 8.8a1.12 1.12 0 0 1-1.57 0l-8.89-8.8a1.09 1.09 0 0 1 0-1.556" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            </div>
+            <div data-accordion-component="AccordionItemPanel" class="accordion__panel" id="accordion__panel-faq.general.question1" hidden="">
+              <div class="mc-p-4 mc-pt-0 mc-mb-1 undefined">
+                <p class="mc-opacity--hinted">金法師是一個串流平台，讓任何人都能觀看或收聽由200多位世界頂尖大師教授的數百堂視頻課程。</p> 
+                <br> 
+                <p class="mc-opacity--hinted">無論是在商業領導、攝影、烹飪、寫作、表演、音樂、運動等領域，金法師都提供世界級的線上學習體驗。您可以隨時隨地通過智能手機、個人電腦、Apple TV和FireTV串流媒體播放器觀看視頻課程。</p>
+              </div>
             </div>
           </div>
-          <div data-accordion-component="AccordionItemPanel" class="accordion__panel" id="accordion__panel-faq.general.question4" hidden="">
-            <div class="mc-p-4 mc-pt-0 mc-mb-1 undefined">
-              <p class="mc-opacity--hinted">The annual membership is $180 and provides unlimited access to all classes and new classes as they launch. All memberships include access to our mobile and TV apps, high-definition videos, and downloadable workbooks.</p>
+        </div>
+
+        <div class="accordion-item col-md-8 offset-md-2 mb-4">
+          <div data-accordion-component="AccordionItem" class="mc-accordion__item mc-mb-4">
+            <div data-accordion-component="AccordionItemHeading" aria-level="4" role="heading" class="accordion__heading">
+              <div class="mc-accordion__button mc-p-4 mc-mb-1 undefined flex justify-between items-center w-full" id="accordion__heading-faq.general.question2" aria-disabled="false" aria-expanded="false" aria-controls="accordion__panel-faq.general.question2" role="button" tabindex="0" data-accordion-component="AccordionItemButton">
+                <p class="mc-text--bold">金法師會員資格包含什麼？</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" fill="none" viewBox="0 0 24 24" aria-hidden="true" role="img" class="mc-icon mc-icon--md mc-ml-5 mc-accordion__icon undefined">
+                  <path fill="currentColor" fill-rule="evenodd" d="M2.325 7.322a1.12 1.12 0 0 1 1.572 0L12 15.344l8.103-8.022a1.12 1.12 0 0 1 1.572 0c.433.43.433 1.126 0 1.556l-8.89 8.8a1.12 1.12 0 0 1-1.57 0l-8.89-8.8a1.09 1.09 0 0 1 0-1.556" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            </div>
+            <div data-accordion-component="AccordionItemPanel" class="accordion__panel" id="accordion__panel-faq.general.question2" hidden="">
+              <div class="mc-p-4 mc-pt-0 mc-mb-1 undefined">
+                <p class="mc-opacity--hinted">您的金法師會員資格包括無限制訪問所有課程、新課程上線即可觀看、可下載的課程講義，以及我們的智能手機和電視應用程式。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item col-md-8 offset-md-2 mb-4">
+          <div data-accordion-component="AccordionItem" class="mc-accordion__item mc-mb-4">
+            <div data-accordion-component="AccordionItemHeading" aria-level="4" role="heading" class="accordion__heading">
+              <div class="mc-accordion__button mc-p-4 mc-mb-1 undefined flex justify-between items-center w-full" id="accordion__heading-faq.general.question3" aria-disabled="false" aria-expanded="false" aria-controls="accordion__panel-faq.general.question3" role="button" tabindex="0" data-accordion-component="AccordionItemButton">
+                <p class="mc-text--bold">在哪裡可以觀看？</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" fill="none" viewBox="0 0 24 24" aria-hidden="true" role="img" class="mc-icon mc-icon--md mc-ml-5 mc-accordion__icon undefined">
+                  <path fill="currentColor" fill-rule="evenodd" d="M2.325 7.322a1.12 1.12 0 0 1 1.572 0L12 15.344l8.103-8.022a1.12 1.12 0 0 1 1.572 0c.433.43.433 1.126 0 1.556l-8.89 8.8a1.12 1.12 0 0 1-1.57 0l-8.89-8.8a1.09 1.09 0 0 1 0-1.556" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            </div>
+            <div data-accordion-component="AccordionItemPanel" class="accordion__panel" id="accordion__panel-faq.general.question3" hidden="">
+              <div class="mc-p-4 mc-pt-0 mc-mb-1 undefined">
+                <p class="mc-opacity--hinted">使用金法師，您可以隨時隨地學習和獲得啟發，包括在智能手機、個人電腦、Apple TV、Amazon Fire TV以及Roku播放器和設備上。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item col-md-8 offset-md-2 mb-4">
+          <div data-accordion-component="AccordionItem" class="mc-accordion__item mc-mb-4">
+            <div data-accordion-component="AccordionItemHeading" aria-level="4" role="heading" class="accordion__heading">
+              <div class="mc-accordion__button mc-p-4 mc-mb-1 undefined flex justify-between items-center w-full" id="accordion__heading-faq.general.question4" aria-disabled="false" aria-expanded="false" aria-controls="accordion__panel-faq.general.question4" role="button" tabindex="0" data-accordion-component="AccordionItemButton">
+                <p class="mc-text--bold">金法師的費用是多少？</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="25" fill="none" viewBox="0 0 24 24" aria-hidden="true" role="img" class="mc-icon mc-icon--md mc-ml-5 mc-accordion__icon undefined">
+                  <path fill="currentColor" fill-rule="evenodd" d="M2.325 7.322a1.12 1.12 0 0 1 1.572 0L12 15.344l8.103-8.022a1.12 1.12 0 0 1 1.572 0c.433.43.433 1.126 0 1.556l-8.89 8.8a1.12 1.12 0 0 1-1.57 0l-8.89-8.8a1.09 1.09 0 0 1 0-1.556" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            </div>
+            <div data-accordion-component="AccordionItemPanel" class="accordion__panel" id="accordion__panel-faq.general.question4" hidden="">
+              <div class="mc-p-4 mc-pt-0 mc-mb-1 undefined">
+                <p class="mc-opacity--hinted">年費會員為180美元，提供無限制訪問所有課程以及新課程上線即可觀看。所有會員資格都包括訪問我們的移動和電視應用程式、高清視頻和可下載的課程講義。</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  
+    
 </main>
 {% include 'base/footer.html' %}
 {% include 'base/footer-sticky.html' %}

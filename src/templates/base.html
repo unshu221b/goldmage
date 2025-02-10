@@ -5,9 +5,12 @@
   <meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'dist/my.css' %}">
   {% tailwind_css %}
   
+
   <title>{% block head_title %}GoldMage - Online Learning Platform{% endblock head_title %}</title>
 </head>
 <body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
@@ -18,5 +21,6 @@
   </div>
 
   {% include 'base/js.html' %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 </body>
 </html>

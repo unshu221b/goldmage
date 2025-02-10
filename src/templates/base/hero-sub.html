@@ -1,0 +1,52 @@
+{% load static %}
+<section id="master-course-promo" class="font-metropolis sm:mt-18 mb-24 mt-12 max-w-screen-2xl md:mt-40 xl:mb-32 xl:scale-90 2xl:mx-auto">
+    <div class="relative flex h-[32rem] flex-col justify-between gap-4 sm:h-[44rem] 2xl:h-[56rem] 2xl:justify-end">
+
+        <!-- Quote Section -->
+        <div class="relative z-10 flex px-6 sm:ml-[10%] md:ml-[5%] lg:top-12 xl:ml-[3.5%] 2xl:left-[3rem] 2xl:top-[-7rem]">
+            <q class="block w-[15.625rem] text-left text-lg/6 font-medium tracking-wide sm:w-[20rem] sm:text-xl/7 md:w-[23rem] md:text-2xl/9 lg:w-[27rem] xl:w-[30rem] xl:text-[38.5px]/[3rem]">
+                透過金法師，您可以在一個月內掌握等同於閱讀20本書的知識精華。這是最高效的學習方式。
+            </q>
+            <img loading="lazy" role="presentation" 
+                class="pointer-events-none absolute left-[12.25rem] top-[-3.75rem] -z-10 w-32 opacity-55 sm:left-[13.5rem] md:left-4 md:top-[-5rem] md:scale-150 xl:left-[3.5rem] 2xl:left-0 2xl:scale-[1.75]" 
+                alt="引號" 
+                src="{% static 'img/quotes.webp' %}">
+        </div>
+
+        <!-- Background Image -->
+        <div class="absolute left-0 top-16 z-0 h-fit w-full sm:top-24 md:top-0">
+            <img loading="lazy" role="presentation" 
+                class="pointer-events-none h-full min-h-[25.5rem] w-full max-w-screen-2xl object-cover sm:h-[40rem] md:h-[46rem] xl:h-[64rem] 2xl:mx-auto" 
+                alt="大師課程背景圖" 
+                src="{% static 'img/master-background.webp' %}">
+            <div class="vignette-gradient absolute left-0 top-0 h-full w-full"></div>
+        </div>
+
+        <!-- Title Section -->
+        <div class="flex flex-col gap-0.5 px-2 xl:flex-row xl:justify-end 2xl:items-end">
+            <img loading="lazy" role="presentation" 
+                class="pointer-events-none z-10 mx-auto w-[21.25rem] sm:w-[28.5rem] md:w-[30rem] xl:mx-0 xl:w-[42rem] 2xl:relative 2xl:left-[-4rem] 2xl:top-[-8rem]" 
+                alt="金法師課程標題" 
+                src="{% static 'img/course-title.webp' %}">
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="relative z-10 mx-auto mt-4 flex w-fit flex-col justify-center gap-4 xl:mt-8 2xl:mt-[-5.5rem]">
+        <button class="text-2xs/3 text-brand px-6 py-3 uppercase tracking-[0.28em] hover:underline md:px-8 md:py-5 md:text-sm/4 lg:px-12 lg:py-6">
+            觀看預告片
+        </button>
+        <a tabindex="0" role="link" href="/signup?from=master-course" 
+           class="text-2xs/3 px-6 py-3 tracking-[0.28em] md:px-8 md:py-5 md:text-sm/4 xl:px-12 xl:py-6 font-montserrat group relative m-px flex h-fit items-center justify-center whitespace-nowrap font-normal uppercase text-white herobutton">
+            <span class="relative z-10">立即報名</span>
+            <span class="clipped herobutton bg-linear-gradient absolute -left-[1.5px] -top-[1.5px] z-0 h-[calc(100%+3px)] w-[calc(100%+3px)] opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100 group-focus-visible:opacity-100"></span>
+            <span class="clipped herobutton bg-gold absolute -left-[1.5px] -top-[1.5px] z-0 h-[calc(100%+3px)] w-[calc(100%+3px)] opacity-100 transition-opacity duration-300 ease-out group-hover:opacity-0 group-focus-visible:opacity-0"></span>
+        </a>
+    </div>
+</section>
+
+<style>
+.vignette-gradient {
+    background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%);
+}
+</style>
