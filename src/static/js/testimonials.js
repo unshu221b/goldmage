@@ -19,8 +19,16 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'Sarah',
             title: 'Creative Director, UK'
         }
-
     ];
+
+    // Preload images
+    const preloadImages = () => {
+        testimonials.forEach(testimonial => {
+            const img = new Image();
+            img.src = testimonial.image;
+        });
+    };
+    preloadImages();
 
     let currentIndex = 0;
     const dots = document.querySelectorAll('.dot');
@@ -31,48 +39,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateTestimonial() {
         const testimonial = testimonials[currentIndex];
+        const nextImage = new Image();
         
-        // Update content with fade effect
-        testimonialImage.style.opacity = '0';
-        testimonialCard.style.opacity = '0';
-        
-        setTimeout(() => {
-            testimonialImage.src = testimonial.image;
-            testimonialCard.innerHTML = `
-                <p class="mb-4">${testimonial.text}</p>
-                <p class="font-bold">${testimonial.name}</p>
-                <p>${testimonial.title}</p>
-            `;
-            testimonialImage.style.opacity = '1';
-            testimonialCard.style.opacity = '1';
-        }, 300);
+        // Start loading the next image
+        nextImage.src = testimonial.image;
+        nextImage.onload = () => {
+            // Fade out current content
+            testimonialImage.style.opacity = '0';
+            testimonialCard.style.opacity = '0';
+            
+            // Update content after fade out
+            setTimeout(() => {
+                testimonialImage.src = testimonial.image;
+                testimonialCard.innerHTML = `
+                    <p class="mb-4">${testimonial.text}</p>
+                    <p class="font-bold">${testimonial.name}</p>
+                    <p>${testimonial.title}</p>
+                `;
+                
+                // Fade in new content
+                testimonialImage.style.opacity = '1';
+                testimonialCard.style.opacity = '1';
+            }, 150); // Reduced timing for smoother transition
+        };
 
-        // Update dots
+        // Update dots immediately
         dots.forEach((dot, index) => {
             dot.style.backgroundColor = index === currentIndex ? 'white' : 'rgba(255, 255, 255, 0.5)';
         });
     }
 
-    // Add click handlers
+    // Add click handlers with debounce
+    let isTransitioning = false;
+    
     prevButton.addEventListener('click', () => {
-        currentIndex = (currentIndex - 1 + testimonials.length) % testimonials.length;
-        updateTestimonial();
+        if (!isTransitioning) {
+            isTransitioning = true;
+            currentIndex = (currentIndex - 1 + testimonials.length) % testimonials.length;
+            updateTestimonial();
+            setTimeout(() => { isTransitioning = false; }, 300);
+        }
     });
 
     nextButton.addEventListener('click', () => {
-        currentIndex = (currentIndex + 1) % testimonials.length;
-        updateTestimonial();
+        if (!isTransitioning) {
+            isTransitioning = true;
+            currentIndex = (currentIndex + 1) % testimonials.length;
+            updateTestimonial();
+            setTimeout(() => { isTransitioning = false; }, 300);
+        }
     });
 
     // Add dot click handlers
     dots.forEach((dot, index) => {
         dot.addEventListener('click', () => {
-            currentIndex = index;
-            updateTestimonial();
+            if (!isTransitioning) {
+                isTransitioning = true;
+                currentIndex = index;
+                updateTestimonial();
+                setTimeout(() => { isTransitioning = false; }, 300);
+            }
         });
     });
 
     // Add transition styles
-    testimonialImage.style.transition = 'opacity 0.3s ease';
-    testimonialCard.style.transition = 'opacity 0.3s ease';
+    testimonialImage.style.transition = 'opacity 0.15s ease';
+    testimonialCard.style.transition = 'opacity 0.15s ease';
+
+    // Initialize first testimonial
+    updateTestimonial();
 });
