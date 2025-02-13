@@ -53,14 +53,14 @@ SECRET_KEY="TEerjMj18ndOIoqxLSOp1I3jWk4tNrE1U1us6++dXKlQmun3c76sk8CyuW52MtlC"
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = str(os.environ.get("DEBUG")) == "True"
 DEBUG = "True"
-ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS")
-ALLOWED_HOSTS = ["127.0.0.1", "0.0.0.0", "localhost"]
-if ENV_ALLOWED_HOSTS:
-    ALLOWED_HOSTS = [ENV_ALLOWED_HOSTS]
+ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS", "127.0.0.1,localhost")
+ALLOWED_HOSTS = ENV_ALLOWED_HOSTS.split(",") + ["0.0.0.0"]
 
-
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
+STRIPE_WEBHOOK_SECRET = 'whsec_2103fd7b7aac811ec4f024a66bf30dda0dc4715a15ac35906801d4de6c7fe250'  # The secret from your CLI output
+STRIPE_PRO_PRICE_ID = config("STRIPE_PRO_PRICE_ID")
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -255,7 +255,9 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
+# Ensure proper MIME types
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 from .cdn.conf import * # noqa

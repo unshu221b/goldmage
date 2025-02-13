@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     && node -v && npm -v \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . /app
+COPY . /app/
 WORKDIR /app
 
 RUN python3 -m venv /opt/venv

@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from django.http import HttpResponse
 
 from emails.views import verify_email_token_view, resend_verification_email
-from . import views
+from . import views, webhooks
 
 
 
@@ -31,6 +31,7 @@ def health_check(request):
 urlpatterns = [
     path("", views.home_view, name="home"),
     path("dashboard/", views.dashboard_view, name="dashboard"),
+    path("settings/", views.settings_view, name="settings"),
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("signup/", views.signup_view, name="signup"),
@@ -39,6 +40,11 @@ urlpatterns = [
     path("courses/", include("courses.urls")),
     path("admin/", admin.site.urls),
     path('health/', health_check, name='health_check'),
+    path('payment/checkout/', views.payment_checkout, name='payment_checkout'),
+    path('payment/return/', views.payment_return, name='payment_return'),
+    path('webhook/', webhooks.stripe_webhook, name='stripe-webhook'),
+    path('create-customer-portal-session', views.create_portal_session, name='create-portal-session'),
+    path('create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
 ]
 
 if settings.DEBUG:

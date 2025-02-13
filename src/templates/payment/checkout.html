@@ -1,0 +1,34 @@
+{% load static tailwind_tags %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'dist/my.css' %}">
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="{% static 'js/checkout.js' %}" defer></script>
+  {% tailwind_css %}
+  
+
+  <title>{% block head_title %}GoldMage - Online Learning Platform{% endblock head_title %}</title>
+</head>
+
+<body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <div class="flex items-center px-4 pt-2">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" class="h-14">
+        <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">GoldMage</span>
+    </div>
+    <!-- Display a payment form -->
+    <div class="container mx-auto mt-20 p-4">
+        <div id="checkout" class="bg-gm rounded-lg shadow-lg p-6">
+        <!-- Checkout will insert the payment form here -->
+        </div>
+    </div>
+
+  {% include 'base/js.html' %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+</body>
+</html>

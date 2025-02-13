@@ -26,6 +26,26 @@ class Email(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    # Add Stripe customer ID field
+    customer_id = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True,
+        help_text='Stripe customer ID'
+    )
+
+    # New account type field
+    ACCOUNT_TYPES = (
+        ('FREE', 'Free'),
+        ('PRO', 'Pro'),
+    )
+    account_type = models.CharField(
+        max_length=10, 
+        choices=ACCOUNT_TYPES, 
+        default='FREE',
+        help_text='Type of account subscription'
+    )
+
     # Add related_name to avoid clashes
     groups = models.ManyToManyField(
         'auth.Group',
