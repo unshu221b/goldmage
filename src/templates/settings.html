@@ -14,7 +14,7 @@
                 <h1 class="text-3xl font-bold text-white">
                     Settings
                 </h1>
-                <h3 class="text-white font-semibold text-lg mb-2">You can manage your account, billing, and team settings here.</h3>
+                <h3 class="text-white font-semibold text-lg mb-2">您可以在此管理您的帳戶、帳單和團隊設定。</h3>
             </div>
         </header>
         <div class="flex w-full flex-row items-start gap-4">
@@ -24,15 +24,15 @@
                         <div class="col-span-1 flex flex-col gap-2 xl:gap-4">
                             <div class="rounded-2xl border text-white border-brand-neutrals-800 bg-brand-medium-black md:rounded-3xl flex flex-col gap-1.5 p-6 md:gap-3.5">
                                 <div class="flex h-10 justify-between gap-2">
-                                    <h2 class="pt-0.5 text-xl/[1.375rem] font-semibold -tracking-4 md:text-2xl/[1.875rem]">Basic Information</h2>
+                                    <h2 class="pt-0.5 text-xl/[1.375rem] font-semibold -tracking-4 md:text-2xl/[1.875rem]">基本資訊</h2>
                                 </div>
                                 <div class="flex w-full flex-col gap-2">
                                     <div class="flex items-center justify-between gap-2">
-                                        <p class="text-sm/[1.5rem] font-semibold -tracking-4 md:text-base/[1.125rem]">Name</p>
+                                        <p class="text-sm/[1.5rem] font-semibold -tracking-4 md:text-base/[1.125rem]">姓名</p>
                                         <p class="md:font-semibold whitespace-pre-line text-base/[1.5rem] text-gray-500">{{ user.email|split:"@" }}</p>
                                     </div>
                                     <div class="flex items-center justify-between gap-2">
-                                        <p class="text-sm/[1.5rem] font-semibold -tracking-4 md:text-base/[1.125rem]">Email</p>
+                                        <p class="text-sm/[1.5rem] font-semibold -tracking-4 md:text-base/[1.125rem]">電子郵件</p>
                                         <p class="md:font-semibold whitespace-pre-line text-base/[1.5rem] text-gray-500">{{ user.email }}</p>
                                     </div>
                                 </div>
@@ -40,7 +40,7 @@
                         </div>
                         <div class="col-span-2">
                             <div class="rounded-2xl border text-white border-brand-neutrals-800 bg-brand-medium-black md:rounded-3xl flex flex-col gap-1.5 p-6 md:gap-3.5">
-                                <h2 class="pt-0.5 text-xl/[1.375rem] font-semibold -tracking-4 md:text-2xl/[1.875rem]">Account</h2>
+                                <h2 class="pt-0.5 text-xl/[1.375rem] font-semibold -tracking-4 md:text-2xl/[1.875rem]">帳戶</h2>
                                 <div class="inline-flex items-center font-mono text-xs/[1rem] md:text-sm/[1.25rem] tracking-2 px-1 py-0.5 rounded-[0.25rem] transition-colors motion-reduce:transition-none bg-brand-neutrals-50 dark:bg-brand-neutrals-900 !text-xs">
                                     <span class="font-bold">{{ user.account_type|title }}</span>
                                 </div>
@@ -50,14 +50,14 @@
                                             onclick="createPortalSession(this)" 
                                             class="relative inline-flex items-center justify-center whitespace-nowrap rounded-lg uppercase disabled:pointer-events-none disabled:opacity-50 overflow-hidden transition-[color,background-color,border-color,opacity] before:absolute before:-inset-0 after:absolute after:inset-0 motion-reduce:transition-none border border-brand-neutrals-800 hover:!border-brand-gray-400 after:transition-colors after:duration-300 p-2 md:px-3 md:py-2.5 font-semibold text-xs/[1rem]"
                                         >
-                                            <span class="relative z-10 flex">Manage Subscription</span>
+                                            <span class="relative z-10 flex">管理訂閱</span>
                                         </button>
                                     {% else %}
                                         <button 
                                             onclick="createCheckoutSession(this)" 
                                             class="relative inline-flex items-center justify-center whitespace-nowrap rounded-lg uppercase disabled:pointer-events-none disabled:opacity-50 overflow-hidden transition-[color,background-color,border-color,opacity] before:absolute before:-inset-0 after:absolute after:inset-0 motion-reduce:transition-none border border-brand-neutrals-800 hover:!border-brand-gray-400 after:transition-colors after:duration-300 p-2 md:px-3 md:py-2.5 font-semibold text-xs/[1rem]"
                                         >
-                                            <span class="relative z-10 flex">Upgrade to Pro</span>
+                                            <span class="relative z-10 flex">升級至會員版</span>
                                         </button>
                                     {% endif %}
                                 </div>

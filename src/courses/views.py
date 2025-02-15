@@ -1,8 +1,13 @@
 import helpers
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect
+import logging
+from cloudinary.utils import cloudinary_url
 
 from . import services
+from .models import Course, Lesson
+
+logger = logging.getLogger(__name__)
 
 def course_list_view(request):
     queryset = services.get_publish_courses()
@@ -37,22 +42,18 @@ def lesson_detail_view(request, course_id=None, lesson_id=None, *args, **kwargs)
     )
     if lesson_obj is None:
         raise Http404
-    email_id_exists = request.session.get('email_id')
-    if lesson_obj.requires_email and not email_id_exists:
-        print(request.path)
+
+    # Check if user is authenticated instead of email_id
+    if lesson_obj.requires_email and not request.user.is_authenticated:
         request.session['next_url'] = request.path
-        return render(request, "courses/email-required.html", {})
-    # template_name = "courses/purchase-required.html"
+        return redirect('login')  # Use your login URL name here
+        
     template_name = "courses/lesson-coming-soon.html"
     context = {
         "object": lesson_obj
     }
+    
     if not lesson_obj.is_coming_soon and lesson_obj.has_video:
-        """
-        Lesson is published
-        Video is available
-        go forward
-        """
         template_name = "courses/lesson.html"
         video_embed_html = helpers.get_cloudinary_video_object(
             lesson_obj, 
@@ -62,3 +63,23 @@ def lesson_detail_view(request, course_id=None, lesson_id=None, *args, **kwargs)
         )
         context['video_embed'] = video_embed_html
     return render(request, template_name, context)
+
+def get_thumbnails(request, category):
+    try:
+        if category == 'Home':
+            lessons = Lesson.objects.filter(featured=True)
+        else:
+            lessons = Lesson.objects.filter(category=category)
+            
+        thumbnails = [{
+            'title': lesson.title,
+            'lesson_url': lesson.get_absolute_url(),
+            'image_url': lesson.thumbnail.url,
+            'duration': str(lesson.duration),
+            'progress': lesson.get_progress(request.user),
+            'subtitle': lesson.subtitle
+        } for lesson in lessons]
+        
+        return JsonResponse(thumbnails, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

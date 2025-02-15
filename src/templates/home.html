@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block head_title %}
   歡迎來到金法師 - 向最優秀的導師學習
@@ -462,3 +463,8 @@
 {% include 'base/footer.html' %}
 {% include 'base/footer-sticky.html' %}
 {% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/testimonials.js' %}"></script>
+<script src="{% static 'js/thumbnails.js' %}"></script>
+{% endblock extra_js %}

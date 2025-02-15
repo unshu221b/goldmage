@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from emails import services as emails_services
 from emails.models import Email, EmailVerificationEvent
 from emails.forms import EmailForm
+from courses.models import Course, Lesson, PublishStatus
 
 import stripe
 # This is your test secret API key.
@@ -43,11 +44,15 @@ def home_view(request):
 
 @login_required
 def dashboard_view(request):
-    # No need to redirect for verification now since we show the banner in dashboard
+    # Get all courses and lessons
+    courses = Course.objects.all()
+    continue_watching = Lesson.objects.filter(status=PublishStatus.PUBLISHED).order_by('-updated')[:6]
+    
     context = {
-        "user": request.user,
+        'continue_watching': continue_watching,
+        'courses': courses,
     }
-    return render(request, "dashboard.html", context)
+    return render(request, 'dashboard.html', context)
 
 @login_required
 def settings_view(request):

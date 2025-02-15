@@ -1,111 +1,107 @@
-{% extends 'base.html' %}
-{% load static %}
+{% load static tailwind_tags %}
 {% load custom_filters %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'dist/my.css' %}">
+  {% tailwind_css %}
+  
 
-{% block head_title %}
-  Dashboard
-{% endblock head_title %}
-
-{% block content %}
-{% csrf_token %}
-
-<div class="bg-gm min-h-screen pt-16">
-    <!-- Verification Modal -->
-    {% if not user.is_verified %}
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Background overlay -->
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-
-            <!-- Modal panel -->
-            <div class="relative inline-block align-bottom px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6" style="background-color: rgb(181 59 75); padding-bottom: 0.1rem;">
-                <div>
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
-                        <svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
+  <title>{% block head_title %}GoldMage - Dashboard{% endblock head_title %}</title>
+</head>
+<body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {% include 'base/navbar-dashboard.html' %}
+  <!-- Main Content -->
+  <div class="p-4 sm:ml-64" style="padding-top: 40px;">
+    <div class="dash-body border-2 border-dashed rounded-lg border-gray-700 mt-14">
+       <div class="grid grid-cols-3 gap-4 mb-4 dash-row">
+          <div class="flex items-center justify-center h-24 rounded-sm bg-gm">
+                    <!-- Dashboard Header -->
+                    <div class="category-container font-bold">
+                        <button class="Pill_Dashboard active" data-category="trending">
+                          <span>Home</span>
+                        </button>
                     </div>
-                    <div class="mt-3 text-center sm:mt-5">
-                        <h3 class="text-lg leading-6 font-medium text-white" id="modal-title">
-                            Email Verification Required
-                        </h3>
-                        <div class="mt-2 flex items-center justify-between px-4">
-                            <p class="text-sm text-gray-300">
-                                Please verify your email address to access all features.
-                            </p>
-                            <button id="resend-verification" 
-                                class="ml-4 inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-1 bg-yellow-600 text-xs font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                                Resend Email
-                            </button>
+
+          </div>
+          <!-- Continue Watching Section -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold">Continue Watching</h2>
+                    <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
+                 </div>
+                 
+                 <div class="relative carousel-container">
+                    <!-- Arrow Left -->
+                    <button class="carousel-nav prev absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full opacity-0 transition-opacity duration-300">
+                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                       </svg>
+                    </button>
+        
+                    <!-- Slides Container -->
+                    <div class="slides-container overflow-hidden">
+                        <div class="slides-track flex transition-transform duration-300" style="gap: 1rem;">
+                            {% for lesson in continue_watching %}
+                            <div class="video-card flex-none w-1/6">
+                                <a href="{{ lesson.get_absolute_url }}" class="block relative group">
+                                    <div class="aspect-w-16 aspect-h-9 bg-gray-800 rounded-lg overflow-hidden">
+                                        {% if lesson.get_thumbnail %}
+                                            <img src="{{ lesson.get_thumbnail }}" alt="{{ lesson.title }}" class="object-cover w-full h-full">
+                                        {% endif %}
+                                        {% if lesson.video %}
+                                            <div class="absolute bottom-2 right-2 px-2 py-1 text-xs bg-black/70 rounded">
+                                                <!-- Add video duration if available -->
+                                                {{ lesson.video.duration|default:"" }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mt-2">
+                                        <h3 class="text-sm font-semibold text-white truncate">{{ lesson.title }}</h3>
+                                        <p class="text-xs text-gray-400">{{ lesson.course.title }}</p>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
-                </div>
-            </div>
+
+                    <!-- Arrow Right -->
+                    <button class="carousel-nav next absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full opacity-0 transition-opacity duration-300">
+                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                       </svg>
+                    </button>
+                 </div>
+              </div>
+        
+              <!-- Season 4 Section -->
+              <div class="mb-12">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold">Season 4</h2>
+                    <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
+                 </div>
+                 <!-- Similar grid structure as above -->
+              </div>
+        
+              <!-- Featured Content Section -->
+              <div class="mb-12">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold">Featured Content</h2>
+                    <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
+                 </div>
+                 <!-- Similar grid structure as above -->
+              </div>
+           </div>
         </div>
-    </div>
-    {% endif %}
 
-    <!-- Dashboard Header -->
-    <header class="py-6 px-4 sm:px-6 lg:px-8" style="padding-top: 5.2rem;">
-        <div class="max-w-7xl mx-auto">
-            <h1 class="text-3xl font-bold text-white">
-                Welcome back, {{ user.email|split:"@" }}
-            </h1>
-        </div>
-    </header>
+ 
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Continue Learning Section -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-bold text-white mb-6">Continue Learning</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="bg-gray-800 rounded-lg overflow-hidden">
-                    <img src="{% static 'img/ur11.png' %}" alt="Course thumbnail" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <h3 class="text-white font-semibold text-lg mb-2">年始に読むと人生変わる本TOP5</h3>
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-400">Progress: 60%</span>
-                            <a href="#" class="text-blue-500 hover:text-blue-400">Continue</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Your Courses Section -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-bold text-white mb-6">Your Courses</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Course cards will be dynamically added here -->
-            </div>
-        </section>
-
-        <!-- Recommended Section -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-bold text-white mb-6">Recommended for You</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Recommended courses will be dynamically added here -->
-            </div>
-        </section>
-
-        <!-- Quick Stats -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-gray-800 rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-white mb-2">Learning Streak</h3>
-                <p class="text-3xl font-bold text-blue-500">7 Days</p>
-            </div>
-            <div class="bg-gray-800 rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-white mb-2">Courses Completed</h3>
-                <p class="text-3xl font-bold text-green-500">3</p>
-            </div>
-            <div class="bg-gray-800 rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-white mb-2">Hours Learned</h3>
-                <p class="text-3xl font-bold text-purple-500">24</p>
-            </div>
-        </section>
-    </main>
-</div>
 
 <!-- Add this script at the end of the file -->
 <script>
@@ -157,4 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-{% endblock %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
+</body>
+</html>
