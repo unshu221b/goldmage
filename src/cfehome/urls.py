@@ -22,7 +22,7 @@ from django.http import HttpResponse
 
 from emails.views import verify_email_token_view, resend_verification_email
 from . import views, webhooks
-
+from courses import views as course_views
 
 
 def health_check(request):
@@ -45,6 +45,7 @@ urlpatterns = [
     path('webhook/', webhooks.stripe_webhook, name='stripe-webhook'),
     path('create-customer-portal-session', views.create_portal_session, name='create-portal-session'),
     path('create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
+    path('api/update-progress/', course_views.update_progress, name='update_progress'),
 ]
 
 if settings.DEBUG:

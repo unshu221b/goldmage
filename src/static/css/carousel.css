@@ -1,0 +1,84 @@
+.slider-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.slider-frame {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.slider-list {
+    display: flex;
+    transition: transform 0.3s ease;
+}
+
+.slide {
+    flex: 0 0 20%; /* 5 slides per view */
+    padding: 0 0.5rem;
+    box-sizing: border-box;
+}
+
+.thumbnailWrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.5rem;
+}
+
+.aspect-video {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+}
+
+.aspect-video img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Navigation buttons */
+.slider-control-centerleft,
+.slider-control-centerright {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+
+.slider-control-centerleft {
+    left: 0;
+}
+
+.slider-control-centerright {
+    right: 0;
+}
+
+.leftButton,
+.rightButton {
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.leftButton:hover,
+.rightButton:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.leftButton:disabled,
+.rightButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+} 

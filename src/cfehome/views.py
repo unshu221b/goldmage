@@ -44,13 +44,29 @@ def home_view(request):
 
 @login_required
 def dashboard_view(request):
-    # Get all courses and lessons
+    # Get courses and continue watching with progress
     courses = Course.objects.all()
-    continue_watching = Lesson.objects.filter(status=PublishStatus.PUBLISHED).order_by('-updated')[:6]
+    
+    # Get lessons with watch progress
+    continue_watching = Lesson.objects.filter(
+        watchprogress__user=request.user,
+        watchprogress__current_time__gt=0,
+        status=PublishStatus.PUBLISHED
+    ).order_by('-watchprogress__last_watched')[:10]  # Get 10 items for 2 slides of 5
+
+    # If no watched lessons, show latest published lessons
+    if not continue_watching:
+        continue_watching = Lesson.objects.filter(
+            status=PublishStatus.PUBLISHED
+        ).order_by('-updated')[:10]
+    
+    # Check if request is from mobile
+    is_mobile = request.user_agent.is_mobile if hasattr(request, 'user_agent') else False
     
     context = {
         'continue_watching': continue_watching,
         'courses': courses,
+        'is_mobile': is_mobile,
     }
     return render(request, 'dashboard.html', context)
 

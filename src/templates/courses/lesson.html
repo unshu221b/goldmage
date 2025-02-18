@@ -1,12 +1,116 @@
-{% extends "base.html" %}
+{% load static tailwind_tags %}
+{% load custom_filters %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'dist/my.css' %}">
+  {% tailwind_css %}
+<!-- Add this near the top of your template -->
+<script type="text/javascript">
+    window.LESSON_ID = "{{ lesson.id }}";
+</script>
+  <title>{% block head_title %}{{ object.title }} | GoldMage{% endblock head_title %}</title>
+</head>
+<body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {% include 'base/navbar-dashboard.html' %}
+<div class="flex flex-col lg:flex-row min-h-screen bg-black text-white" style="padding-top: 62px;">
+    <!-- Main Video Section -->
+    <div class="_contentLayout_lesson">
+        <!-- Left Column -->
+        <div>
+            <!-- Video Player Container -->
+            <div class="_container_lesson">
+                <div class="_player_lesson">
+                    {{ video_embed|safe }}
+                </div>
+            </div>
 
+            <!-- Video Info Below Player -->
+            <div class="bg-gray-900 rounded-lg p-4 mt-4">
+                <h1 class="text-2xl font-bold mb-2">{{ object.title }}</h1>
+                {% if object.description %}
+                <p class="text-gray-400">{{ object.description }}</p>
+                {% endif %}
+                
+                <!-- Engagement Buttons -->
+                <div class="flex items-center gap-8 mt-4">
+                    <button class="flex items-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                        <span class="text-sm">Like</span>
+                    </button>
+                    
+                    <button class="flex items-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                        </svg>
+                        <span class="text-sm">Share</span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-{% block content %}
-
-
-<h1>{{ object.title }}</h1>
-
-
-{{ video_embed }}
-
-{% endblock content %}
+        <!-- Right Sidebar -->
+        <div class="bg-gray-900 rounded-lg p-4">
+            <h2 class="text-xl font-bold mb-4">Watch Next</h2>
+            <div class="space-y-4">
+                {% for lesson in next_lessons %}
+                <a href="{{ lesson.get_absolute_url }}" class="flex gap-4 cursor-pointer hover:bg-gray-800 p-2 rounded">
+                    <div class="relative w-40 aspect-video bg-gray-800">
+                        {% if lesson.thumbnail %}
+                        <img src="{{ lesson.get_thumbnail }}" alt="{{ lesson.title }}" class="w-full h-full object-cover rounded">
+                        {% endif %}
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-medium">{{ lesson.title }}</h3>
+                        <p class="text-sm text-gray-400">{{ lesson.timestamp|timesince }} ago</p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add this before closing body tag -->
+<script src="{% static 'js/lesson.js' %}"></script>
+</body>
+{% include 'base/js.html' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('logo-sidebar');
+        if (sidebar) {
+            sidebar.style.transform = 'translateX(-100%)';
+        }
+    
+        const sidebarButton = document.querySelector('[data-drawer-toggle="logo-sidebar"]');
+        let isOpen = false;  // Start closed
+    
+        if (sidebarButton && sidebar) {
+            sidebarButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                isOpen = !isOpen;
+                
+                if (isOpen) {
+                    sidebar.style.transform = 'translateX(0)';
+                } else {
+                    sidebar.style.transform = 'translateX(-100%)';
+                }
+            });
+        }
+    
+        // Remove backdrop when clicking anywhere on the document
+        document.addEventListener('click', function() {
+            const backdrop = document.querySelector('.bg-gray-900\\/50');
+            if (backdrop) {
+                backdrop.remove();
+            }
+        });
+    });
+</script>

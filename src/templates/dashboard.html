@@ -1,3 +1,4 @@
+{% load humanize %}
 {% load static tailwind_tags %}
 {% load custom_filters %}
 <!doctype html>
@@ -9,6 +10,8 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'dist/my.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/carousel.css' %}">
+    <script src="{% static 'js/jssor.slider.min.js' %}"></script>
   {% tailwind_css %}
   
 
@@ -16,89 +19,89 @@
 </head>
 <body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include 'base/navbar-dashboard.html' %}
+
   <!-- Main Content -->
   <div class="p-4 sm:ml-64" style="padding-top: 40px;">
     <div class="dash-body border-2 border-dashed rounded-lg border-gray-700 mt-14">
        <div class="grid grid-cols-3 gap-4 mb-4 dash-row">
-          <div class="flex items-center justify-center h-24 rounded-sm bg-gm">
-                    <!-- Dashboard Header -->
-                    <div class="category-container font-bold">
-                        <button class="Pill_Dashboard active" data-category="trending">
-                          <span>Home</span>
-                        </button>
-                    </div>
 
-          </div>
           <!-- Continue Watching Section -->
-            <div class="mb-8">
-                <div class="flex justify-between items-center mb-4">
+          <div style="padding-top: 40px;">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
                     <h2 class="text-2xl font-semibold">Continue Watching</h2>
-                    <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
-                 </div>
-                 
-                 <div class="relative carousel-container">
-                    <!-- Arrow Left -->
-                    <button class="carousel-nav prev absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full opacity-0 transition-opacity duration-300">
-                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                       </svg>
-                    </button>
-        
-                    <!-- Slides Container -->
-                    <div class="slides-container overflow-hidden">
-                        <div class="slides-track flex transition-transform duration-300" style="gap: 1rem;">
-                            {% for lesson in continue_watching %}
-                            <div class="video-card flex-none w-1/6">
-                                <a href="{{ lesson.get_absolute_url }}" class="block relative group">
-                                    <div class="aspect-w-16 aspect-h-9 bg-gray-800 rounded-lg overflow-hidden">
-                                        {% if lesson.get_thumbnail %}
-                                            <img src="{{ lesson.get_thumbnail }}" alt="{{ lesson.title }}" class="object-cover w-full h-full">
-                                        {% endif %}
-                                        {% if lesson.video %}
-                                            <div class="absolute bottom-2 right-2 px-2 py-1 text-xs bg-black/70 rounded">
-                                                <!-- Add video duration if available -->
-                                                {{ lesson.video.duration|default:"" }}
-                                            </div>
-                                        {% endif %}
+                </div>
+                <a href="#" class="text-sm text-white hover:text-teal-300 but_w">See all</a>
+            </div>        
+        </div>
+            
+            <div id="jssor_1" style="position: relative; margin: 0 auto; top: 0px; left: 0px; width: 1504px; height: 300px; overflow: hidden;">
+                <!-- Slides Container -->
+                <div data-u="slides" style="position: absolute; top: 0px; left: 0px; width: 1504px; height: 300px;">
+                    {% for lesson in continue_watching %}
+                    <div style="width: 288px;">
+                        <!-- Main content wrapper -->
+                        <div class="flex flex-col h-full">
+                            <a href="{{ lesson.get_absolute_url }}" class="block">
+                                <!-- Image wrapper -->
+                                <div class="relative w-full h-[200px]">
+                                    <img 
+                                        src="{{ lesson.get_thumbnail }}" 
+                                        alt="{{ lesson.title }}" 
+                                        class="w-full h-full object-cover rounded-lg"
+                                    >
+                                    <!-- Duration overlay -->
+                                    {% if lesson.duration %}
+                                    <div class="_duration">
+                                        {{ lesson.duration }}
                                     </div>
-                                    <div class="mt-2">
-                                        <h3 class="text-sm font-semibold text-white truncate">{{ lesson.title }}</h3>
-                                        <p class="text-xs text-gray-400">{{ lesson.course.title }}</p>
-                                    </div>
-                                </a>
-                            </div>
-                            {% endfor %}
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Text content with increased spacing and font sizes -->
+                                <div class="mt-4">
+                                    <h3 class="font-semibold text-base overflow-hidden max-h-[2.5rem] line-clamp-2">{{ lesson.title }}</h3>
+                                    <p class="text-sm text-gray-400">{{ lesson.updated|naturaltime }}</p>
+                                </div>
+                            </a>
                         </div>
                     </div>
+                    {% endfor %}
+                </div>
 
-                    <!-- Arrow Right -->
-                    <button class="carousel-nav next absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full opacity-0 transition-opacity duration-300">
-                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                       </svg>
-                    </button>
-                 </div>
-              </div>
+                <!-- Arrow Navigator with original styling -->
+                <div data-u="arrowleft" class="carousel-nav prev absolute rounded-full p-2 cursor-pointer _button_cw _carousel_cw transition-all" style="top: 50%; transform: translateY(-50%); left: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </div>
+                <div data-u="arrowright" class="carousel-nav next absolute rounded-full p-2 cursor-pointer _button_cw _carousel_cw transition-all" style="top: 50%; transform: translateY(-50%); right: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </div>
+
         
-              <!-- Season 4 Section -->
-              <div class="mb-12">
-                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Season 4</h2>
-                    <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
-                 </div>
-                 <!-- Similar grid structure as above -->
-              </div>
-        
-              <!-- Featured Content Section -->
-              <div class="mb-12">
-                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-semibold">Featured Content</h2>
-                    <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
-                 </div>
-                 <!-- Similar grid structure as above -->
-              </div>
+        <!-- Season 4 Section -->
+        <div class="mb-12">
+           <div class="flex justify-between items-center mb-4">
+              <h2 class="text-2xl font-semibold">Season 4</h2>
+              <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
            </div>
+           <!-- Similar grid structure as above -->
         </div>
+    
+        <!-- Featured Content Section -->
+        <div class="mb-12">
+           <div class="flex justify-between items-center mb-4">
+              <h2 class="text-2xl font-semibold">Featured Content</h2>
+              <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
+           </div>
+           <!-- Similar grid structure as above -->
+        </div>
+     </div>
+  </div>
 
  
 
@@ -152,8 +155,77 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarButton = document.querySelector('[data-drawer-toggle="logo-sidebar"]');
+    const sidebar = document.getElementById('logo-sidebar');
+    let isOpen = true;
+
+    if (sidebarButton && sidebar) {
+        sidebarButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            isOpen = !isOpen;
+            
+            if (isOpen) {
+                sidebar.style.transform = 'translateX(0)';
+            } else {
+                sidebar.style.transform = 'translateX(-100%)';
+            }
+        });
+    }
+
+    // Remove backdrop when clicking anywhere on the document
+    document.addEventListener('click', function() {
+        const backdrop = document.querySelector('.bg-gray-900\\/50');
+        if (backdrop) {
+            backdrop.remove();
+        }
+    });
+});
+
+jssor_1_slider_init = function() {
+    var options = {
+        $AutoPlay: 0,
+        $SlideWidth: 288,
+        $SlideSpacing: 20,
+        $SlideHeight: 260,
+        $DisplayPieces: 5,
+        $ArrowNavigatorOptions: {
+            $Class: $JssorArrowNavigator$,
+            $ChanceToShow: 2,
+            $Steps: 1
+        },
+        $Idle: 0,
+        $DragOrientation: 1,
+        $FillMode: 0
+    };
+
+    var jssor_1_slider = new $JssorSlider$("jssor_1", options);
+
+    function ScaleSlider() {
+        var parentWidth = jssor_1_slider.$Elmt.parentNode.clientWidth;
+        if (parentWidth) {
+            if (parentWidth < 768) {
+                jssor_1_slider.$ScaleWidth(Math.min(parentWidth, 288));
+                jssor_1_slider.$SetOptions({$DisplayPieces: 1});
+            } else if (parentWidth < 1024) {
+                jssor_1_slider.$ScaleWidth(Math.min(parentWidth, 896));
+                jssor_1_slider.$SetOptions({$DisplayPieces: 3});
+            } else {
+                jssor_1_slider.$ScaleWidth(Math.min(parentWidth, 1504));
+                jssor_1_slider.$SetOptions({$DisplayPieces: 5});
+            }
+        }
+    }
+
+    ScaleSlider();
+    window.addEventListener("resize", ScaleSlider);
+};
+
+jssor_1_slider_init();
 </script>
-<script src="{% static 'js/dashboard.js' %}"></script>
+<!-- <script src="{% static 'js/dashboard.js' %}"></script> -->
+<!--<script src="{% static 'js/carousel.js' %}"></script>-->
 <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
 </body>
 </html>

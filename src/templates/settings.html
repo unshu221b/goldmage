@@ -1,12 +1,21 @@
-{% extends 'base.html' %}
-{% load static %}
+{% load static tailwind_tags %}
 {% load custom_filters %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'dist/my.css' %}">
+  {% tailwind_css %}
+  
 
-{% block head_title %}
-  Settings
-{% endblock head_title %}
-
-{% block content %}
+  <title>{% block head_title %}Settings | GoldMage{% endblock head_title %}</title>
+</head>
+<body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {% include 'base/navbar-dashboard.html' %}
 <main class="flex flex-col">
     <div class="page container">
         <header class="py-6 px-4 sm:px-6 lg:px-8">
@@ -69,7 +78,8 @@
         </div>
     </div>
 </main>
-
+</body>
+{% include 'base/footer.html' %}
 <script>
 async function createPortalSession(button) {
     // Disable button to prevent double-clicks
@@ -121,6 +131,36 @@ function getCookie(name) {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('logo-sidebar');
+    if (sidebar) {
+        sidebar.style.transform = 'translateX(-100%)';
+    }
+
+    const sidebarButton = document.querySelector('[data-drawer-toggle="logo-sidebar"]');
+    let isOpen = false;  // Start closed
+
+    if (sidebarButton && sidebar) {
+        sidebarButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            isOpen = !isOpen;
+            
+            if (isOpen) {
+                sidebar.style.transform = 'translateX(0)';
+            } else {
+                sidebar.style.transform = 'translateX(-100%)';
+            }
+        });
+    }
+
+    // Remove backdrop when clicking anywhere on the document
+    document.addEventListener('click', function() {
+        const backdrop = document.querySelector('.bg-gray-900\\/50');
+        if (backdrop) {
+            backdrop.remove();
+        }
+    });
+});
 </script>
-{% include 'base/footer.html' %}
-{% endblock %} 

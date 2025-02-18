@@ -3,6 +3,8 @@ import helpers
 from django.db import models
 from django.utils.text import slugify
 from cloudinary.models import CloudinaryField
+from django.contrib.auth.models import User
+from django.conf import settings
 
 helpers.cloudinary_init()
 
@@ -176,6 +178,7 @@ class Lesson(models.Model):
     )
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    duration_seconds = models.IntegerField(null=True, blank=True)  # Store duration in seconds
 
     class Meta:
         ordering = ['order', '-updated']
@@ -230,3 +233,35 @@ class Lesson(models.Model):
             width=width
         )
         return 
+
+    def get_progress(self, user):
+        """Get the watch progress for a specific user"""
+        try:
+            progress = WatchProgress.objects.get(user=user, lesson=self)
+            return round((progress.current_time / progress.total_duration) * 100)
+        except WatchProgress.DoesNotExist:
+            return 0
+
+    @property
+    def duration(self):
+        if not self.duration_seconds:
+            return None
+            
+        hours = self.duration_seconds // 3600
+        minutes = (self.duration_seconds % 3600) // 60
+        seconds = self.duration_seconds % 60
+        
+        if hours > 0:
+            return f"{hours}:{minutes:02d}:{seconds:02d}"
+        else:
+            return f"{minutes}:{seconds:02d}"
+
+class WatchProgress(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE)
+    current_time = models.FloatField(default=0)  # in seconds
+    total_duration = models.FloatField(default=0)  # in seconds
+    last_watched = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['user', 'lesson'] 
