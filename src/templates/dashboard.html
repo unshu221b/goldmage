@@ -23,84 +23,18 @@
   <!-- Main Content -->
   <div class="p-4 sm:ml-64" style="padding-top: 40px;">
     <div class="dash-body border-2 border-dashed rounded-lg border-gray-700 mt-14">
-       <div class="grid grid-cols-3 gap-4 mb-4 dash-row">
+        <div class="mb-4">
+            <!-- Continue Watching Section -->
+            {% include 'base/continue-watching.html' %}
+            <!-- Featured Content Section -->
+            {% include 'base/featured-content.html' %}
 
-          <!-- Continue Watching Section -->
-          <div style="padding-top: 40px;">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <h2 class="text-2xl font-semibold">Continue Watching</h2>
-                </div>
-                <a href="#" class="text-sm text-white hover:text-teal-300 but_w">See all</a>
-            </div>        
-        </div>
-            
-            <div id="jssor_1" style="position: relative; margin: 0 auto; top: 0px; left: 0px; width: 1504px; height: 300px; overflow: hidden;">
-                <!-- Slides Container -->
-                <div data-u="slides" style="position: absolute; top: 0px; left: 0px; width: 1504px; height: 300px;">
-                    {% for lesson in continue_watching %}
-                    <div style="width: 288px;">
-                        <!-- Main content wrapper -->
-                        <div class="flex flex-col h-full">
-                            <a href="{{ lesson.get_absolute_url }}" class="block">
-                                <!-- Image wrapper -->
-                                <div class="relative w-full h-[200px]">
-                                    <img 
-                                        src="{{ lesson.get_thumbnail }}" 
-                                        alt="{{ lesson.title }}" 
-                                        class="w-full h-full object-cover rounded-lg"
-                                    >
-                                    <!-- Duration overlay -->
-                                    {% if lesson.duration %}
-                                    <div class="_duration">
-                                        {{ lesson.duration }}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Text content with increased spacing and font sizes -->
-                                <div class="mt-4">
-                                    <h3 class="font-semibold text-base overflow-hidden max-h-[2.5rem] line-clamp-2">{{ lesson.title }}</h3>
-                                    <p class="text-sm text-gray-400">{{ lesson.updated|naturaltime }}</p>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
 
-                <!-- Arrow Navigator with original styling -->
-                <div data-u="arrowleft" class="carousel-nav prev absolute rounded-full p-2 cursor-pointer _button_cw _carousel_cw transition-all" style="top: 50%; transform: translateY(-50%); left: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                </div>
-                <div data-u="arrowright" class="carousel-nav next absolute rounded-full p-2 cursor-pointer _button_cw _carousel_cw transition-all" style="top: 50%; transform: translateY(-50%); right: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-            </div>
+            <!-- Suggested Content Section -->
+            {% include 'base/suggested-content.html' %}
 
-        
-        <!-- Season 4 Section -->
-        <div class="mb-12">
-           <div class="flex justify-between items-center mb-4">
-              <h2 class="text-2xl font-semibold">Season 4</h2>
-              <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
-           </div>
-           <!-- Similar grid structure as above -->
         </div>
-    
-        <!-- Featured Content Section -->
-        <div class="mb-12">
-           <div class="flex justify-between items-center mb-4">
-              <h2 class="text-2xl font-semibold">Featured Content</h2>
-              <a href="#" class="text-sm text-teal-400 hover:text-teal-300">See all</a>
-           </div>
-           <!-- Similar grid structure as above -->
-        </div>
-     </div>
+    </div>
   </div>
 
  
@@ -182,47 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
-jssor_1_slider_init = function() {
-    var options = {
-        $AutoPlay: 0,
-        $SlideWidth: 288,
-        $SlideSpacing: 20,
-        $SlideHeight: 260,
-        $DisplayPieces: 5,
-        $ArrowNavigatorOptions: {
-            $Class: $JssorArrowNavigator$,
-            $ChanceToShow: 2,
-            $Steps: 1
-        },
-        $Idle: 0,
-        $DragOrientation: 1,
-        $FillMode: 0
-    };
-
-    var jssor_1_slider = new $JssorSlider$("jssor_1", options);
-
-    function ScaleSlider() {
-        var parentWidth = jssor_1_slider.$Elmt.parentNode.clientWidth;
-        if (parentWidth) {
-            if (parentWidth < 768) {
-                jssor_1_slider.$ScaleWidth(Math.min(parentWidth, 288));
-                jssor_1_slider.$SetOptions({$DisplayPieces: 1});
-            } else if (parentWidth < 1024) {
-                jssor_1_slider.$ScaleWidth(Math.min(parentWidth, 896));
-                jssor_1_slider.$SetOptions({$DisplayPieces: 3});
-            } else {
-                jssor_1_slider.$ScaleWidth(Math.min(parentWidth, 1504));
-                jssor_1_slider.$SetOptions({$DisplayPieces: 5});
-            }
-        }
-    }
-
-    ScaleSlider();
-    window.addEventListener("resize", ScaleSlider);
-};
-
-jssor_1_slider_init();
 </script>
 <!-- <script src="{% static 'js/dashboard.js' %}"></script> -->
 <!--<script src="{% static 'js/carousel.js' %}"></script>-->

@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from emails import services as emails_services
 from emails.models import Email, EmailVerificationEvent
 from emails.forms import EmailForm
-from courses.models import Course, Lesson, PublishStatus
+from courses.models import Course, Lesson, PublishStatus, WatchProgress
 
 import stripe
 # This is your test secret API key.
@@ -47,12 +47,12 @@ def dashboard_view(request):
     # Get courses and continue watching with progress
     courses = Course.objects.all()
     
-    # Get lessons with watch progress
-    continue_watching = Lesson.objects.filter(
-        watchprogress__user=request.user,
-        watchprogress__current_time__gt=0,
-        status=PublishStatus.PUBLISHED
-    ).order_by('-watchprogress__last_watched')[:10]  # Get 10 items for 2 slides of 5
+    continue_watching = WatchProgress.objects.filter(
+        user=request.user,
+        # Optionally filter out completed videos (e.g., > 90% watched)
+        # current_time__lt=F('total_duration') * 0.9
+    ).select_related('lesson').order_by('-last_watched')[:5]  # Last 5 watched
+
 
     # If no watched lessons, show latest published lessons
     if not continue_watching:
@@ -60,13 +60,11 @@ def dashboard_view(request):
             status=PublishStatus.PUBLISHED
         ).order_by('-updated')[:10]
     
-    # Check if request is from mobile
-    is_mobile = request.user_agent.is_mobile if hasattr(request, 'user_agent') else False
     
     context = {
         'continue_watching': continue_watching,
-        'courses': courses,
-        'is_mobile': is_mobile,
+        'featured_lessons': Lesson.get_featured(),
+        'suggested_lessons': WatchProgress.get_suggested_lessons(request.user),
     }
     return render(request, 'dashboard.html', context)
 

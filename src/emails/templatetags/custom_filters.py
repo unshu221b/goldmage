@@ -13,3 +13,7 @@ def split(value, key):
         if parts:
             return parts[0]  # Return entire first part
     return value  # Return original if splitting fails
+
+@register.filter
+def multiply(value, arg):
+    return value * arg
