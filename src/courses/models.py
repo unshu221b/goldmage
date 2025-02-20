@@ -290,9 +290,10 @@ class WatchProgress(models.Model):
 
     @property
     def progress_percentage(self):
-        if self.total_duration == 0:
-            return 0
-        return round((self.current_time / self.total_duration) * 100)
+        """Calculate the percentage of video watched"""
+        if self.total_duration > 0:
+            return min(round((self.current_time / self.total_duration) * 100), 100)
+        return 0
 
     def update_progress(self, current_time):
         self.current_time = current_time

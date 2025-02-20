@@ -3,8 +3,10 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect
 import logging
 from cloudinary.utils import cloudinary_url
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 import json
+from django.views.decorators.csrf import csrf_exempt  # Temporarily add this
+from django.contrib.auth.decorators import login_required
 
 from . import services
 from .models import Course, Lesson, PublishStatus, WatchProgress
@@ -62,7 +64,7 @@ def course_detail_view(request, course_id=None, *args, **kwarg):
     return render(request, "courses/detail.html", context)
 
 
-def lesson_detail_view(request, course_id=None, lesson_id=None, *args, **kwargs):
+def lesson_detail_view(request, course_id, lesson_id, *args, **kwargs):
     lesson_obj = services.get_lesson_detail(
         course_id=course_id,
         lesson_id=lesson_id
@@ -83,7 +85,8 @@ def lesson_detail_view(request, course_id=None, lesson_id=None, *args, **kwargs)
 
     context = {
         "object": lesson_obj,
-        "next_lessons": next_lessons
+        "next_lessons": next_lessons,
+        "lesson_id": lesson_obj.public_id
     }
     
     if not lesson_obj.is_coming_soon and lesson_obj.has_video:
@@ -120,18 +123,26 @@ def get_thumbnails(request, category):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@login_required
 @require_POST
 def update_progress(request):
-    data = json.loads(request.body)
-    lesson_id = data.get('lesson_id')
-    current_time = data.get('current_time')
-    total_duration = data.get('total_duration')
-
-    if not all([lesson_id, current_time, total_duration]):
-        return JsonResponse({'error': 'Missing required fields'}, status=400)
-
+    print("Update progress called")  # Debug print
+    print("Request method:", request.method)
+    print("Request path:", request.path)
+    print("User:", request.user)
+    
     try:
-        lesson = Lesson.objects.get(id=lesson_id)
+        data = json.loads(request.body)
+        print("Received data:", data)
+        
+        lesson_id = data.get('lesson_id')
+        current_time = data.get('current_time')
+        total_duration = data.get('total_duration')
+
+        if not all([lesson_id, current_time, total_duration]):
+            return JsonResponse({'error': 'Missing required fields'}, status=400)
+
+        lesson = Lesson.objects.get(public_id=lesson_id)
         progress, created = WatchProgress.objects.get_or_create(
             user=request.user,
             lesson=lesson,
@@ -139,13 +150,36 @@ def update_progress(request):
                 'total_duration': total_duration
             }
         )
-        progress.current_time = current_time
-        if not created:
-            progress.total_duration = total_duration
-        progress.save()
+        
+        progress.update_progress(current_time)
         
         return JsonResponse({
-            'progress': round((current_time / total_duration) * 100)
+            'success': True,
+            'progress': progress.progress_percentage
         })
-    except Lesson.DoesNotExist:
-        return JsonResponse({'error': 'Lesson not found'}, status=404)
+    except Exception as e:
+        print("Error in update_progress:", str(e))
+        import traceback
+        traceback.print_exc()  # This will print the full error traceback
+        return JsonResponse({'error': str(e)}, status=400)
+
+@login_required
+def get_progress(request, lesson_id):
+    try:
+        lesson = Lesson.objects.get(public_id=lesson_id)
+        progress = WatchProgress.objects.get(
+            user=request.user,
+            lesson=lesson
+        )
+        return JsonResponse({
+            'current_time': progress.current_time,
+            'total_duration': progress.total_duration
+        })
+    except WatchProgress.DoesNotExist:
+        return JsonResponse({
+            'current_time': 0,
+            'total_duration': 0
+        })
+    except Exception as e:
+        print("Error in get_progress:", str(e))
+        return JsonResponse({'error': str(e)}, status=400)

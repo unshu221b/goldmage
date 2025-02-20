@@ -17,3 +17,7 @@ def split(value, key):
 @register.filter
 def multiply(value, arg):
     return value * arg
+
+@register.filter
+def get_class(value):
+    return value.__class__.__name__

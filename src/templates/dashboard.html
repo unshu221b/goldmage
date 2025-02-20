@@ -1,4 +1,3 @@
-{% load humanize %}
 {% load static tailwind_tags %}
 {% load custom_filters %}
 <!doctype html>
@@ -10,12 +9,11 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'dist/my.css' %}">
-    <link rel="stylesheet" href="{% static 'dist/carousel.css' %}">
     <script src="{% static 'js/jssor.slider.min.js' %}"></script>
   {% tailwind_css %}
   
 
-  <title>{% block head_title %}GoldMage - Dashboard{% endblock head_title %}</title>
+  <title>Home | GoldMage</title>
 </head>
 <body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include 'base/navbar-dashboard.html' %}
@@ -24,17 +22,18 @@
   <div class="p-4 sm:ml-64" style="padding-top: 40px;">
     <div class="dash-body border-2 border-dashed rounded-lg border-gray-700 mt-14">
         <div class="mb-4">
-            <!-- Continue Watching Section -->
+            <!-- Continue Watching Section - Helps users resume their progress -->
             {% include 'base/continue-watching.html' %}
-            <!-- Featured Content Section -->
+
+            <!-- Featured Content Section - Showcases our best and most popular work -->
             {% include 'base/featured-content.html' %}
 
-
-            <!-- Suggested Content Section -->
+            <!-- Discovery Section - Introduces novel, unexpected content to spark interest -->
             {% include 'base/suggested-content.html' %}
-
         </div>
+
     </div>
+    {% include 'base/footer-dashboard.html' %}
   </div>
 
  

@@ -37,6 +37,7 @@ def get_cloudinary_video_object(instance,
                                 quality = "auto",
                                 controls=True,
                                 autoplay=True,
+                                api=True,  # Enable the player API
                                 ):
     if not hasattr(instance, field_name):
          return ""

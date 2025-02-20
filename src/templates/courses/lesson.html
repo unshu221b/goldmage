@@ -30,6 +30,9 @@
                 </div>
             </div>
 
+            <!-- Debug info -->
+            <div style="display:none">Debug: Lesson ID = {{ lesson_id }}</div>
+
             <!-- Video Info Below Player -->
             <div class="bg-gray-900 rounded-lg p-4 mt-4">
                 <h1 class="text-2xl font-bold mb-2">{{ object.title }}</h1>
@@ -114,3 +117,97 @@
         });
     });
 </script>
+
+<!-- Add this script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Script loaded');
+    
+    const videoElement = document.querySelector('.cld-video-player video');
+    console.log('Video element:', videoElement);
+    
+    const lessonId = "{{ lesson_id|escapejs }}";
+    console.log('Lesson ID:', lessonId);
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    console.log('CSRF Token:', csrfToken ? 'Found' : 'Not found');
+    
+    let lastUpdateTime = 0;
+    const updateInterval = 5000;
+
+    videoElement.addEventListener('timeupdate', function() {
+        const now = Date.now();
+        if (now - lastUpdateTime >= updateInterval) {
+            const currentTime = videoElement.currentTime;
+            const duration = videoElement.duration;
+            console.log('Updating progress:', {
+                currentTime: currentTime,
+                duration: duration
+            });
+            updateProgress(currentTime, duration);
+            lastUpdateTime = now;
+        }
+    });
+
+    function updateProgress(currentTime, duration) {
+        fetch('/courses/api/watch-progress/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({
+                lesson_id: lessonId,
+                current_time: currentTime,
+                total_duration: duration
+            }),
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error('Error updating progress:', data.error);
+            } else {
+                console.log('Progress updated successfully:', data);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Load saved progress when video is ready
+    videoElement.addEventListener('loadedmetadata', function() {
+        if (lessonId) {
+            fetch(`/courses/api/watch-progress/${lessonId}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.current_time > 0) {
+                        console.log('Resuming from:', data.current_time);
+                        videoElement.currentTime = data.current_time;
+                    }
+                })
+                .catch(error => console.error('Error loading progress:', error));
+        }
+    });
+
+    // Make sure we have the CSRF token in the template
+    if (!csrfToken) {
+        console.error('CSRF token not found! Make sure to include {% csrf_token %} in your template');
+    }
+});
+</script>
+
+{% csrf_token %}  <!-- Make sure this is present -->

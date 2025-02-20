@@ -6,6 +6,9 @@ from django.contrib.auth.decorators import login_required
 import re
 from django.urls import reverse
 from django.http import JsonResponse
+from itertools import chain
+from django.db.models import Count, Q
+import random
 
 from emails import services as emails_services
 from emails.models import Email, EmailVerificationEvent
@@ -44,29 +47,81 @@ def home_view(request):
 
 @login_required
 def dashboard_view(request):
-    # Get courses and continue watching with progress
-    courses = Course.objects.all()
     
-    continue_watching = WatchProgress.objects.filter(
-        user=request.user,
-        # Optionally filter out completed videos (e.g., > 90% watched)
-        # current_time__lt=F('total_duration') * 0.9
-    ).select_related('lesson').order_by('-last_watched')[:5]  # Last 5 watched
-
-
-    # If no watched lessons, show latest published lessons
-    if not continue_watching:
-        continue_watching = Lesson.objects.filter(
-            status=PublishStatus.PUBLISHED
-        ).order_by('-updated')[:10]
+    # Get recently watched videos
+    watched_videos = WatchProgress.objects.filter(
+        user=request.user
+    ).select_related('lesson').order_by('-last_watched')[:6]
     
+    # Get recent published lessons not in watch history
+    recent_lessons = Lesson.objects.filter(
+        status=PublishStatus.PUBLISHED,
+        course__status=PublishStatus.PUBLISHED
+    ).exclude(
+        watchprogress__user=request.user  # Exclude watched lessons
+    ).order_by('-updated')[:10]
+    
+    # Combine both querysets
+    continue_watching = list(chain(watched_videos, recent_lessons))[:10]  # Ensure we have up to 10 items
+
+    #########################################################
+    # Base queryset for all published lessons
+    suggested_base = Lesson.objects.filter(
+        status=PublishStatus.PUBLISHED,
+        course__status=PublishStatus.PUBLISHED
+    ).select_related('course').exclude(
+        watchprogress__user=request.user  # Exclude all watched lessons upfront
+    )
+    
+    # 1. Get lessons from courses user has watched (up to 5)
+    watched_course_lessons = suggested_base.filter(
+        course__lesson__watchprogress__user=request.user
+    ).distinct()[:5]
+    
+    # 2. Get popular lessons, excluding ones from watched courses (up to 3)
+    popular_lessons = suggested_base.exclude(
+        id__in=watched_course_lessons.values_list('id', flat=True)
+    ).annotate(
+        watch_count=Count('watchprogress')
+    ).filter(watch_count__gt=0).order_by('-watch_count')[:6]
+    
+    # 3. Get latest lessons, excluding both above sets (up to 4)
+    latest_lessons = suggested_base.exclude(
+        id__in=list(chain(
+            watched_course_lessons.values_list('id', flat=True),
+            popular_lessons.values_list('id', flat=True)
+        ))
+    ).order_by('-updated')[:4]
+    
+    # Combine all sources
+    suggested_lessons = list(chain(
+        watched_course_lessons,
+        popular_lessons,
+        latest_lessons
+    ))
+
+    # Shuffle the final list
+    random.shuffle(suggested_lessons)
     
     context = {
         'continue_watching': continue_watching,
         'featured_lessons': Lesson.get_featured(),
-        'suggested_lessons': WatchProgress.get_suggested_lessons(request.user),
+        'suggested_lessons': suggested_lessons,
     }
     return render(request, 'dashboard.html', context)
+
+@login_required
+def continue_watching_all_view(request):
+    # Get recently watched videos with related lesson data
+    watched_videos = WatchProgress.objects.filter(
+        user=request.user
+    ).select_related('lesson', 'lesson__course').order_by('-last_watched')
+    
+    context = {
+        'continue_watching': watched_videos,
+        'title': 'Continue Watching'
+    }
+    return render(request, 'continue_watching_all.html', context)
 
 @login_required
 def settings_view(request):
@@ -88,6 +143,17 @@ def settings_view(request):
     
     return render(request, 'settings.html', context)
 
+@login_required
+def history_view(request):
+    return render(request, 'history.html')
+
+@login_required
+def liked_videos_view(request):
+    return render(request, 'liked_videos.html')
+
+@login_required
+def help_view(request):
+    return render(request, 'help.html')
 
 def login_view(request):
     # Redirect if already logged in

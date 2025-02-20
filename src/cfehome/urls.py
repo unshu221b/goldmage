@@ -45,7 +45,10 @@ urlpatterns = [
     path('webhook/', webhooks.stripe_webhook, name='stripe-webhook'),
     path('create-customer-portal-session', views.create_portal_session, name='create-portal-session'),
     path('create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
-    path('api/update-progress/', course_views.update_progress, name='update_progress'),
+    path('help/', views.help_view, name='help'),
+    path('liked-videos/', views.liked_videos_view, name='liked_videos'),
+    path('history/', views.history_view, name='history'),
+    path('continue-watching/', views.continue_watching_all_view, name='continue_watching_all'),
 ]
 
 if settings.DEBUG:

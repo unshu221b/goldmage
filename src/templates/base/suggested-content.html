@@ -24,7 +24,7 @@
     <div id="jssor_suggested" class="jssor-slider" style="position: relative; margin: 0 auto; top: 0px; left: 0px; width: 1504px; height: 300px; overflow: hidden;">
         <!-- Slides Container -->
         <div data-u="slides" style="position: absolute; top: 0px; left: 0px; width: 1504px; height: 300px;">
-            {% for lesson in suggested_content %}
+            {% for lesson in suggested_lessons %}
             <div style="width: 288px;">
                 <!-- Main content wrapper -->
                 <div class="flex flex-col h-full">
@@ -95,10 +95,13 @@
             if (parentWidth) {
                 if (parentWidth < 768) {
                     jssor_suggested_slider.$ScaleWidth(Math.min(parentWidth, 288));
+                    jssor_suggested_slider.$SetOptions({ $DisplayPieces: 1 });
                 } else if (parentWidth < 1024) {
                     jssor_suggested_slider.$ScaleWidth(Math.min(parentWidth, 896));
+                    jssor_suggested_slider.$SetOptions({ $DisplayPieces: 3 });
                 } else {
                     jssor_suggested_slider.$ScaleWidth(Math.min(parentWidth, 1504));
+                    jssor_suggested_slider.$SetOptions({ $DisplayPieces: 5 });
                 }
             }
         }
