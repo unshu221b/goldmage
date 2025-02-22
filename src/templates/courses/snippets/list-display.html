@@ -1,28 +1,42 @@
-<div class="grid gap-8 lg:grid-cols-3">
-    {% for object in queryset %}
-    <article class="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700 space-y-2">
-        {% if  object.is_coming_soon %}
-        <div class="flex justify-between items-center mb-5 text-gray-500 ">
-             <span class="text-sm">Coming Soon</span>
-        </div>
-        {% endif %}
+{% load humanize custom_filters %}
 
-        {% if object.get_thumbnail %}
-        <a href="{{ object.get_absolute_url }}">
-            <img class="rounded" src="{{ object.get_thumbnail }}" width="382" />
-        </a>
-        {% endif %}
-        <h2 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            <a href="{{ object.get_absolute_url }}">{{ object.title }}</a>
-        </h2>
-       
-        <div class="flex justify-between items-center">
-            
-            <a href="{{ object.get_absolute_url }}" class="inline-flex items-center font-medium text-primary-600 dark:text-primary-500 hover:underline">
-                View
-                <svg class="ml-2 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+<div class="_contentGrid">
+    {% for object in queryset %}
+    <div data-testid="content-card" class="_contentCard">
+        <div data-testid="card" class="_contentCard _card _borderless">
+            <a href="{{ object.get_absolute_url }}" class="_contentCardLinkWrapper">
+                <div class="_contentCardThumbnailWrapper">
+                    <div class="LazyLoad is-visible _contentCardThumbnail">
+                        <img 
+                            src="{{ object.get_thumbnail }}" 
+                            alt="{{ object.title }}" 
+                            aria-hidden="true" 
+                            class="_contentCardThumbnail _image_1v" 
+                        >
+                    </div>
+                    {% if object.duration %}
+                    <div class="_duration">
+                        {{ object.duration }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if object.is_coming_soon %}
+                    <div class="absolute top-2 right-2 bg-gray-800 text-white px-2 py-1 rounded text-sm">
+                        Coming Soon
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-2">
+                    <h3 class="font-semibold text-base overflow-hidden max-h-[2.5rem] line-clamp-2">
+                        {{ object.title }}
+                    </h3>
+                    <p class="text-sm text-gray-400">
+                        Updated {{ object.updated|naturaltime }}
+                    </p>
+                </div>
             </a>
         </div>
-    </article>  
-    {% endfor %}                
+    </div>
+    {% endfor %}
 </div>  

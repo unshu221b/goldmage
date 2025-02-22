@@ -13,52 +13,52 @@
   {% tailwind_css %}
   
 
-  <title>Continue Watching | GoldMage</title>
+  <title>Featured Content | GoldMage</title>
 </head>
 <body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include 'base/navbar-dashboard.html' %}
 
   <!-- Main Content -->
-  <div class="p-4 sm:ml-64 _appContainer" style="padding-top: 50px;">
+  <div class="p-4 sm:ml-64 _appContainer" style="padding-top: 60px;">
     <div class="dash-body-all border-2 border-dashed rounded-lg border-gray-700 mt-14">
         <div class="mb-4">
             <h1 class="text-3xl font-bold text-white">
-                Continue Watching
+                精選內容
             </h1>
         </div>
         <div class="_contentGrid">
-            {% for watch_item in continue_watching %}
+            {% for lesson in featured_lessons %}
             <div data-testid="content-card" class="_contentCard">
                 <div data-testid="card" class="_contentCard _card _borderless">
-                    <a href="{{ watch_item.lesson.get_absolute_url }}" class="_contentCardLinkWrapper">
+                    <a href="{{ lesson.get_absolute_url }}" class="_contentCardLinkWrapper">
                         <div class="_contentCardThumbnailWrapper">
                             <div class="LazyLoad is-visible _contentCardThumbnail">
                                 <img 
-                                    src="{{ watch_item.lesson.get_thumbnail }}" 
+                                    src="{{ lesson.get_thumbnail }}" 
                                     alt="" 
                                     aria-hidden="true" 
                                     class="_contentCardThumbnail _image_1v" 
                                 >
                             </div>
-                            {% if watch_item.lesson.duration %}
+                            {% if lesson.duration %}
                             <div class="_duration">
-                                {{ watch_item.lesson.duration }}
+                                {{ lesson.duration }}
                             </div>
                             {% endif %}
                             
                             <!-- Progress bar -->
                             <div class="_playbackBarContainer">
                                 <div class="_playbackBarBackground"></div>
-                                <div class="_playbackBarProgress" style="width: {{ watch_item.progress_percentage }}%;"></div>
+                                <div class="_playbackBarProgress" style="width: {{ lesson.progress_percentage }}%;"></div>
                             </div>
                         </div>
                         
                         <div class="mt-2">
                             <h3 class="font-semibold text-base overflow-hidden max-h-[2.5rem] line-clamp-2">
-                                {{ watch_item.lesson.title }}
+                                {{ lesson.title }}
                             </h3>
                             <p class="text-sm text-gray-400">
-                                Uploaded at {{ watch_item.lesson.updated|naturaltime }}
+                                Uploaded at {{ lesson.updated|naturaltime }}
                             </p>
                         </div>
                     </a>

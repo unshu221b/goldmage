@@ -1,0 +1,43 @@
+{% load static tailwind_tags %}
+{% load custom_filters %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'dist/my.css' %}">
+    <script src="{% static 'js/jssor.slider.min.js' %}"></script>
+    {% tailwind_css %}
+  
+
+  <title>{% block head_title %}GoldMage - Online Learning Platform{% endblock head_title %}</title>
+</head>
+<body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {% include 'base/navbar-dashboard.html' %}
+  
+  <!-- Main Content -->
+  <div class="p-4 sm:ml-64" style="padding-top: 40px;">
+    <div class="dash-body border-2 border-dashed rounded-lg border-gray-700 mt-14">
+        <div class="mb-4">
+            {% block content %}{% endblock content %}
+        </div>
+    </div>
+    {% include 'base/footer-dashboard.html' %}
+  </div>
+  {% include 'base/js.html' %}
+  <!-- Add this script at the end of the file -->
+  <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
+  {% block extra_js %}{% endblock extra_js %}
+</body>
+</html>
+
+
+
+
+
+ 
+
+

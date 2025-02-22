@@ -47,61 +47,24 @@ def home_view(request):
 
 @login_required
 def dashboard_view(request):
-    
-    # Get recently watched videos
+    # Get recently watched videos (limit to 6)
     watched_videos = WatchProgress.objects.filter(
         user=request.user
-    ).select_related('lesson').order_by('-last_watched')[:6]
+    ).select_related('lesson').order_by('-last_watched')[:10]
     
-    # Get recent published lessons not in watch history
+    # Get recent published lessons not in watch history (limit to 10)
     recent_lessons = Lesson.objects.filter(
         status=PublishStatus.PUBLISHED,
         course__status=PublishStatus.PUBLISHED
     ).exclude(
-        watchprogress__user=request.user  # Exclude watched lessons
-    ).order_by('-updated')[:10]
+        watchprogress__user=request.user
+    ).order_by('-updated')[:6]
     
-    # Combine both querysets
-    continue_watching = list(chain(watched_videos, recent_lessons))[:10]  # Ensure we have up to 10 items
+    # Combine both querysets for continue watching
+    continue_watching = list(chain(watched_videos, recent_lessons))[:10]
 
-    #########################################################
-    # Base queryset for all published lessons
-    suggested_base = Lesson.objects.filter(
-        status=PublishStatus.PUBLISHED,
-        course__status=PublishStatus.PUBLISHED
-    ).select_related('course').exclude(
-        watchprogress__user=request.user  # Exclude all watched lessons upfront
-    )
-    
-    # 1. Get lessons from courses user has watched (up to 5)
-    watched_course_lessons = suggested_base.filter(
-        course__lesson__watchprogress__user=request.user
-    ).distinct()[:5]
-    
-    # 2. Get popular lessons, excluding ones from watched courses (up to 3)
-    popular_lessons = suggested_base.exclude(
-        id__in=watched_course_lessons.values_list('id', flat=True)
-    ).annotate(
-        watch_count=Count('watchprogress')
-    ).filter(watch_count__gt=0).order_by('-watch_count')[:6]
-    
-    # 3. Get latest lessons, excluding both above sets (up to 4)
-    latest_lessons = suggested_base.exclude(
-        id__in=list(chain(
-            watched_course_lessons.values_list('id', flat=True),
-            popular_lessons.values_list('id', flat=True)
-        ))
-    ).order_by('-updated')[:4]
-    
-    # Combine all sources
-    suggested_lessons = list(chain(
-        watched_course_lessons,
-        popular_lessons,
-        latest_lessons
-    ))
-
-    # Shuffle the final list
-    random.shuffle(suggested_lessons)
+    # Get suggested lessons using the model method (limit to 15)
+    suggested_lessons = Lesson.get_suggested(user=request.user)[:15]
     
     context = {
         'continue_watching': continue_watching,
@@ -121,7 +84,28 @@ def continue_watching_all_view(request):
         'continue_watching': watched_videos,
         'title': 'Continue Watching'
     }
-    return render(request, 'continue_watching_all.html', context)
+    return render(request, 'courses/continue_watching_all.html', context)
+
+@login_required
+def featured_content_all_view(request):
+    # Get recently watched videos with related lesson data
+    featured_lessons = Lesson.get_featured()
+    
+    context = {
+        'featured_lessons': featured_lessons,
+        'title': 'Featured Content'
+    }
+    return render(request, 'courses/featured_content_all.html', context)
+
+@login_required
+def suggested_content_all_view(request):
+    suggested_lessons = Lesson.get_suggested(user=request.user)
+    
+    context = {
+        'suggested_lessons': suggested_lessons,
+        'title': 'Suggested Content'
+    }
+    return render(request, 'courses/suggested_content_all.html', context)
 
 @login_required
 def settings_view(request):

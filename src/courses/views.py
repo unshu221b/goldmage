@@ -7,9 +7,12 @@ from django.views.decorators.http import require_POST, require_GET
 import json
 from django.views.decorators.csrf import csrf_exempt  # Temporarily add this
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from . import services
-from .models import Course, Lesson, PublishStatus, WatchProgress
+from .models import Course, Lesson, PublishStatus, WatchProgress, LessonLike
 
 logger = logging.getLogger(__name__)
 
@@ -65,43 +68,36 @@ def course_detail_view(request, course_id=None, *args, **kwarg):
 
 
 def lesson_detail_view(request, course_id, lesson_id, *args, **kwargs):
+    # Get lesson or 404
     lesson_obj = services.get_lesson_detail(
         course_id=course_id,
         lesson_id=lesson_id
     )
     if lesson_obj is None:
         raise Http404
+    
+    suggested_lessons = Lesson.get_suggested(user=request.user)
 
-    if lesson_obj.requires_email and not request.user.is_authenticated:
-        request.session['next_url'] = request.path
-        return redirect('login')
-        
-    # Get next lessons for the "Watch Next" section
-    next_lessons = Lesson.objects.filter(
-        course=lesson_obj.course,
-        order__gt=lesson_obj.order,
-        status=PublishStatus.PUBLISHED
-    ).order_by('order')[:3]
-
+    # Build context
     context = {
         "object": lesson_obj,
-        "next_lessons": next_lessons,
-        "lesson_id": lesson_obj.public_id
+        "lesson_id": lesson_obj.public_id,
+        "can_watch": lesson_obj.user_can_watch(request.user),
+        'suggested_lessons': suggested_lessons,  # Add to context
     }
     
-    if not lesson_obj.is_coming_soon and lesson_obj.has_video:
-        template_name = "courses/lesson.html"
-        video_embed_html = helpers.get_cloudinary_video_object(
+    # Only add video embed if user can watch
+    if context['can_watch']:
+        context['video_embed'] = helpers.get_cloudinary_video_object(
             lesson_obj, 
             field_name='video',
             as_html=True,
-            width=1250
+            width=1250,
+            # Add signed URLs for premium content
+            sign_url=lesson_obj.is_premium
         )
-        context['video_embed'] = video_embed_html
-    else:
-        template_name = "courses/lesson-coming-soon.html"
-        
-    return render(request, template_name, context)
+    
+    return render(request, "courses/lesson.html", context)
 
 def get_thumbnails(request, category):
     try:
@@ -183,3 +179,30 @@ def get_progress(request, lesson_id):
     except Exception as e:
         print("Error in get_progress:", str(e))
         return JsonResponse({'error': str(e)}, status=400)
+
+@login_required
+def toggle_like(request, lesson_id):
+    try:
+        lesson = Lesson.objects.get(public_id=lesson_id)
+        like, created = LessonLike.objects.get_or_create(
+            user=request.user,
+            lesson=lesson
+        )
+        
+        if not created:
+            # User already liked, so unlike
+            like.delete()
+            is_liked = False
+        else:
+            # New like
+            is_liked = True
+            
+        like_count = lesson.lesson_likes.count()
+        
+        return JsonResponse({
+            'success': True,
+            'is_liked': is_liked,
+            'like_count': like_count
+        })
+    except Lesson.DoesNotExist:
+        return JsonResponse({'success': False}, status=404)

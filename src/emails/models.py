@@ -70,6 +70,17 @@ class Email(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+    @property
+    def is_premium(self):
+        """Check if user has premium access"""
+        return self.account_type == 'PRO'
+    
+    def has_active_subscription(self):
+        """More detailed check for subscription status"""
+        if not self.customer_id:
+            return False
+        return self.account_type == 'PRO'
+
 # class Purchase(models.Model):
 #     email = models.ForeignKey(Email, on_delete=models.SET_NULL, null=True)
 #     course =  models.ForeignKey(Course, on_delete=models.SET_NULL, null=True)

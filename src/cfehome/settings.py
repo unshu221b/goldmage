@@ -76,7 +76,8 @@ INSTALLED_APPS = [
     # internal
     "courses",
     "emails",
-    "storages"
+    "storages",
+    "channels"
 ]
 
 TAILWIND_APP_NAME="theme" # django-tailwind theme app

@@ -5,6 +5,9 @@ from django.utils.text import slugify
 from cloudinary.models import CloudinaryField
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.db.models import Count
+from itertools import chain
+import random
 
 helpers.cloudinary_init()
 
@@ -182,6 +185,11 @@ class Lesson(models.Model):
     
     is_featured = models.BooleanField(default=False, help_text="Display this lesson in featured section")
     featured_order = models.IntegerField(default=0, help_text="Order in featured section")
+    is_premium = models.BooleanField(default=True, 
+        help_text="If True, only premium users can access this video")
+    preview_seconds = models.PositiveIntegerField(default=0,
+        help_text="Number of seconds available for preview (0 for no preview)")
+    likes = models.ManyToManyField(settings.AUTH_USER_MODEL, through='LessonLike', related_name='liked_lessons')
 
     class Meta:
         ordering = ['order', 'featured_order', '-updated']
@@ -273,6 +281,83 @@ class Lesson(models.Model):
             course=self.course,
             status=PublishStatus.PUBLISHED
         ).exclude(id=self.id).order_by('order')[:limit]
+
+    @classmethod
+    def get_suggested(cls, user=None):
+        """
+        Get suggested lessons using same logic as dashboard, but without limits
+        """
+        # Base queryset for all published lessons
+        suggested_base = cls.objects.filter(
+            status=PublishStatus.PUBLISHED,
+            course__status=PublishStatus.PUBLISHED
+        ).select_related('course')
+        
+        if user:
+            suggested_base = suggested_base.exclude(
+                watchprogress__user=user  # Exclude watched lessons
+            )
+            
+            # 1. Get lessons from courses user has watched
+            watched_course_lessons = suggested_base.filter(
+                course__lesson__watchprogress__user=user
+            ).distinct()
+            
+            # 2. Get popular lessons, excluding ones from watched courses
+            popular_lessons = suggested_base.exclude(
+                id__in=watched_course_lessons.values_list('id', flat=True)
+            ).annotate(
+                watch_count=Count('watchprogress')
+            ).filter(watch_count__gt=0).order_by('-watch_count')
+            
+            # 3. Get latest lessons, excluding both above sets
+            latest_lessons = suggested_base.exclude(
+                id__in=list(chain(
+                    watched_course_lessons.values_list('id', flat=True),
+                    popular_lessons.values_list('id', flat=True)
+                ))
+            ).order_by('-updated')
+            
+            # Combine all sources
+            suggested_lessons = list(chain(
+                watched_course_lessons,
+                popular_lessons,
+                latest_lessons
+            ))
+        else:
+            # If no user, just return popular and recent lessons
+            suggested_lessons = list(suggested_base.order_by('-updated'))
+            
+        # Shuffle the final list
+        random.shuffle(suggested_lessons)
+        
+        return suggested_lessons
+
+    def user_can_watch(self, user):
+        """Robust check if user can watch the full video"""
+        # Free content is always accessible
+        if not self.is_premium:
+            return True
+            
+        # Must be logged in for premium content
+        if not user.is_authenticated:
+            return False
+            
+        # Check user's premium status
+        return user.is_premium
+
+    def get_preview_url(self):
+        """Get preview video URL or placeholder"""
+        # Implement based on your video hosting service
+        return f"{self.video_url}?preview=true&duration={self.preview_time}"
+
+    def get_like_count(self):
+        return self.likes.count()
+    
+    def is_liked_by(self, user):
+        if not user.is_authenticated:
+            return False
+        return self.likes.filter(user=user).exists()
 
 class WatchProgress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -392,3 +477,11 @@ class WatchProgress(models.Model):
             suggested = list(suggested) + list(more_suggestions)
 
         return suggested 
+
+class LessonLike(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE, related_name='lesson_likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'lesson')

@@ -1,5 +1,4 @@
 import stripe
-import json
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -23,11 +22,9 @@ def stripe_webhook(request):
     except stripe.error.SignatureVerificationError:
         return HttpResponse(status=400)
 
-    # Handle the event
     try:
         if event.type == 'checkout.session.completed':
             session = event.data.object
-            # Link customer_id to user
             try:
                 user = Email.objects.get(email=session.customer_details.email)
                 user.customer_id = session.customer
@@ -37,10 +34,8 @@ def stripe_webhook(request):
 
         elif event.type == 'customer.subscription.deleted':
             subscription = event.data.object
-            customer_id = subscription.customer
-            
             try:
-                user = Email.objects.get(customer_id=customer_id)
+                user = Email.objects.get(customer_id=subscription.customer)
                 user.account_type = 'FREE'
                 user.save()
             except Email.DoesNotExist:
@@ -48,16 +43,41 @@ def stripe_webhook(request):
 
         elif event.type in ['customer.subscription.created', 'customer.subscription.updated']:
             subscription = event.data.object
-            customer_id = subscription.customer
-            
             try:
-                user = Email.objects.get(customer_id=customer_id)
+                user = Email.objects.get(customer_id=subscription.customer)
                 if subscription.status == 'active':
-                    if subscription.cancel_at_period_end:
-                        pass
                     user.account_type = 'PRO'
                 else:
                     user.account_type = 'FREE'
+                user.save()
+            except Email.DoesNotExist:
+                pass
+
+        elif event.type == 'customer.created':
+            customer = event.data.object
+            try:
+                user = Email.objects.get(email=customer.email)
+                user.customer_id = customer.id
+                user.save()
+            except Email.DoesNotExist:
+                pass
+
+        elif event.type == 'customer.updated':
+            customer = event.data.object
+            try:
+                user = Email.objects.get(customer_id=customer.id)
+                if user.email != customer.email:
+                    user.email = customer.email
+                    user.save()
+            except Email.DoesNotExist:
+                pass
+
+        elif event.type == 'customer.deleted':
+            customer = event.data.object
+            try:
+                user = Email.objects.get(customer_id=customer.id)
+                user.customer_id = None
+                user.account_type = 'FREE'
                 user.save()
             except Email.DoesNotExist:
                 pass

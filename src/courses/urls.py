@@ -21,4 +21,5 @@ urlpatterns = [
     path('<slug:course_id>/lessons/<slug:lesson_id>/', views.lesson_detail_view, name='lesson_detail'),
     path('<slug:course_id>/', views.course_detail_view, name='course_detail'),
     path("", views.course_list_view),
+    path('lesson/<str:lesson_id>/like/', views.toggle_like, name='toggle_like'),
 ]

@@ -9,73 +9,236 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'dist/my.css' %}">
+    <script src="https://unpkg.com/cloudinary-core@latest/cloudinary-core-shrinkwrap.min.js"></script>
+    <script src="https://unpkg.com/cloudinary-video-player@1.9.9/dist/cld-video-player.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('HTMX loaded:', typeof htmx !== 'undefined');
+        });
+    </script>
   {% tailwind_css %}
 <!-- Add this near the top of your template -->
 <script type="text/javascript">
     window.LESSON_ID = "{{ lesson.id }}";
 </script>
   <title>{% block head_title %}{{ object.title }} | GoldMage{% endblock head_title %}</title>
+    <!-- Add this script to handle errors and retries -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const maxRetries = 3;
+        let retryCount = 0;
+        
+        function initializePlayer() {
+            var cld = window.cloudinary.Cloudinary.new({
+                cloud_name: 'dkaouxk4m'
+            });
+            
+            var player = cld.videoPlayer('demo-player-cfe-x8djuiesn', {
+                muted: false,
+                controls: true,
+                fluid: true,
+                preload: 'auto',
+                autoplay: false,
+                sourceTypes: ['mp4', 'webm'], // Try multiple formats
+                transformation: {
+                    streaming_profile: 'hd', // Optimize for streaming
+                    fetch_format: 'auto',    // Auto-select best format
+                    quality: 'auto'          // Auto-select quality
+                }
+            });
+
+            // Handle errors with retry logic
+            player.on('error', function(event) {
+                console.error('Video player error:', event);
+                
+                if (retryCount < maxRetries) {
+                    retryCount++;
+                    console.log(`Retrying playback (attempt ${retryCount} of ${maxRetries})...`);
+                    
+                    // Wait a short moment before retrying
+                    setTimeout(() => {
+                        player.src({
+                            type: 'video/mp4',
+                            src: player.currentSource().src + '?retry=' + retryCount
+                        });
+                    }, 1000);
+                } else {
+                    console.error('Max retries reached. Please refresh the page.');
+                    // Show user-friendly error message
+                    const playerElement = document.querySelector('.video-container');
+                    if (playerElement) {
+                        playerElement.innerHTML = `
+                            <div class="flex items-center justify-center h-full bg-gray-900 text-white text-center p-4">
+                                <div>
+                                    <p class="mb-4">Sorry, there was a problem playing this video.</p>
+                                    <button onclick="window.location.reload()" 
+                                            class="bg-red-600 text-white px-4 py-2 rounded">
+                                        Try Again
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            });
+
+            // Add quality selection
+            player.on('loadedmetadata', function() {
+                const qualities = player.qualities();
+                if (qualities.length > 1) {
+                    // Start with auto quality
+                    player.quality('auto');
+                }
+            });
+
+            // Monitor buffering
+            let bufferingTimer;
+            player.on('waiting', function() {
+                bufferingTimer = setTimeout(() => {
+                    // If buffering takes too long, try a lower quality
+                    const qualities = player.qualities();
+                    const currentQuality = player.quality();
+                    const index = qualities.indexOf(currentQuality);
+                    if (index > 0) {
+                        player.quality(qualities[index - 1]);
+                    }
+                }, 5000);
+            });
+
+            player.on('playing', function() {
+                if (bufferingTimer) {
+                    clearTimeout(bufferingTimer);
+                }
+            });
+        }
+
+        // Initialize with error handling
+        try {
+            initializePlayer();
+        } catch (error) {
+            console.error('Player initialization error:', error);
+            // Retry initialization after a delay
+            setTimeout(initializePlayer, 1000);
+        }
+    });
+    </script>
 </head>
 <body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include 'base/navbar-dashboard.html' %}
-<div class="flex flex-col lg:flex-row min-h-screen bg-black text-white" style="padding-top: 62px;">
+<div class="flex flex-col lg:flex-row min-h-screen bg-gm text-white" style="padding-top: 62px;">
     <!-- Main Video Section -->
     <div class="_contentLayout_lesson">
         <!-- Left Column -->
         <div>
             <!-- Video Player Container -->
-            <div class="_container_lesson">
-                <div class="_player_lesson">
-                    {{ video_embed|safe }}
-                </div>
+            {% if can_watch %}            
+            <div class="_player_lesson">
+                {{ video_embed|safe }}
             </div>
-
-            <!-- Debug info -->
-            <div style="display:none">Debug: Lesson ID = {{ lesson_id }}</div>
+            {% else %}
+                <div class="w-full aspect-video bg-gray-900">
+                    <img src="{{ object.get_thumbnail }}" 
+                         class="w-full h-full object-cover opacity-50" 
+                         alt="{{ object.title }}">
+                    
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-black bg-opacity-75">
+                        <div class="max-w-md">
+                            <h2 class="text-2xl font-bold mb-4">Premium Content</h2>
+                            {% if user.is_authenticated %}
+                                <p class="text-gray-300 mb-6">
+                                    Upgrade to Premium to watch this video and unlock all premium content.
+                                </p>
+                                <a href="{% url 'payment_checkout' %}" 
+                                   class="inline-block bg-red-600 text-white px-8 py-3 rounded-lg font-semibold">
+                                    Upgrade Now
+                                </a>
+                            {% else %}
+                                <p class="text-gray-300 mb-6">
+                                    Sign in to watch this premium content.
+                                </p>
+                                <a href="{% url 'login' %}?next={{ request.path }}" 
+                                   class="inline-block bg-red-600 text-white px-8 py-3 rounded-lg font-semibold">
+                                    Sign In
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
 
             <!-- Video Info Below Player -->
-            <div class="bg-gray-900 rounded-lg p-4 mt-4">
-                <h1 class="text-2xl font-bold mb-2">{{ object.title }}</h1>
+            <div class="bg-gray-900 mt-4 md:rounded-lg">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-2">
+                    <h1 class="text-2xl font-medium mb-4 md:mb-0">{{ object.title }}</h1>
+                    
+                    <!-- Engagement metrics -->
+                    <div class="flex items-center gap-6 _justifyContentAround_engage_mobile">
+                        <button 
+                            class="flex flex-col items-center gap-1 hover:text-red-500 transition-colors"
+                            hx-post="{% url 'courses:toggle_like' lesson_id %}"
+                            hx-trigger="click"
+                            hx-swap="none"
+                            hx-on="htmx:afterRequest: handleLikeResponse(event)"
+                            onclick="toggleLikeVisual(this)"
+                            data-liked="{% if user in object.likes.all %}true{% else %}false{% endif %}"
+                        >
+                            <svg class="w-6 h-6" fill="{% if user in object.likes.all %}currentColor{% else %}none{% endif %}" 
+                                 stroke="currentColor" 
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                            <span class="text-sm font-medium like-count">{{ object.lesson_likes.count }}</span>
+                        </button>
+                        
+                        <button class="flex flex-col items-center gap-1 hover:text-gray-300 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                            </svg>
+                            <span class="text-sm font-medium">407</span>
+                        </button>
+
+                        <button class="flex flex-col items-center gap-1 hover:text-gray-300 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M15 5.63 20.66 12 15 18.37V14h-1c-3.96 0-7.14 1-9.75 3.09 1.84-4.07 5.11-6.4 9.89-7.1l.86-.13V5.63M14 3v6C6.22 10.13 3.11 15.33 2 21c2.78-3.97 6.44-6 12-6v6l8-9-8-9z"/>
+                            </svg>
+                            <span class="text-sm font-medium">Share</span>
+                        </button>
+                    </div>
+                </div>
+
                 {% if object.description %}
                 <p class="text-gray-400">{{ object.description }}</p>
                 {% endif %}
-                
-                <!-- Engagement Buttons -->
-                <div class="flex items-center gap-8 mt-4">
-                    <button class="flex items-center gap-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                        </svg>
-                        <span class="text-sm">Like</span>
-                    </button>
-                    
-                    <button class="flex items-center gap-2">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
-                        </svg>
-                        <span class="text-sm">Share</span>
-                    </button>
-                </div>
             </div>
         </div>
 
         <!-- Right Sidebar -->
-        <div class="bg-gray-900 rounded-lg p-4">
+        <div class="bg-gray-900 md:rounded-lg px-4 pb-4">
             <h2 class="text-xl font-bold mb-4">Watch Next</h2>
             <div class="space-y-4">
-                {% for lesson in next_lessons %}
-                <a href="{{ lesson.get_absolute_url }}" class="flex gap-4 cursor-pointer hover:bg-gray-800 p-2 rounded">
-                    <div class="relative w-40 aspect-video bg-gray-800">
-                        {% if lesson.thumbnail %}
-                        <img src="{{ lesson.get_thumbnail }}" alt="{{ lesson.title }}" class="w-full h-full object-cover rounded">
-                        {% endif %}
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="font-medium">{{ lesson.title }}</h3>
-                        <p class="text-sm text-gray-400">{{ lesson.timestamp|timesince }} ago</p>
-                    </div>
-                </a>
-                {% endfor %}
+                {% if suggested_lessons %}
+                    {% for lesson in suggested_lessons|slice:":4" %}
+                    <a href="{{ lesson.get_absolute_url }}" class="block hover:bg-gray-800 rounded-lg transition-colors duration-200">
+                        <div class="relative w-full aspect-video bg-gray-800 rounded-lg overflow-hidden">
+                            {% if lesson.thumbnail %}
+                            <img src="{{ lesson.get_thumbnail }}" 
+                                 alt="{{ lesson.title }}" 
+                                 class="w-full h-full object-cover">
+                            <!-- Duration Badge -->
+                            <div class="absolute bottom-1 right-1 bg-black bg-opacity-75 px-1 rounded text-xs">
+                                {{ lesson.duration|default:"00:00" }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mt-2">
+                            <h3 class="font-medium text-sm line-clamp-2">{{ lesson.title }}</h3>
+                            <p class="text-xs text-gray-400 mt-1">{{ lesson.timestamp|timesince }} ago</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-gray-500">No suggested lessons available</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -209,5 +372,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<!-- Add this JavaScript to handle the like response -->
+<script>
+    function toggleLikeVisual(button) {
+        const svg = button.querySelector('svg');
+        const countSpan = button.querySelector('.like-count');
+        const isLiked = button.dataset.liked === 'true';
+        const currentCount = parseInt(countSpan.textContent);
+        
+        if (!isLiked) {
+            svg.setAttribute('fill', 'currentColor');
+            svg.classList.add('text-red-500');
+            button.dataset.liked = 'true';
+            countSpan.textContent = currentCount + 1;
+        } else {
+            svg.setAttribute('fill', 'none');
+            svg.classList.remove('text-red-500');
+            button.dataset.liked = 'false';
+            countSpan.textContent = Math.max(0, currentCount - 1);
+        }
+    }
+
+    function handleLikeResponse(event) {
+        if (event.detail.successful) {
+            const response = JSON.parse(event.detail.xhr.response);
+            const button = event.detail.elt;
+            const countSpan = button.querySelector('.like-count');
+            countSpan.textContent = response.like_count;
+        } else {
+            console.error('Error in like response:', event.detail);
+            if (event.detail.xhr.status === 403) {
+                window.location.href = '/login/?next=' + window.location.pathname;
+            }
+        }
+    }
+</script>
+
 
 {% csrf_token %}  <!-- Make sure this is present -->

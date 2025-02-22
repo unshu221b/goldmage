@@ -49,6 +49,8 @@ urlpatterns = [
     path('liked-videos/', views.liked_videos_view, name='liked_videos'),
     path('history/', views.history_view, name='history'),
     path('continue-watching/', views.continue_watching_all_view, name='continue_watching_all'),
+    path('featured-content/', views.featured_content_all_view, name='featured_content_all'),
+    path('suggested-content/', views.suggested_content_all_view, name='suggested_content_all'),
 ]
 
 if settings.DEBUG:
