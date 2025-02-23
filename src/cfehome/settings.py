@@ -47,18 +47,16 @@ TEMPLATE_DIR = BASE_DIR / "templates"
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY="TEerjMj18ndOIoqxLSOp1I3jWk4tNrE1U1us6++dXKlQmun3c76sk8CyuW52MtlC"
-# SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = str(os.environ.get("DEBUG")) == "True"
-DEBUG = "True"
+DEBUG = config("DEBUG", default=False, cast=bool)
 ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS", "127.0.0.1,localhost,testserver")
 ALLOWED_HOSTS = ENV_ALLOWED_HOSTS.split(",") + ["0.0.0.0"]
 
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
-STRIPE_WEBHOOK_SECRET = 'whsec_2103fd7b7aac811ec4f024a66bf30dda0dc4715a15ac35906801d4de6c7fe250'  # The secret from your CLI output
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
 STRIPE_PRO_PRICE_ID = config("STRIPE_PRO_PRICE_ID")
 # Application definition
 INSTALLED_APPS = [
