@@ -3,19 +3,24 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 import re
 from django.urls import reverse
 from django.http import JsonResponse
 from itertools import chain
-from django.db.models import Count, Q
-import random
 
 from emails import services as emails_services
-from emails.models import Email, EmailVerificationEvent
+from emails.models import Email, EmailVerificationEvent, LoginAttempt
 from emails.forms import EmailForm
+from emails.decorators import login_ratelimit
+
 from courses.models import Course, Lesson, PublishStatus, WatchProgress
 
+import logging
 import stripe
+
+logger = logging.getLogger(__name__)
+
 # This is your test secret API key.
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -129,18 +134,41 @@ def settings_view(request):
 
 @login_required
 def history_view(request):
-    return render(request, 'history.html')
+    # Get watch history ordered by most recently watched
+    watch_history = WatchProgress.objects.filter(
+        user=request.user
+    ).select_related(
+        'lesson', 
+        'lesson__course'
+    ).order_by(
+        '-last_watched'
+    )
+
+    context = {
+        'watch_history': watch_history,
+        'show_footer': False  # Hide footer for scrollable content
+    }
+    return render(request, 'history.html', context)
 
 @login_required
 def liked_videos_view(request):
-    return render(request, 'liked_videos.html')
+    # Get all lessons liked by the user
+    liked_videos = Lesson.objects.filter(
+        lesson_likes__user=request.user
+    ).select_related('course').order_by('-lesson_likes__created_at')
+
+    context = {
+        'liked_videos': liked_videos,
+        'show_footer': False  # Add this flag
+    }
+    return render(request, 'liked_videos.html', context)
 
 @login_required
 def help_view(request):
     return render(request, 'help.html')
 
+@login_ratelimit(timeout=300, max_attempts=5)
 def login_view(request):
-    # Redirect if already logged in
     if request.user.is_authenticated:
         return redirect('dashboard')
         
@@ -148,20 +176,51 @@ def login_view(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         remember_me = request.POST.get('remember_me')
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+        
+        # Record login attempt
+        attempt = LoginAttempt.objects.create(
+            email=email,
+            ip_address=ip,
+            user_agent=request.META.get('HTTP_USER_AGENT'),
+        )
+        
+        # Check if suspicious
+        if attempt.is_suspicious:
+            logger.warning(f"Suspicious login pattern detected - Email: {email}, IP: {ip}")
+            messages.warning(request, "Unusual login activity detected. Please try again later.")
+            return render(request, 'auth/login.html')
         
         try:
             user = authenticate(request, email=email, password=password)
             if user is not None:
+                # Update attempt as successful
+                attempt.was_successful = True
+                attempt.save()
+                
                 login(request, user)
                 
                 # Set session expiry based on remember me
                 if not remember_me:
                     request.session.set_expiry(0)  # Expires when browser closes
+                else:
+                    # 2 weeks in seconds
+                    request.session.set_expiry(1209600)
+
+                # Reset rate limit counters on successful login
+                cache.delete(f"login_ip_{ip}")
+                cache.delete(f"login_email_{email}")
+                
+                # Log successful login
+                logger.info(f"Successful login - Email: {email}, IP: {ip}")
                 
                 return redirect('dashboard')
             else:
+                # Log failed login
+                logger.warning(f"Failed login attempt - Email: {email}, IP: {ip}")
                 messages.error(request, "Invalid email or password.")
         except Exception as e:
+            logger.error(f"Login error - Email: {email}, IP: {ip}, Error: {str(e)}")
             messages.error(request, "An error occurred. Please try again.")
             print(e)  # For debugging
     

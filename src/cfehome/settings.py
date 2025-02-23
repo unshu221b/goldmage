@@ -53,7 +53,7 @@ SECRET_KEY="TEerjMj18ndOIoqxLSOp1I3jWk4tNrE1U1us6++dXKlQmun3c76sk8CyuW52MtlC"
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = str(os.environ.get("DEBUG")) == "True"
 DEBUG = "True"
-ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS", "127.0.0.1,localhost")
+ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS", "127.0.0.1,localhost,testserver")
 ALLOWED_HOSTS = ENV_ALLOWED_HOSTS.split(",") + ["0.0.0.0"]
 
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
@@ -263,3 +263,25 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesSto
 
 
 from .cdn.conf import * # noqa
+
+
+# Cache settings
+if DEBUG:
+    # Use local memory cache for development
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+        }
+    }
+else:
+    # Use Redis for production (you'll need to install django-redis)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': 'redis://127.0.0.1:6379/1',  # Update with your Redis URL
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        }
+    }

@@ -1,0 +1,66 @@
+{% extends "base-user.html" %}
+{% load humanize %}
+{% block title %}Watch History{% endblock title %}
+{% block content %}
+
+{% if watch_history %}
+<div class="flex flex-col flex-1 space-y-4 max-w-4xl mx-auto mt-8">
+    {% for video in watch_history %}
+    <div class="group hover:bg-gray-800 rounded-lg transition-colors duration-200">
+        <a href="{{ video.lesson.get_absolute_url }}" class="flex flex-row p-2">
+            <!-- Thumbnail Container with timestamp -->
+            <div class="relative w-64 h-36 flex-shrink-0">
+                <img class="w-full h-full object-cover rounded-lg" 
+                     src="{{ video.lesson.get_thumbnail }}" 
+                     alt="{{ video.lesson.title }}">
+                <!-- Video Duration -->
+                <div class="_duration">
+                    {{ video.lesson.duration }}
+                </div>
+            </div>
+            
+            <!-- Content Container -->
+            <div class="flex-grow px-4 py-1">
+                <!-- Title -->
+                <h3 class="text-white text-base font-medium line-clamp-2 mb-1">{{ video.lesson.title }}</h3>
+                
+                <!-- Channel name and metadata -->
+                <div class="text-gray-400 text-sm">
+                    {{ video.lesson.course.title }}
+                </div>
+                <div class="text-gray-400 text-sm">
+                    {{ video.lesson.updated|naturaltime }}
+                </div>
+                
+                <!-- Description -->
+                {% if video.description %}
+                <p class="text-gray-400 text-sm mt-2 line-clamp-1">{{ video.description }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Options Menu -->
+            <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                <button class="p-2 hover:bg-gray-700 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                    </svg>
+                </button>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="flex flex-col items-center justify-center mt-20">
+    <svg class="w-16 h-16 text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <h2 class="text-xl font-semibold text-white mb-2">No watch history yet</h2>
+    <p class="text-gray-400 text-center">Videos you watch will appear here</p>
+</div>
+{% endif %}
+
+
+
+{% endblock content %}

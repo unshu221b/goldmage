@@ -22,10 +22,17 @@
   <div class="p-4 sm:ml-64" style="padding-top: 40px;">
     <div class="dash-body border-2 border-dashed rounded-lg border-gray-700 mt-14">
         <div class="mb-4">
-            {% block content %}{% endblock content %}
+          <h1 class="text-3xl font-bold text-white" style="padding-top: 20px;">
+            {% block title %}{% endblock title %}
+          </h1>
         </div>
+        {% block content %}{% endblock content %}
     </div>
-    {% include 'base/footer-dashboard.html' %}
+    {% if show_footer %}
+    <div id="footer-wrapper" class="_footerWrapper">
+      {% include 'base/footer-dashboard.html' %}
+    </div>
+    {% endif %}
   </div>
   {% include 'base/js.html' %}
   <!-- Add this script at the end of the file -->

@@ -20,7 +20,7 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.http import HttpResponse
 
-from emails.views import verify_email_token_view, resend_verification_email
+from emails.views import verify_email_token_view, resend_verification_email, reset_password_view, reset_password_confirm_view
 from . import views, webhooks
 from courses import views as course_views
 
@@ -35,7 +35,9 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("signup/", views.signup_view, name="signup"),
-    path('verify/<uuid:token>/', verify_email_token_view),
+    path("reset-password/", reset_password_view, name="reset_password"),
+    path('reset-password/confirm/<uuid:token>/', reset_password_confirm_view, name='reset_password_confirm'),
+    path('verify/<uuid:token>/', verify_email_token_view, name='verify_email_token'),
     path('resend-verification/', resend_verification_email, name='resend_verification'),
     path("courses/", include("courses.urls")),
     path("admin/", admin.site.urls),
