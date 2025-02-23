@@ -9,10 +9,11 @@ admin.site.register(EmailVerificationEvent)
 
 @admin.register(LoginAttempt)
 class LoginAttemptAdmin(admin.ModelAdmin):
-    list_display = ['email', 'ip_address', 'timestamp', 'was_successful', 'get_suspicious_status']
-    list_filter = ['was_successful', 'timestamp', 'country']
-    search_fields = ['email', 'ip_address', 'country', 'city']
-    readonly_fields = ['get_pattern_analysis']
+    list_display = ('email', 'ip_address', 'timestamp', 'was_successful')
+    list_filter = ('timestamp', 'was_successful')
+    search_fields = ('email', 'ip_address')
+    readonly_fields = ('timestamp',)
+    ordering = ('-timestamp',)
     
     def get_suspicious_status(self, obj):
         is_suspicious, reasons = obj.is_suspicious

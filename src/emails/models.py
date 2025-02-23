@@ -131,35 +131,17 @@ class LoginAttempt(models.Model):
     user_agent = models.TextField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     was_successful = models.BooleanField(default=False)
-    country = models.CharField(max_length=100, null=True, blank=True)
-    city = models.CharField(max_length=100, null=True, blank=True)
     
     class Meta:
         ordering = ['-timestamp']
     
     def get_pattern_data(self):
-        """Analyze login patterns for this attempt"""
+        """Analyze basic login patterns for rate limiting"""
         now = timezone.now()
         hour_ago = now - timedelta(hours=1)
-        day_ago = now - timedelta(days=1)
-        
-        # Calculate daily attempts first
-        day_attempts_ip = LoginAttempt.objects.filter(
-            ip_address=self.ip_address,
-            timestamp__gte=day_ago
-        ).count()
-        
-        # Calculate success rate
-        day_successful_attempts = LoginAttempt.objects.filter(
-            ip_address=self.ip_address,
-            timestamp__gte=day_ago,
-            was_successful=True
-        ).count()
-        
-        success_rate = day_successful_attempts / max(day_attempts_ip, 1)
         
         return {
-            # Hourly patterns
+            # Hourly attempts for rate limiting
             'hour_attempts_ip': LoginAttempt.objects.filter(
                 ip_address=self.ip_address,
                 timestamp__gte=hour_ago
@@ -169,64 +151,24 @@ class LoginAttempt(models.Model):
                 email=self.email,
                 timestamp__gte=hour_ago
             ).count(),
-            
-            'hour_unique_ips_for_email': LoginAttempt.objects.filter(
-                email=self.email,
-                timestamp__gte=hour_ago
-            ).values('ip_address').distinct().count(),
-            
-            # Daily patterns
-            'day_attempts_ip': day_attempts_ip,
-            'day_successful_attempts': day_successful_attempts,
-            'success_rate_ip': success_rate,
-            
-            'day_unique_emails_from_ip': LoginAttempt.objects.filter(
-                ip_address=self.ip_address,
-                timestamp__gte=day_ago
-            ).values('email').distinct().count(),
-            
-            # Time patterns
-            'odd_hours': self.timestamp.hour in range(1, 5),  # 1 AM to 5 AM
-            
-            # Geographic anomalies (if available)
-            'different_country': self.country and LoginAttempt.objects.filter(
-                email=self.email,
-                was_successful=True
-            ).exclude(country=self.country).exists(),
         }
     
     @property
     def is_suspicious(self):
         """
-        Determine if this login attempt is suspicious based on multiple factors
+        Simple rate limit check
         Returns: (bool, list of reasons)
         """
         patterns = self.get_pattern_data()
         reasons = []
         
-        # Hourly thresholds
-        if patterns['hour_attempts_ip'] > 10:
-            reasons.append(f"Too many attempts from IP ({patterns['hour_attempts_ip']} in 1h)")
+        # Only check for basic rate limiting
+        if patterns['hour_attempts_ip'] > 20:  # More lenient IP threshold
+            reasons.append(f"Rate limit exceeded for IP")
             
-        if patterns['hour_unique_ips_for_email'] > 3:
-            reasons.append(f"Email tried from multiple IPs ({patterns['hour_unique_ips_for_email']} in 1h)")
+        if patterns['hour_attempts_email'] > 10:  # Stricter email threshold
+            reasons.append(f"Rate limit exceeded for email")
             
-        # Daily thresholds
-        if patterns['day_unique_emails_from_ip'] > 10:
-            reasons.append(f"IP trying multiple emails ({patterns['day_unique_emails_from_ip']} in 24h)")
-            
-        # Success rate
-        if patterns['success_rate_ip'] < 0.1 and patterns['day_attempts_ip'] > 5:
-            reasons.append("Very low success rate from this IP")
-            
-        # Time patterns
-        if patterns['odd_hours']:
-            reasons.append("Attempt during unusual hours")
-            
-        # Geographic anomalies
-        if patterns['different_country']:
-            reasons.append("Attempt from different country than successful logins")
-        
         return bool(reasons), reasons
 
     def __str__(self):

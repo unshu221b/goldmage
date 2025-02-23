@@ -28,3 +28,6 @@ migrate
 ```
 kubectl delete secret django-k8s-prod-env
 kubectl create secret generic django-k8s-prod-env --from-env-file=src/.env.prod
+
+5. Check logs
+kubectl logs -f deployment/django-k8s-web-deployment

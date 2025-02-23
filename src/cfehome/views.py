@@ -191,7 +191,7 @@ def help_view(request):
     return render(request, 'help.html')
 
 @csrf_protect
-@login_ratelimit(timeout=300, max_attempts=5)
+@login_ratelimit(timeout=3600, max_attempts=20)  # 20 attempts per hour, matching the model
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -210,11 +210,10 @@ def login_view(request):
                 user_agent=request.META.get('HTTP_USER_AGENT'),
             )
             
-            # Check if suspicious before authentication
-            is_suspicious, reasons = attempt.is_suspicious
-            if is_suspicious:
-                logger.warning(f"Suspicious login pattern detected - Email: {email}, IP: {ip}, Reasons: {reasons}")
-                messages.warning(request, "Unusual login activity detected. Please try again later.")
+            # Simple rate limit check
+            is_limited, reasons = attempt.is_suspicious
+            if is_limited:
+                messages.error(request, "Too many login attempts. Please try again later.")
                 return render(request, 'auth/login.html')
             
             user = authenticate(request, email=email, password=password)
@@ -236,16 +235,11 @@ def login_view(request):
                 cache.delete(f"login_ip_{ip}")
                 cache.delete(f"login_email_{email}")
                 
-                # Log successful login
-                logger.info(f"Successful login - Email: {email}, IP: {ip}")
-                
                 return redirect('dashboard')
             else:
-                # Log failed login
-                logger.warning(f"Failed login attempt - Email: {email}, IP: {ip}")
                 messages.error(request, "Invalid email or password.")
     except PermissionDenied:
-        messages.error(request, "Your session has expired. Please refresh the page and try again.")
+        messages.error(request, "Too many login attempts. Please try again later.")
         return render(request, 'auth/login.html')
     
     return render(request, 'auth/login.html')

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: django-k8s-web-deployment
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: django-k8s-web-deployment
@@ -26,6 +26,13 @@ spec:
             value: "8002"
         ports:
         - containerPort: 8002
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
       imagePullSecrets:
         - name: goldmage
 

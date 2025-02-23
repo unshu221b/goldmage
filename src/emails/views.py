@@ -4,7 +4,7 @@ from django.contrib.auth import login
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.utils import timezone
-
+import re
 from . import services
 from .models import Email, EmailVerificationEvent
 
@@ -104,19 +104,23 @@ def reset_password_confirm_view(request, token):
         if len(password1) < 8:
             messages.error(request, "Password must be at least 8 characters long.")
             return render(request, 'auth/reset_password_confirm.html')
-            
-        if not any(c.isupper() for c in password1):
+
+        if not re.search(r'[A-Z]', password1):
             messages.error(request, "Password must contain at least one uppercase letter.")
             return render(request, 'auth/reset_password_confirm.html')
-            
-        if not any(c.islower() for c in password1):
+
+        if not re.search(r'[a-z]', password1):
             messages.error(request, "Password must contain at least one lowercase letter.")
             return render(request, 'auth/reset_password_confirm.html')
-            
-        if not any(c.isdigit() for c in password1):
+
+        if not re.search(r'[0-9]', password1):
             messages.error(request, "Password must contain at least one number.")
             return render(request, 'auth/reset_password_confirm.html')
-            
+
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password1):
+            messages.error(request, "Password must contain at least one special character.")
+            return render(request, 'auth/reset_password_confirm.html')
+
         # Set new password
         email_obj.set_password(password1)
         email_obj.save()
