@@ -8,7 +8,9 @@ import re
 from django.urls import reverse
 from django.http import JsonResponse
 from itertools import chain
-
+from django.views.decorators.csrf import csrf_protect
+from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from emails import services as emails_services
 from emails.models import Email, EmailVerificationEvent, LoginAttempt
 from emails.forms import EmailForm
@@ -164,34 +166,57 @@ def liked_videos_view(request):
     return render(request, 'liked_videos.html', context)
 
 @login_required
+def search_view(request):
+    query = request.GET.get('q', '')
+    results = []
+    
+    if query:
+        # Search in title and description fields
+        # Only show published lessons from published courses
+        results = Lesson.objects.filter(
+            Q(title__icontains=query) |  # Case-insensitive search in title
+            Q(description__icontains=query),  # Case-insensitive search in description
+            status=PublishStatus.PUBLISHED,  # Only published lessons
+            course__status=PublishStatus.PUBLISHED  # From published courses
+        ).select_related('course').distinct()  # Include course data and remove duplicates
+    
+    context = {
+        'query': query,
+        'results': results
+    }
+    return render(request, 'search.html', context)
+
+@login_required
 def help_view(request):
     return render(request, 'help.html')
 
+@csrf_protect
 @login_ratelimit(timeout=300, max_attempts=5)
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
         
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        remember_me = request.POST.get('remember_me')
-        ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
-        
-        # Record login attempt
-        attempt = LoginAttempt.objects.create(
-            email=email,
-            ip_address=ip,
-            user_agent=request.META.get('HTTP_USER_AGENT'),
-        )
-        
-        # Check if suspicious
-        if attempt.is_suspicious:
-            logger.warning(f"Suspicious login pattern detected - Email: {email}, IP: {ip}")
-            messages.warning(request, "Unusual login activity detected. Please try again later.")
-            return render(request, 'auth/login.html')
-        
-        try:
+    try:
+        if request.method == 'POST':
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            remember_me = request.POST.get('remember_me')
+            ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+            
+            # Record login attempt
+            attempt = LoginAttempt.objects.create(
+                email=email,
+                ip_address=ip,
+                user_agent=request.META.get('HTTP_USER_AGENT'),
+            )
+            
+            # Check if suspicious before authentication
+            is_suspicious, reasons = attempt.is_suspicious
+            if is_suspicious:
+                logger.warning(f"Suspicious login pattern detected - Email: {email}, IP: {ip}, Reasons: {reasons}")
+                messages.warning(request, "Unusual login activity detected. Please try again later.")
+                return render(request, 'auth/login.html')
+            
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 # Update attempt as successful
@@ -219,10 +244,9 @@ def login_view(request):
                 # Log failed login
                 logger.warning(f"Failed login attempt - Email: {email}, IP: {ip}")
                 messages.error(request, "Invalid email or password.")
-        except Exception as e:
-            logger.error(f"Login error - Email: {email}, IP: {ip}, Error: {str(e)}")
-            messages.error(request, "An error occurred. Please try again.")
-            print(e)  # For debugging
+    except PermissionDenied:
+        messages.error(request, "Your session has expired. Please refresh the page and try again.")
+        return render(request, 'auth/login.html')
     
     return render(request, 'auth/login.html')
 
