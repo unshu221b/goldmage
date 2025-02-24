@@ -33,7 +33,11 @@ EMAIL_HOST_PASSWORD=dummy\n\
 EMAIL_USE_TLS=True\n\
 ADMIN_EMAIL=dummy@example.com\n\
 AWS_ACCESS_KEY_ID=dummy\n\
-AWS_SECRET_ACCESS_KEY=dummy" > .env
+AWS_SECRET_ACCESS_KEY=dummy\n\
+REDIS_HOST=redis\n\
+REDIS_PORT=6379\n\
+REDIS_PASSWORD=\n\
+ENVIRONMENT=development" > .env
 
 RUN /opt/venv/bin/pip install pip --upgrade && \
     /opt/venv/bin/pip install -r requirements.txt && \

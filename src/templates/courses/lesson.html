@@ -36,20 +36,20 @@
                     {{ video_embed|safe }}
             </div>
             {% else %}
-                <div class="w-full aspect-video bg-gray-900">
+                <div class="w-full aspect-video bg-gray-900 relative">
                     <img src="{{ object.get_thumbnail }}" 
-                         class="w-full h-full object-cover opacity-50" 
+                         class="w-full h-full object-cover" 
                          alt="{{ object.title }}">
                     
-                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-black bg-opacity-75">
-                        <div class="max-w-md">
-                            <h2 class="text-2xl font-bold mb-4">Premium Content</h2>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-black bg-opacity-50 hover:bg-opacity-75 transition-opacity">
+                        <div class="max-w-xs">
+                            <h2 class="text-xl font-bold mb-2">Premium Content</h2>
                             {% if user.is_authenticated %}
-                                <p class="text-gray-300 mb-6">
-                                    Upgrade to Premium to watch this video and unlock all premium content.
+                                <p class="text-gray-300 mb-4 text-sm">
+                                    Upgrade to Premium to watch
                                 </p>
                                 <a href="{% url 'payment_checkout' %}" 
-                                   class="inline-block bg-red-600 text-white px-8 py-3 rounded-lg font-semibold">
+                                   class="inline-block bg-red-600 text-white px-6 py-2 rounded-lg font-semibold text-sm hover:bg-red-700">
                                     Upgrade Now
                                 </a>
                             {% else %}
@@ -67,7 +67,7 @@
             {% endif %}
 
             <!-- Video Info Below Player -->
-            <div class="bg-gray-900 mt-4 md:rounded-lg">
+            <div class="mt-4 md:rounded-lg">
                 <div class="flex flex-col md:flex-row md:items-center justify-between mb-2">
                     <h1 class="text-2xl font-medium mb-4 md:mb-0">{{ object.title }}</h1>
                     
@@ -116,7 +116,7 @@
         </div>
 
         <!-- Right Sidebar -->
-        <div class="bg-gray-900 md:rounded-lg px-4 pb-4">
+        <div class="md:rounded-lg px-4 pb-4">
             <h2 class="text-xl font-bold mb-4">Watch Next</h2>
             <div class="space-y-4">
                 {% if suggested_lessons %}

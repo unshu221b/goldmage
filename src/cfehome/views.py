@@ -15,22 +15,50 @@ from emails import services as emails_services
 from emails.models import Email, EmailVerificationEvent, LoginAttempt
 from emails.forms import EmailForm
 from emails.decorators import login_ratelimit
-
+from django.views.decorators.cache import cache_page, cache_control
+from django.core.cache import cache
+from django.conf import settings
+import time
 from courses.models import Course, Lesson, PublishStatus, WatchProgress
 
 import logging
 import stripe
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('goldmage')
 
 # This is your test secret API key.
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+def monitor_cache_stats(view_name):
+    """
+    Track cache hits and misses for performance monitoring
+    """
+    stats_key = f'cache_stats_{view_name}'
+    stats = cache.get(stats_key, {'hits': 0, 'misses': 0})
+    
+    def update_stats(hit=True):
+        if hit:
+            stats['hits'] += 1
+        else:
+            stats['misses'] += 1
+        cache.set(stats_key, stats)
+        
+        # Log the stats periodically (every 100 hits)
+        total = stats['hits'] + stats['misses']
+        if total % 100 == 0:
+            hit_rate = (stats['hits'] / total) * 100
+            logger.info(f"Cache stats for {view_name}: "
+                       f"Hit rate: {hit_rate:.1f}%, "
+                       f"Hits: {stats['hits']}, "
+                       f"Misses: {stats['misses']}")
+    
+    return stats, update_stats
 
 def login_logout_template_view(request):
     return render(request, "auth/login-logout.html", {})
 
 EMAIL_ADDRESS = settings.EMAIL_ADDRESS
+@cache_control(max_age=3600, public=True)  # 1 hour
 def home_view(request):
     # Redirect to dashboard if authenticated
     if request.user.is_authenticated:
@@ -52,32 +80,72 @@ def home_view(request):
     
     return render(request, template_name, context)
 
+@cache_control(private=True, max_age=300)  # 5 minutes
 @login_required
 def dashboard_view(request):
-    # Get recently watched videos (limit to 6)
-    watched_videos = WatchProgress.objects.filter(
-        user=request.user
-    ).select_related('lesson').order_by('-last_watched')[:10]
-    
-    # Get recent published lessons not in watch history (limit to 10)
-    recent_lessons = Lesson.objects.filter(
-        status=PublishStatus.PUBLISHED,
-        course__status=PublishStatus.PUBLISHED
-    ).exclude(
-        watchprogress__user=request.user
-    ).order_by('-updated')[:6]
-    
-    # Combine both querysets for continue watching
-    continue_watching = list(chain(watched_videos, recent_lessons))[:10]
+    start_time = time.time()
+    stats, update_stats = monitor_cache_stats('dashboard')
 
-    # Get suggested lessons using the model method (limit to 15)
-    suggested_lessons = Lesson.get_suggested(user=request.user)[:15]
+    user_id = request.user.id
+    watch_cache_key = f'user_{user_id}_watch_history'
+    recent_cache_key = f'user_{user_id}_recent_lessons'
+    suggested_cache_key = f'user_{user_id}_suggested'
+    featured_cache_key = 'featured_lessons'  # This can be shared across users
+    
+    # Try to get watched videos from cache
+    watched_videos = cache.get(watch_cache_key)
+    if watched_videos is None:
+        update_stats(hit=False)  # Cache miss
+        watched_videos = WatchProgress.objects.filter(
+            user=request.user
+        ).select_related('lesson').order_by('-last_watched')[:10]
+        cache_success = cache.set(watch_cache_key, list(watched_videos), 300)
+    else:
+        update_stats(hit=True)  # Cache hit
+    
+    # Try to get recent lessons from cache
+    recent_lessons = cache.get(recent_cache_key)
+    if recent_lessons is None:
+        update_stats(hit=False)  # Cache miss
+        recent_lessons = Lesson.objects.filter(
+            status=PublishStatus.PUBLISHED,
+            course__status=PublishStatus.PUBLISHED
+        ).exclude(
+            watchprogress__user=request.user
+        ).order_by('-updated')[:6]
+        cache.set(recent_cache_key, recent_lessons, 900)
+    else:
+        update_stats(hit=True)  # Cache hit
+    
+    # Combine for continue watching
+    continue_watching = list(chain(watched_videos, recent_lessons))[:10]
+    
+    # Try to get suggested lessons from cache
+    suggested_lessons = cache.get(suggested_cache_key)
+    if suggested_lessons is None:
+        update_stats(hit=False)  # Cache miss
+        suggested_lessons = Lesson.get_suggested(user=request.user)[:15]
+        cache.set(suggested_cache_key, suggested_lessons, 600)
+    else:
+        update_stats(hit=True)  # Cache hit
+    
+    # Try to get featured lessons from cache
+    featured_lessons = cache.get(featured_cache_key)
+    if featured_lessons is None:
+        update_stats(hit=False)  # Cache miss
+        featured_lessons = Lesson.get_featured()
+        cache.set(featured_cache_key, featured_lessons, 3600)
+    else:
+        update_stats(hit=True)  # Cache hit
     
     context = {
         'continue_watching': continue_watching,
-        'featured_lessons': Lesson.get_featured(),
+        'featured_lessons': featured_lessons,
         'suggested_lessons': suggested_lessons,
     }
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"Dashboard view took {duration:.2f} seconds")
     return render(request, 'dashboard.html', context)
 
 @login_required
@@ -186,19 +254,22 @@ def search_view(request):
     }
     return render(request, 'search.html', context)
 
-@login_required
+@cache_control(public=True, max_age=86400)  # 24 hours
 def help_view(request):
-    return render(request, 'help.html')
+    return render(request, 'help.html')  # Just render the template
 
 @csrf_protect
 @login_ratelimit(timeout=3600, max_attempts=20)  # 20 attempts per hour, matching the model
 def login_view(request):
+    logger.info(f"Login attempt from IP: {request.META.get('REMOTE_ADDR')}")
     if request.user.is_authenticated:
         return redirect('dashboard')
         
     try:
         if request.method == 'POST':
             email = request.POST.get('email')
+            logger.info(f"Login attempt for email: {email}")
+            
             password = request.POST.get('password')
             remember_me = request.POST.get('remember_me')
             ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
@@ -218,6 +289,7 @@ def login_view(request):
             
             user = authenticate(request, email=email, password=password)
             if user is not None:
+                logger.info(f"Successful login for user: {email}")
                 # Update attempt as successful
                 attempt.was_successful = True
                 attempt.save()
@@ -237,10 +309,11 @@ def login_view(request):
                 
                 return redirect('dashboard')
             else:
+                logger.warning(f"Failed login attempt for email: {email}")
                 messages.error(request, "Invalid email or password.")
-    except PermissionDenied:
-        messages.error(request, "Too many login attempts. Please try again later.")
-        return render(request, 'auth/login.html')
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}", exc_info=True)
+        messages.error(request, "An error occurred. Please try again.")
     
     return render(request, 'auth/login.html')
 
@@ -300,7 +373,9 @@ def signup_view(request):
     return render(request, 'auth/signup.html')
 
 # New view for payment
+@cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def payment_checkout(request):
+    logger.info(f"Payment checkout initiated for user: {request.user.email}")
     if not request.user.is_authenticated:
         return redirect('signup')
         
@@ -313,18 +388,20 @@ def payment_checkout(request):
                     'quantity': 1,
                 }],
                 mode='subscription',
-                locale='zh-HK',  # Set language to Chinese
-                customer_email=request.user.email,  # Pre-fill customer email
+                locale='zh-HK',
+                customer_email=request.user.email,
                 return_url=request.build_absolute_uri(
                     reverse('payment_return')
                 ) + '?session_id={CHECKOUT_SESSION_ID}',
             )
-            print("Session created:", session)
-            print("Client Secret:", session.client_secret)
+            # Only log safe information
+            logger.info(f"Checkout session created: {session.id}")
+            
             return JsonResponse({'clientSecret': session.client_secret})
             
         except Exception as e:
-            print("Error:", str(e))
+            # Log error safely
+            logger.error(f"Payment checkout failed: {str(e)}", exc_info=True)
             return JsonResponse({'error': str(e)}, status=400)
     
     return render(request, 'payment/checkout.html', {
@@ -383,3 +460,16 @@ def create_checkout_session(request):
         return JsonResponse({'url': checkout_session.url})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+
+
+# Add cache invalidation functions
+def invalidate_user_cache(user_id):
+    """Call this when user data needs to be refreshed"""
+    cache.delete(f'user_{user_id}_watch_history')
+    cache.delete(f'user_{user_id}_recent_lessons')
+    cache.delete(f'user_{user_id}_suggested')
+
+def invalidate_featured_cache():
+    """Call this when featured content changes"""
+    cache.delete('featured_lessons')

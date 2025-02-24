@@ -4,12 +4,15 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from emails.models import Email
+import logging
+logger = logging.getLogger('goldmage')
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @csrf_exempt
 @require_POST
 def stripe_webhook(request):
+    logger.info("Received Stripe webhook request")
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
 
@@ -17,6 +20,7 @@ def stripe_webhook(request):
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
         )
+        logger.info(f"Processing Stripe event: {event.type}")
     except ValueError:
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError:
@@ -43,6 +47,7 @@ def stripe_webhook(request):
 
         elif event.type in ['customer.subscription.created', 'customer.subscription.updated']:
             subscription = event.data.object
+            logger.info(f"New subscription: {event.data.object.id}")
             try:
                 user = Email.objects.get(customer_id=subscription.customer)
                 if subscription.status == 'active':
@@ -85,4 +90,5 @@ def stripe_webhook(request):
         return HttpResponse(status=200)
     
     except Exception:
+        logger.error(f"Webhook error: {str(e)}", exc_info=True)
         return HttpResponse(status=400)

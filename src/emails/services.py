@@ -4,6 +4,7 @@ from django.utils import timezone
 from .models import Email, EmailVerificationEvent
 from django.template.loader import render_to_string
 import uuid
+import logging
 
 EMAIL_HOST_USER = settings.EMAIL_HOST_USER
 
@@ -15,54 +16,60 @@ def start_verification_event(email, event_type='registration', metadata=None):
     """
     Start email verification process
     """
-    token = uuid.uuid4()
-    
-    # Generate appropriate URL based on event type
-    if event_type == 'registration':
-        url = f"{settings.BASE_URL}/verify/{token}/"
-    elif event_type == 'password_reset':
-        url = f"{settings.BASE_URL}/reset-password/confirm/{token}/"
-    
-    # Update metadata with URL
-    metadata = metadata or {}
-    metadata.update({
-        'verify_url': url if event_type == 'registration' else None,
-        'reset_url': url if event_type == 'password_reset' else None
-    })
-    
-    # Create verification event
-    event = EmailVerificationEvent.objects.create(
-        email=email,
-        token=token,
-        event_type=event_type,
-        metadata=metadata
-    )
+    logger = logging.getLogger('goldmage')
+    logger.info(f"Starting {event_type} verification for: {email}")
+    try:
+        token = uuid.uuid4()
+        
+        # Generate appropriate URL based on event type
+        if event_type == 'registration':
+            url = f"{settings.BASE_URL}/verify/{token}/"
+        elif event_type == 'password_reset':
+            url = f"{settings.BASE_URL}/reset-password/confirm/{token}/"
+        
+        # Update metadata with URL
+        metadata = metadata or {}
+        metadata.update({
+            'verify_url': url if event_type == 'registration' else None,
+            'reset_url': url if event_type == 'password_reset' else None
+        })
+        
+        # Create verification event
+        event = EmailVerificationEvent.objects.create(
+            email=email,
+            token=token,
+            event_type=event_type,
+            metadata=metadata
+        )
 
-    # Get the appropriate template and subject
-    if event_type == 'registration':
-        template_name = 'emails/verification.html'
-        subject = 'Verify your email address'
-    elif event_type == 'password_reset':
-        template_name = 'emails/password_reset.html'
-        subject = 'Reset your password'
+        # Get the appropriate template and subject
+        if event_type == 'registration':
+            template_name = 'emails/verification.html'
+            subject = 'Verify your email address'
+        elif event_type == 'password_reset':
+            template_name = 'emails/password_reset.html'
+            subject = 'Reset your password'
 
-    # Render email template
-    html_content = render_to_string(template_name, {
-        'token': token,
-        'metadata': metadata,
-        'email': email,
-    })
+        # Render email template
+        html_content = render_to_string(template_name, {
+            'token': token,
+            'metadata': metadata,
+            'email': email,
+        })
 
-    # Send email
-    send_mail(
-        subject=subject,
-        message='',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[email],
-        html_message=html_content
-    )
+        # Send email
+        send_mail(
+            subject=subject,
+            message='',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            html_message=html_content
+        )
 
-    return event
+        logger.info(f"Verification email sent successfully to: {email}")
+        return event
+    except Exception as e:
+        logger.error(f"Verification email failed: {str(e)}", exc_info=True)
 
 def verify_token(token, max_attempts=5):
     qs = EmailVerificationEvent.objects.filter(token=token)

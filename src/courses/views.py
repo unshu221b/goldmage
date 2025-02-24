@@ -10,24 +10,33 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-
+from django.core.cache import cache  # Add this import
+from cfehome.views import invalidate_user_cache, monitor_cache_stats  # Add this import
+from django.views.decorators.cache import cache_control
 from . import services
 from .models import Course, Lesson, PublishStatus, WatchProgress, LessonLike
 
 logger = logging.getLogger(__name__)
 
+@cache_control(public=True, max_age=1800)  # 30 minutes
 def course_list_view(request):
-    queryset = services.get_publish_courses()
-    context = {
-        "object_list": queryset
-    }
-    template_name = "courses/list.html"
-    if request.htmx:
-        template_name = "courses/snippets/list-display.html"
-        context['queryset'] = queryset[:3]
-    return render(request, template_name, context)
+    stats, update_stats = monitor_cache_stats('courses')
+    
+    cache_key = 'course_list'
+    courses = cache.get(cache_key)
+    
+    if courses is None:
+        update_stats(hit=False)
+        courses = Course.objects.filter(
+            status=PublishStatus.PUBLISHED
+        ).order_by('-updated')
+        cache.set(cache_key, courses, 1800)
+    else:
+        update_stats(hit=True)
+    
+    return render(request, 'courses/list.html', {'courses': courses})
 
-
+@login_required
 def course_detail_view(request, course_id=None, *args, **kwarg):
     course_obj = services.get_course_detail(course_id=course_id)
     if course_obj is None:
@@ -66,8 +75,10 @@ def course_detail_view(request, course_id=None, *args, **kwarg):
     
     return render(request, "courses/detail.html", context)
 
-
+@cache_control(private=True, max_age=300)  # 5 minutes
+@login_required
 def lesson_detail_view(request, course_id, lesson_id, *args, **kwargs):
+
     # Get lesson or 404
     lesson_obj = services.get_lesson_detail(
         course_id=course_id,
@@ -122,14 +133,14 @@ def get_thumbnails(request, category):
 @login_required
 @require_POST
 def update_progress(request):
-    print("Update progress called")  # Debug print
-    print("Request method:", request.method)
-    print("Request path:", request.path)
-    print("User:", request.user)
+    logger = logging.getLogger('goldmage')
+    logger.info(f"Progress update requested for user: {request.user.email}")
+    logger.debug(f"Request method: {request.method}")
+    logger.debug(f"Request path: {request.path}")
     
     try:
         data = json.loads(request.body)
-        print("Received data:", data)
+        logger.debug(f"Received data: {data}")
         
         lesson_id = data.get('lesson_id')
         current_time = data.get('current_time')
@@ -149,14 +160,17 @@ def update_progress(request):
         
         progress.update_progress(current_time)
         
+        # Invalidate user's cache when progress is updated
+        invalidate_user_cache(request.user.id)
+        
+        logger.info(f"Progress updated - Lesson: {lesson_id}, Progress: {progress.progress_percentage}%")
+        
         return JsonResponse({
             'success': True,
             'progress': progress.progress_percentage
         })
     except Exception as e:
-        print("Error in update_progress:", str(e))
-        import traceback
-        traceback.print_exc()  # This will print the full error traceback
+        logger.error(f"Progress update failed: {str(e)}", exc_info=True)
         return JsonResponse({'error': str(e)}, status=400)
 
 @login_required
