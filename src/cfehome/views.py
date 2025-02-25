@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.core.mail import send_mail
 import re
 from django.urls import reverse
 from django.http import JsonResponse
@@ -20,7 +21,7 @@ from django.core.cache import cache
 from django.conf import settings
 import time
 from courses.models import Course, Lesson, PublishStatus, WatchProgress
-
+import traceback
 import logging
 import stripe
 
@@ -461,7 +462,45 @@ def create_checkout_session(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+def send_error_email(request, error_code, error_message, stack_trace=None):
+    subject = f'Goldmage Error {error_code}'
+    message = f"""
+An error occurred on Goldmage:
 
+Error Code: {error_code}
+Error Message: {error_message}
+Path: {request.path}
+Method: {request.method}
+User: {request.user}
+
+Stack Trace:
+{stack_trace if stack_trace else 'No stack trace available'}
+    """
+    
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [settings.ADMIN_EMAIL],
+        fail_silently=True,
+    )
+
+def handler404(request, exception):
+    error_message = "Page not found"
+    send_error_email(request, 404, error_message)
+    return render(request, 'error.html', {
+        'error_code': '404',
+        'error_message': error_message
+    }, status=404)
+
+def handler500(request):
+    error_message = "Internal server error"
+    stack_trace = traceback.format_exc()
+    send_error_email(request, 500, error_message, stack_trace)
+    return render(request, 'error.html', {
+        'error_code': '500',
+        'error_message': error_message
+    }, status=500)
 
 # Add cache invalidation functions
 def invalidate_user_cache(user_id):

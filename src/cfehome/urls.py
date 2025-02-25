@@ -61,3 +61,7 @@ if settings.DEBUG:
     urlpatterns += [
         path("__reload__/", include("django_browser_reload.urls")),
     ]
+
+# Add these lines at the bottom of the file
+handler404 = 'cfehome.views.handler404'
+handler500 = 'cfehome.views.handler500'

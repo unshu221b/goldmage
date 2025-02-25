@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="error-container">
+    <h1>{{ error_code }}</h1>
+    <h2>{{ error_message }}</h2>
+    <p>We're sorry, something went wrong. Our team has been notified.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">Return to Home</a>
+</div>
+
+<style>
+    .error-container {
+        text-align: center;
+        padding: 50px 20px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .error-container h1 {
+        font-size: 72px;
+        margin-bottom: 20px;
+        color: #e74c3c;
+    }
+</style>
+{% endblock %} 

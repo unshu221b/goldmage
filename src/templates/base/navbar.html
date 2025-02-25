@@ -8,108 +8,8 @@
         <!-- Logo section -->
         <div class="flex items-center">
           <a href="/" class="flex items-center">
-            <img src="{% static 'img/logo.png' %}" alt="Logo" class="h-14">
-            <span class="self-center text-2xl font-semibold whitespace-nowrap">GoldMage</span>
+            <img src="{% static 'img/goldmage_logo_hori.png' %}" alt="Logo" class="h-14 mc-pr-1 object-contain">
           </a>
-        </div>
-
-        <!-- Main dropdown structure -->
-        <div class="relative">
-          <!-- Main button -->
-          {% comment %}
-          <button id="dropdownNavbarLink" 
-                  data-dropdown-toggle="dropdownNavbar" 
-                  data-dropdown-placement="bottom-start"
-                  data-dropdown-offset-distance="8"
-                  data-dropdown-offset-skidding="0"
-                  class="flex items-center min-w-[6rem] px-4 justify-between font-medium text-white hover:text-blue-500">
-            Browse
-            <svg class="w-2 h-2 ml-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m1 1 4 4 4-4"/>
-            </svg>
-          </button>
-          
-          <!-- Original desktop dropdown -->
-          <div id="dropdownNavbar" class="z-10 font-normal bg-gm divide-y divide-gray-100 rounded-lg shadow-sm w-64 text-white">
-            <ul class="py-2 text-sm" aria-labelledby="dropdownLargeButton">
-              <!-- Business section -->
-              <li aria-labelledby="dropdownNavbarLink">
-                <button id="businessDropdownButton" data-dropdown-toggle="businessDropdown" data-dropdown-placement="right-start" type="button" class="flex items-center justify-between w-full px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                  商業與創業
-                </button>
-                <div id="businessDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-64 dark:bg-gray-700">
-                  <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">創建自己的品牌或創業</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">有效溝通與團隊合作</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">了解金融與投資</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">品牌與營銷策略成長</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">提升公開演講技巧</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">商業創新與創意思維</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">團隊領導成功之道</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">談判與說服技巧</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">目標設定與時間管理</a></li>
-                  </ul>
-                </div>
-              </li>
-
-              <!-- Food & Drink section -->
-              <li aria-labelledby="dropdownNavbarLink">
-                <button id="foodDropdownButton" data-dropdown-toggle="foodDropdown" data-dropdown-placement="right-start" type="button" class="flex items-center justify-between w-full px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                  美食與飲品
-                </button>
-                <div id="foodDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-64 dark:bg-gray-700">
-                  <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">烘焙麵包與糕點</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">烹飪義大利麵與米飯</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">健康美味素食料理</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">提升烹飪技巧</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">探索全球美食文化</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">日常美食升級</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">葡萄酒搭配、調酒與咖啡</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">海鮮料理製作</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">精進肉類烹飪</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">調味料與香料運用</a></li>
-                  </ul>
-                </div>
-              </li>
-
-              <!-- Sports & Athletics section -->
-              <li aria-labelledby="dropdownNavbarLink">
-                <button id="sportsDropdownButton" data-dropdown-toggle="sportsDropdown" data-dropdown-placement="right-start" type="button" class="flex items-center justify-between w-full px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                    運動與體育
-                </button>
-                <div id="sportsDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-64 dark:bg-gray-700">
-                  <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
-                      <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">運動訓練基礎</a></li>
-                      <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">體能提升計劃</a></li>
-                      <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">運動營養學</a></li>
-                  </ul>
-                </div>
-              </li>
-
-              <!-- Writing section -->
-              <li aria-labelledby="dropdownNavbarLink">
-                <button id="writingDropdownButton" data-dropdown-toggle="writingDropdown" data-dropdown-placement="right-start" type="button" class="flex items-center justify-between w-full px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                  寫作
-                </button>
-                <div id="writingDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-64 dark:bg-gray-700">
-                  <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">創作引人入勝的故事</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">編輯作品並發表出版</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">透過詩歌表達自我</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">在寫作中展現多元性</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">磨練寫作過程與風格</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">學習世界觀建構與類型寫作</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">克服寫作瓶頸與其他障礙</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">激發創意與產生想法</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">研究新聞學與報導</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">塑造生動的角色</a></li>
-                  </ul>
-                </div>
-              </li>
-            </ul>
-          </div>
-          {% endcomment %}
         </div>
       </div>
 
@@ -118,8 +18,8 @@
         {% if user.is_authenticated %}
           <a href="{% url 'logout' %}" class="text-white hover:text-blue-500">Logout</a>
         {% else %}
-          <a href="{% url 'login' %}" class="text-white hover:text-blue-500 pr-4">Login</a>
-          <a href="{% url 'signup' %}" class="text-white font-semibold bg-primary-button hover:bg-primary-button focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Enroll</a>
+          <a href="{% url 'login' %}" class="text-white hover:text-blue-500">Login</a>
+          <a href="{% url 'signup' %}" class="text-white font-semibold bg-primary-button hover:bg-primary-button focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center" style="margin-left: 0.6rem !important;">Enroll</a>
         {% endif %}
       </div>
     </div>

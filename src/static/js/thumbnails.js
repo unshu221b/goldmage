@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 lessonUrl: '/courses/111-63d62/lessons/104-abc'
             }
         ],
-        acting: [
+        storymaster: [
             {
                 image: '/static/img/acting1.jpg',
                 title: 'Acting Fundamentals'
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: 'Marketing Strategy'
             }
         ],
-        community: [
+        english: [
             {
                 image: '/static/img/community1.jpg',
                 title: 'Public Speaking'
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: 'Social Impact'
             }
         ],
-        food: [
+        japanese: [
             {
                 image: '/static/img/food1.jpg',
                 title: 'Culinary Basics'
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: 'Pastry Making'
             }
         ],
-        art: [
+        biography: [
             {
                 image: '/static/img/art1.jpg',
                 title: 'Digital Art'
@@ -87,118 +87,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: 'Sculpture Basics'
             }
         ],
-        games: [
-            {
-                image: '/static/img/games1.jpg',
-                title: 'Game Design'
-            },
-            {
-                image: '/static/img/games2.jpg',
-                title: '3D Modeling'
-            },
-            {
-                image: '/static/img/games3.jpg',
-                title: 'Animation'
-            }
-        ],
-        film: [
-            {
-                image: '/static/img/film1.jpg',
-                title: 'Cinematography'
-            },
-            {
-                image: '/static/img/film2.jpg',
-                title: 'Video Editing'
-            },
-            {
-                image: '/static/img/film3.jpg',
-                title: 'Screenwriting'
-            }
-        ],
-        health: [
-            {
-                image: '/static/img/health1.jpg',
-                title: 'Meditation'
-            },
-            {
-                image: '/static/img/health2.jpg',
-                title: 'Yoga Practice'
-            },
-            {
-                image: '/static/img/health3.jpg',
-                title: 'Nutrition Basics'
-            }
-        ],
-        music: [
-            {
-                image: '/static/img/music1.jpg',
-                title: 'Guitar Basics'
-            },
-            {
-                image: '/static/img/music2.jpg',
-                title: 'Music Production'
-            },
-            {
-                image: '/static/img/music3.jpg',
-                title: 'Piano Lessons'
-            }
-        ],
-        outdoor: [
-            {
-                image: '/static/img/outdoor1.jpg',
-                title: 'Rock Climbing'
-            },
-            {
-                image: '/static/img/outdoor2.jpg',
-                title: 'Hiking Skills'
-            },
-            {
-                image: '/static/img/outdoor3.jpg',
-                title: 'Photography'
-            }
-        ],
-        science: [
-            {
-                image: '/static/img/science1.jpg',
-                title: 'Coding Basics'
-            },
-            {
-                image: '/static/img/science2.jpg',
-                title: 'Data Science'
-            },
-            {
-                image: '/static/img/science3.jpg',
-                title: 'AI Fundamentals'
-            }
-        ],
-        sports: [
-            {
-                image: '/static/img/sports1.jpg',
-                title: 'Fitness Training'
-            },
-            {
-                image: '/static/img/sports2.jpg',
-                title: 'Tennis Basics'
-            },
-            {
-                image: '/static/img/sports3.jpg',
-                title: 'Swimming'
-            }
-        ],
-        writing: [
-            {
-                image: '/static/img/writing1.jpg',
-                title: 'Creative Writing'
-            },
-            {
-                image: '/static/img/writing2.jpg',
-                title: 'Storytelling'
-            },
-            {
-                image: '/static/img/writing3.jpg',
-                title: 'Content Creation'
-            }
-        ]
     };
 
     const thumbnailContainer = document.getElementById('thumbnail-container');

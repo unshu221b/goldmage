@@ -54,7 +54,7 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS", "127.0.0.1,localhost,testserver")
+ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS", "127.0.0.1,localhost")
 ALLOWED_HOSTS = ENV_ALLOWED_HOSTS.split(",") + ["0.0.0.0"]
 
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
@@ -309,3 +309,8 @@ LOGGING = {
 LOGIN_URL = '/login/'  # Your actual login URL
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
+
+# HSTS Settings
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
