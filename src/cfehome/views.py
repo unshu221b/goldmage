@@ -9,7 +9,7 @@ import re
 from django.urls import reverse
 from django.http import JsonResponse
 from itertools import chain
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from emails import services as emails_services
@@ -24,6 +24,7 @@ from courses.models import Course, Lesson, PublishStatus, WatchProgress
 import traceback
 import logging
 import stripe
+from django.middleware.csrf import get_token
 
 logger = logging.getLogger('goldmage')
 
@@ -373,10 +374,8 @@ def signup_view(request):
     
     return render(request, 'auth/signup.html')
 
-# New view for payment
-@cache_control(no_cache=True, no_store=True, must_revalidate=True)
+@ensure_csrf_cookie
 def payment_checkout(request):
-    logger.info(f"Payment checkout initiated for user: {request.user.email}")
     if not request.user.is_authenticated:
         return redirect('signup')
         
@@ -395,15 +394,12 @@ def payment_checkout(request):
                     reverse('payment_return')
                 ) + '?session_id={CHECKOUT_SESSION_ID}',
             )
-            # Only log safe information
-            logger.info(f"Checkout session created: {session.id}")
             
             return JsonResponse({'clientSecret': session.client_secret})
             
         except Exception as e:
-            # Log error safely
-            logger.error(f"Payment checkout failed: {str(e)}", exc_info=True)
-            return JsonResponse({'error': str(e)}, status=400)
+            logger.error(f"Payment error occurred", exc_info=True)  # Log full error server-side only
+            return JsonResponse({'error': 'Unable to process payment'}, status=400)  # Generic message to client
     
     return render(request, 'payment/checkout.html', {
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY

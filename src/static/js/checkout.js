@@ -1,10 +1,7 @@
-// checkout.js
-
 initialize();
 
 // Create a Checkout Session
 async function initialize() {
-  // Get CSRF token from cookie
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -22,28 +19,34 @@ async function initialize() {
 
   const fetchClientSecret = async () => {
     try {
+      const csrfToken = getCookie('csrftoken');
+      const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+      const token = csrfToken || (csrfInput ? csrfInput.value : null);
+      
+      if (!token) {
+        throw new Error('CSRF token not found');
+      }
+
       const response = await fetch("/payment/checkout/", {
         method: "POST",
         headers: {
-          'X-CSRFToken': getCookie('csrftoken'),
+          'X-CSRFToken': token,
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
+        credentials: 'same-origin',
+        mode: 'same-origin',
+        cache: 'no-cache'
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Payment setup failed`);  // Generic error message
       }
       
       const data = await response.json();
-      console.log("Response data:", data);  // Debug log
-      
-      if (!data.clientSecret) {
-        throw new Error('No client secret in response');
-      }
-      
       return data.clientSecret;
     } catch (error) {
-      console.error("Error fetching client secret:", error);
+      console.error("Payment setup error");  // Generic error message
       throw error;
     }
   };
@@ -53,9 +56,9 @@ async function initialize() {
       fetchClientSecret,
     });
     
-    // Mount Checkout
     checkout.mount('#checkout');
   } catch (error) {
-    console.error("Error initializing checkout:", error);
+    document.getElementById('checkout').innerHTML = 
+      '<div class="text-red-500 p-4">Unable to load payment form. Please try again.</div>';
   }
 }

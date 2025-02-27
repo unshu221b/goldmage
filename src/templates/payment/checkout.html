@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="{% static 'dist/my.css' %}">
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-      // Initialize stripe with key from Django context
       const stripe = Stripe('{{ stripe_public_key }}');
     </script>
     <script src="{% static 'js/checkout.js' %}" defer></script>
@@ -26,9 +25,11 @@
     </div>
     <!-- Display a payment form -->
     <div class="container mx-auto mt-20 p-4">
+        {% csrf_token %}
         <div id="checkout" class="bg-gm rounded-lg shadow-lg p-6">
         <!-- Checkout will insert the payment form here -->
         </div>
+        <div id="error-message" class="text-red-500 mt-4"></div>
     </div>
 
   {% include 'base/js.html' %}
