@@ -5,11 +5,6 @@
   <meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta property="og:url" content="https://goldmage.art" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Goldmage Academy - 金法師學院" />
-    <meta property="og:description" content="金法師是線上故事學習平台：懂故事，主宰生活、命運和人心。" />
-    <meta property="og:image" content="https://goldmage.art/src/static/img/logo_hori.png" />
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'dist/my.css' %}">
@@ -17,6 +12,30 @@
   
 
   <title>{% block head_title %}GoldMage - Online Learning Platform{% endblock head_title %}</title>
+
+  <!-- Basic Meta Tags -->
+  <meta name="description" content="{% block meta_description %}金法師是線上故事學習平台：懂故事，主宰生活、命運和人心。{% endblock %}">
+  
+  <!-- Open Graph / Facebook Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{% block og_url %}https://goldmage.art{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}Goldmage Academy - 金法師學院{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}金法師是線上故事學習平台：懂故事，主宰生活、命運和人心。{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}https://goldmage.art/src/static/img/logo_hori.webp{% endblock %}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:secure_url" content="{% block og_image_secure %}https://goldmage.art/src/static/img/logo_hori.webp{% endblock %}">
+  
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}Goldmage Academy - 金法師學院{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}金法師是線上故事學習平台：懂故事，主宰生活、命運和人心。{% endblock %}">
+  <meta name="twitter:image" content="{% block twitter_image %}https://goldmage.art/src/static/img/logo_hori.webp{% endblock %}">
+  
+  <!-- Application Meta Tags -->
+  <meta name="application-name" content="Goldmage Academy - 金法師學院">
+  <meta name="apple-mobile-web-app-title" content="Goldmage Academy - 金法師學院">
+  
 </head>
 <body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include 'base/navbar.html' %}
