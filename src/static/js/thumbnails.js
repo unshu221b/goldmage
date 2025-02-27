@@ -2,46 +2,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const thumbnailData = {
         trending: [
             {
-                image: '/static/img/ur11.png',
+                image: '/static/img/demo2.webp',
                 title: '年始に読むと人生変わる本TOP5',
                 lessonUrl: '/courses/111-63d62/lessons/102-b543e'
             },
             {
-                image: '/static/img/ur12.png',
+                image: '/static/img/demo2.webp',
                 title: 'お金が増える8つの行動',
                 lessonUrl: '/courses/111-63d62/lessons/103-xyz'
             },
             {
-                image: '/static/img/20220806.jpg',
+                image: '/static/img/demo2.webp',
                 title: 'キャリアを決める7つのトリガー習慣',
                 lessonUrl: '/courses/111-63d62/lessons/104-abc'
             }
         ],
         storymaster: [
             {
-                image: '/static/img/acting1.jpg',
+                image: '/static/img/demo3.webp',
                 title: 'Acting Fundamentals'
             },
             {
-                image: '/static/img/acting2.jpg',
+                image: '/static/img/demo3.webp',
                 title: 'Voice Training Basics'
             },
             {
-                image: '/static/img/acting3.jpg',
+                image: '/static/img/demo3.webp',
                 title: 'Stage Performance Tips'
             }
         ],
         business: [
             {
-                image: '/static/img/business1.jpg',
+                image: '/static/img/demo4.webp',
                 title: 'Startup Essentials'
             },
             {
-                image: '/static/img/business2.jpg',
+                image: '/static/img/demo4.webp',
                 title: 'Leadership Skills'
             },
             {
-                image: '/static/img/business3.jpg',
+                image: '/static/img/demo4.webp',
                 title: 'Marketing Strategy'
             }
         ],
@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const thumbnailContainer = document.getElementById('thumbnail-container');
     const categoryButtons = document.querySelectorAll('.category-button');
+    const mobileCategorySelect = document.getElementById('mobile-category-select');
     const videoModal = document.getElementById('video-modal');
     const closeModal = document.getElementById('close-modal');
     const videoContainer = document.getElementById('video-container');
@@ -182,4 +183,22 @@ document.addEventListener('DOMContentLoaded', function() {
             closeVideoModal();
         }
     });
+
+    // Add change handler to mobile category select
+    if (mobileCategorySelect) {
+        mobileCategorySelect.addEventListener('change', () => {
+            const category = mobileCategorySelect.value;
+            
+            // Also update the desktop buttons to show the active state
+            categoryButtons.forEach(btn => {
+                if (btn.dataset.category === category) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            displayThumbnails(category);
+        });
+    }
 });

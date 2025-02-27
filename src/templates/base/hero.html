@@ -4,43 +4,24 @@
     <div class="absolute top-0 z-0 flex justify-end w-full h-full">
         <div class="relative w-full h-full sm:w-[120%] md:left-32 md:top-16 xl:w-4/5">
             <!-- Image -->
-            <picture>
-                <source 
-                    srcset="{% static 'img/demo1.webp' %} 1920w,
-                            {% static 'img/demo1-tablet.webp' %} 768w,
-                            {% static 'img/demo1-mobile.webp' %} 480w"
-                    type="image/webp">
-                <img src="{% static 'img/demo1.png' %}" 
+   
+                <img src="{% static 'img/demo1.webp' %}" 
                     alt="Welcome to GoldMage Academy" 
                     width="1920" 
                     height="1152" 
                     loading="eager"
                     decoding="async"
                     fetchpriority="high"
-                    class="!h-full w-full object-cover object-center sm:object-right sm:!h-auto transition-opacity duration-150 opacity-90"
-                    srcset="{% static 'img/demo1-mobile.png' %} 480w,
-                            {% static 'img/demo1-tablet.png' %} 768w,
-                            {% static 'img/demo1.png' %} 1920w"
-                    sizes="(max-width: 480px) 480px,
-                           (max-width: 768px) 768px,
-                           1920px">
-            </picture>
-            
-            <!-- Gradient Overlay -->
-            <style>
-                .hero-gradient {
-                    background-image: 
-                        radial-gradient(circle at 30% 30%, transparent 0%, rgba(2,20,51,0.7) 30%, #021433 60%),
-                        linear-gradient(90deg, #021433 0%, rgba(2,20,51,0.95) 40%, rgba(2,20,51,0.5) 65%, rgba(2,20,51,0.8) 100%);
-                }
-                @media (min-width: 640px) {
-                    .hero-gradient {
-                        background-image: 
-                            radial-gradient(circle at 70% 50%, transparent 0%, rgba(2,20,51,0.7) 30%, #021433 60%),
-                            linear-gradient(90deg, #021433 0%, rgba(2,20,51,0.95) 40%, rgba(2,20,51,0.5) 65%, rgba(2,20,51,0.8) 100%);
-                    }
-                }
-            </style>
+                    class="hidden sm:block !h-auto w-full object-cover object-center sm:object-right sm:!h-auto transition-opacity duration-150 opacity-100">
+
+                <img src="{% static 'img/demo1-mobile.webp' %}" 
+                    alt="Welcome to GoldMage Academy" 
+                    width="1920" 
+                    height="1152" 
+                    loading="eager"
+                    decoding="async"
+                    fetchpriority="high"
+                    class="block sm:hidden !h-auto w-full object-cover object-center sm:object-right sm:!h-auto transition-opacity duration-150 opacity-100">
             
             <div class="absolute inset-0 hero-gradient z-[1]"></div>
         </div>
@@ -63,7 +44,7 @@
                 每天只需 10 分鐘<br>即可學習相當於每月 20 本書的知識！
             </h1>
             <p class="mt-1 text-sm/6 font-light text-white sm:mt-3 sm:text-lg xl:text-2xl">
-                人人負擔得起，由最優秀的導師授課
+                掌握故事的力量，開啟繁榮與智慧之門
             </p>
         </div>
 
@@ -79,28 +60,28 @@
                         <img role="presentation" alt="" class="inline h-3 sm:h-5 lg:h-6" src="data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 3L20.66 8V16L12 21L3.34 16V8L12 3Z' stroke='%23F8CF40' stroke-width='1.5'/%3E%3Cpath d='M8 12L11 15L16 10' stroke='%23F8CF40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
                         <div class="text-white">
                             <span class="text-nowrap font-bold">每月4門</span>
-                            <span class="font-normal">全新大學課程</span>
+                            <span class="font-normal">全新故事課程</span>
                         </div>
                     </li>
                     <li class="flex items-center gap-2 whitespace-nowrap text-xs/4 sm:gap-4 sm:text-base/7 xl:text-lg/7">
                         <img role="presentation" alt="" class="inline h-3 sm:h-5 lg:h-6" src="data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 3L20.66 8V16L12 21L3.34 16V8L12 3Z' stroke='%23F8CF40' stroke-width='1.5'/%3E%3Cpath d='M8 12L11 15L16 10' stroke='%23F8CF40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
                         <div>
-                            <span class="text-nowrap font-bold">知識導向</span> 
-                            <span class="font-normal">學習社群</span>
+                            <span class="text-nowrap font-bold">智慧社群</span> 
+                            <span class="font-normal">共同成長</span>
                         </div> 
                     </li>
                     <li class="flex items-center gap-2 whitespace-nowrap text-xs/4 sm:gap-4 sm:text-base/7 xl:text-lg/7">
                         <img role="presentation" alt="" class="inline h-3 sm:h-5 lg:h-6" src="data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 3L20.66 8V16L12 21L3.34 16V8L12 3Z' stroke='%23F8CF40' stroke-width='1.5'/%3E%3Cpath d='M8 12L11 15L16 10' stroke='%23F8CF40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
                         <div>
-                            <span class="text-nowrap font-bold">世界級</span> 
-                            <span class="font-normal">教授團隊</span>
+                            <span class="text-nowrap font-bold">全球視野</span> 
+                            <span class="font-normal">故事大師</span>
                         </div> 
                     </li>
                     <li class="flex items-center gap-2 whitespace-nowrap text-xs/4 sm:gap-4 sm:text-base/7 xl:text-lg/7">
                         <img role="presentation" alt="" class="inline h-3 sm:h-5 lg:h-6" src="data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 3L20.66 8V16L12 21L3.34 16V8L12 3Z' stroke='%23F8CF40' stroke-width='1.5'/%3E%3Cpath d='M8 12L11 15L16 10' stroke='%23F8CF40' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
                         <div>
                             <span class="text-nowrap font-bold">32+</span> 
-                            <span class="font-normal">八小時完整課程</span>
+                            <span class="font-normal">八小時的故事啟發</span>
                         </div> 
                     </li>
                 </ul>

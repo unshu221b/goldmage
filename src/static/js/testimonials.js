@@ -3,21 +3,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const testimonials = [
         {
             image: '/static/img/20220804.jpg',
-            text: '"I\'ve watched 36 MasterClasses by tuning in while I\'m in the bathroom, eating, and doing chores around the house. MasterClass teaches us how to live—with passion, grit, humility, and with a process that makes our life journeys something to savor instead."',
+            text: '"我透過在浴室、吃飯和做家務時觀看36個大師班，學會了如何生活——充滿熱情、堅韌、謙遜，並且有一個過程，讓我們的生活旅程變得值得品味。"',
             name: 'Clarissa',
-            title: 'Founder & Teacher, USA'
+            title: '創辦人 & 教師, 東京'
         },
         {
             image: '/static/img/ac-001.webp',
-            text: '"The quality of instruction and production is unmatched. Each class feels like a documentary film and master\'s degree rolled into one."',
-            name: 'Michael',
-            title: 'Software Engineer, Canada'
+            text: '"教學品質和製作水準無與倫比。每堂課都像是紀錄片與碩士學位的完美結合。"',
+            name: '小陳',
+            title: '軟體工程師，加拿大'
         },
         {
             image: '/static/img/ac-002.webp',
-            text: '"The platform has transformed how I approach learning. The insights from industry leaders are invaluable."',
-            name: 'Sarah',
-            title: 'Creative Director, UK'
+            text: '"這個平台徹底改變了我的學習方式。來自業界領袖的見解非常寶貴。"',
+            name: '小芳',
+            title: '創意總監，英國'
         }
     ];
 
