@@ -1,5 +1,4 @@
-// This is your test secret API key.
-const stripe = Stripe("pk_live_51NtNwpKJgMl2RgJ1dTVn2Lk60PGhYrkRo6MqyyzxKPUSHQsn2KxwpQoacbb3aC5SI3Oxj3xJCaTOIeoFUnjNQ7Tn00rNdcl7Po");
+// checkout.js
 
 initialize();
 
