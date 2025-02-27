@@ -11,6 +11,8 @@
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'dist/my.css' %}">
     <script src="{% static 'js/jssor.slider.min.js' %}"></script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
   {% tailwind_css %}
   
 
@@ -37,7 +39,7 @@
         <div class="block sm:hidden">
             <!-- Mobile Navigation Tabs -->
             <div class="flex border-b border-gray-200">
-                <button class="flex-1 py-2 px-4 text-center border-b-2 border-blue-500" data-tab="continue">
+                <button class="flex-1 py-2 pdx-4 text-center border-b-2 border-blue-500 text-white" data-tab="continue">
                     繼續播放
                 </button>
                 <button class="flex-1 py-2 px-4 text-center text-gray-500" data-tab="trending">
@@ -131,111 +133,7 @@
 
 
 <!-- Add this script at the end of the file -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const closeButton = document.getElementById('close-verification-modal');
-    const modal = document.querySelector('[role="dialog"]');
-    
-    if (closeButton && modal) {
-        closeButton.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
-    }
 
-    const resendButton = document.getElementById('resend-verification');
-    
-    if (resendButton) {
-        resendButton.addEventListener('click', function() {
-            // Disable button to prevent multiple clicks
-            resendButton.disabled = true;
-            resendButton.textContent = 'Sending...';
-            
-            fetch('/resend-verification/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/json'
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Show success message
-                    alert(data.message);
-                } else {
-                    // Show error message
-                    alert(data.message);
-                }
-            })
-            .catch(error => {
-                alert('An error occurred. Please try again.');
-                console.error('Error:', error);
-            })
-            .finally(() => {
-                // Re-enable button after request completes
-                resendButton.disabled = false;
-                resendButton.textContent = 'Resend Email';
-            });
-        });
-    }
 
-    // Mobile tab switching
-    const tabs = document.querySelectorAll('[data-tab]');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Remove active states from all tabs
-            tabs.forEach(t => {
-                t.classList.remove('border-blue-500', 'text-white');
-                t.classList.add('text-gray-500');
-            });
-
-            // Add active state to clicked tab
-            tab.classList.remove('text-gray-500');
-            tab.classList.add('border-blue-500', 'text-white');
-
-            // Hide all tab contents
-            tabContents.forEach(content => {
-                content.classList.add('hidden');
-            });
-
-            // Show selected tab content
-            const targetId = `${tab.dataset.tab}-section`;
-            document.getElementById(targetId).classList.remove('hidden');
-        });
-    });
-});
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebarButton = document.querySelector('[data-drawer-toggle="logo-sidebar"]');
-    const sidebar = document.getElementById('logo-sidebar');
-    let isOpen = true;
-
-    if (sidebarButton && sidebar) {
-        sidebarButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            isOpen = !isOpen;
-            
-            if (isOpen) {
-                sidebar.style.transform = 'translateX(0)';
-            } else {
-                sidebar.style.transform = 'translateX(-100%)';
-            }
-        });
-    }
-
-    // Remove backdrop when clicking anywhere on the document
-    document.addEventListener('click', function() {
-        const backdrop = document.querySelector('.bg-gray-900\\/50');
-        if (backdrop) {
-            backdrop.remove();
-        }
-    });
-});
-</script>
-<!-- <script src="{% static 'js/dashboard.js' %}"></script> -->
-<!--<script src="{% static 'js/carousel.js' %}"></script>-->
-<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
 </body>
 </html>

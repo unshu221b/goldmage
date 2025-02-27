@@ -16,8 +16,8 @@
 </head>
 <body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include 'base/navbar-dashboard.html' %}
-<main class="flex flex-col">
-    <div class="page container">
+  <div class="p-4 sm:ml-64" style="padding-top: 40px;">
+    <div class="dash-body-settings rounded-lg mt-14">
         <header class="py-6 px-4 sm:px-6 lg:px-8">
             <div class="max-w-7xl mx-auto">
                 <h1 class="text-3xl font-bold text-white">
@@ -42,7 +42,7 @@
                                     </div>
                                     <div class="flex items-center justify-between gap-2">
                                         <p class="text-sm/[1.5rem] font-semibold -tracking-4 md:text-base/[1.125rem]">電郵</p>
-                                        <p class="md:font-semibold whitespace-pre-line text-base/[1.5rem] text-gray-500">{{ user.email }}</p>
+                                        <p class="md:font-semibold whitespace-pre-line text-base/[1.5rem] text-gray-500 truncate">{{ user.email }}</p>
                                     </div>
                                 </div>
                             </div>
