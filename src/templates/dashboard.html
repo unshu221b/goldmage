@@ -1,5 +1,6 @@
 {% load static tailwind_tags %}
 {% load custom_filters %}
+{% load humanize %}
 <!doctype html>
 <html>
 <head>
@@ -21,8 +22,8 @@
   <!-- Main Content -->
   <div class="p-4 sm:ml-64" style="padding-top: 40px;">
     <div class="dash-body rounded-lg mt-14">
-        <div class="mb-4">
-            <!-- Continue Watching Section - Helps users resume their progress -->
+        <!-- Desktop Sections (hidden on mobile) -->
+        <div class="hidden sm:block mb-4">
             {% include 'base/continue-watching.html' %}
 
             <!-- Featured Content Section - Showcases our best and most popular work -->
@@ -32,6 +33,96 @@
             {% include 'base/suggested-content.html' %}
         </div>
 
+        <!-- Mobile Sections (hidden on desktop) -->
+        <div class="block sm:hidden">
+            <!-- Mobile Navigation Tabs -->
+            <div class="flex border-b border-gray-200">
+                <button class="flex-1 py-2 px-4 text-center border-b-2 border-blue-500" data-tab="continue">
+                    繼續播放
+                </button>
+                <button class="flex-1 py-2 px-4 text-center text-gray-500" data-tab="trending">
+                    熱門
+                </button>
+                <button class="flex-1 py-2 px-4 text-center text-gray-500" data-tab="for-you">
+                    推薦
+                </button>
+            </div>
+            
+            <!-- Mobile Content Sections -->
+            <div class="mt-4 space-y-4">
+                <!-- Continue Watching Section -->
+                <div id="continue-section" class="tab-content">
+                    {% for item in continue_watching %}
+                    <div class="video-card mb-4">
+                        {% if item|get_class == 'WatchProgress' %}
+                        <a href="{{ item.lesson.get_absolute_url }}" class="block">
+                            <div class="relative">
+                                <img src="{{ item.lesson.get_thumbnail }}" alt="{{ item.lesson.title }}" class="w-full rounded-lg">
+                                {% if item.lesson.duration %}
+                                <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-sm px-2 py-1 rounded">
+                                    {{ item.lesson.duration }}
+                                </div>
+                                {% endif %}
+                                <!-- Progress bar -->
+                                <div class="absolute bottom-0 left-0 right-0 h-1 bg-gray-600">
+                                    <div class="h-full bg-red-500" style="width: {{ item.progress_percentage }}%;"></div>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <h3 class="font-semibold text-base line-clamp-2">{{ item.lesson.title }}</h3>
+                                <p class="text-sm text-gray-400">Last watched {{ item.last_watched|naturaltime }}</p>
+                            </div>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Trending Section (Featured Content) -->
+                <div id="trending-section" class="tab-content hidden">
+                    {% for lesson in featured_lessons %}
+                    <div class="video-card mb-4">
+                        <a href="{{ lesson.get_absolute_url }}" class="block">
+                            <div class="relative">
+                                <img src="{{ lesson.get_thumbnail }}" alt="{{ lesson.title }}" class="w-full rounded-lg">
+                                {% if lesson.duration %}
+                                <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-sm px-2 py-1 rounded">
+                                    {{ lesson.duration }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <h3 class="font-semibold text-base line-clamp-2">{{ lesson.title }}</h3>
+                                <p class="text-sm text-gray-400">{{ lesson.updated|naturaltime }}</p>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- For You Section (Suggested Content) -->
+                <div id="for-you-section" class="tab-content hidden">
+                    {% for lesson in suggested_lessons %}
+                    <div class="video-card mb-4">
+                        <a href="{{ lesson.get_absolute_url }}" class="block">
+                            <div class="relative">
+                                <img src="{{ lesson.get_thumbnail }}" alt="{{ lesson.title }}" class="w-full rounded-lg">
+                                {% if lesson.duration %}
+                                <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-sm px-2 py-1 rounded">
+                                    {{ lesson.duration }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <h3 class="font-semibold text-base line-clamp-2">{{ lesson.title }}</h3>
+                                <p class="text-sm text-gray-400">{{ lesson.updated|naturaltime }}</p>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>
     {% include 'base/footer-dashboard.html' %}
   </div>
@@ -87,6 +178,33 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Mobile tab switching
+    const tabs = document.querySelectorAll('[data-tab]');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active states from all tabs
+            tabs.forEach(t => {
+                t.classList.remove('border-blue-500', 'text-white');
+                t.classList.add('text-gray-500');
+            });
+
+            // Add active state to clicked tab
+            tab.classList.remove('text-gray-500');
+            tab.classList.add('border-blue-500', 'text-white');
+
+            // Hide all tab contents
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Show selected tab content
+            const targetId = `${tab.dataset.tab}-section`;
+            document.getElementById(targetId).classList.remove('hidden');
+        });
+    });
 });
 document.addEventListener('DOMContentLoaded', function() {
     const sidebarButton = document.querySelector('[data-drawer-toggle="logo-sidebar"]');

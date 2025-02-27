@@ -314,3 +314,6 @@ LOGOUT_REDIRECT_URL = '/'
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+
+# Admin email for error reporting
+ADMIN_EMAIL = 'lungbridgestudio@gmail.com'  # Replace with your admin email
