@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.http import HttpResponse
+from django.views.generic.base import RedirectView
 
 from emails.views import verify_email_token_view, resend_verification_email, reset_password_view, reset_password_confirm_view
 from . import views, webhooks
@@ -54,6 +55,7 @@ urlpatterns = [
     path('continue-watching/', views.continue_watching_all_view, name='continue_watching_all'),
     path('featured-content/', views.featured_content_all_view, name='featured_content_all'),
     path('suggested-content/', views.suggested_content_all_view, name='suggested_content_all'),
+    path('favicon.ico', RedirectView.as_view(url='/static/img/favicon.ico', permanent=True)),
 ]
 
 if settings.DEBUG:

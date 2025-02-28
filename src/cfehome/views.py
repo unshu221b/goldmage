@@ -324,7 +324,7 @@ def logout_view(request):
     return redirect('home')
 
 def signup_view(request):
-    if request.session.get('email_id'):
+    if request.user.is_authenticated:
         return redirect('dashboard')
         
     if request.method == 'POST':

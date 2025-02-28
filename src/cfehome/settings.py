@@ -98,6 +98,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "cfehome.middleware.AdminAccessMiddleware",
 ]
 
 ROOT_URLCONF = "cfehome.urls"
@@ -186,7 +187,6 @@ MEDIA_ROOT = LOCAL_CDN / "media"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 
 # cloudinary video config
 CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME", default="")
