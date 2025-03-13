@@ -1,6 +1,7 @@
 .DS_Store
 local-cdn/media/
 .env.prod
+.env.popup-store-1
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

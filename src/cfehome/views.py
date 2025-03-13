@@ -1,30 +1,29 @@
-from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from django.core.mail import send_mail
-import re
+from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.http import JsonResponse
-from itertools import chain
+from django.core.cache import cache
+from django.conf import settings
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.views.decorators.cache import cache_page, cache_control
+
+from itertools import chain
 from emails import services as emails_services
 from emails.models import Email, EmailVerificationEvent, LoginAttempt
 from emails.forms import EmailForm
 from emails.decorators import login_ratelimit
-from django.views.decorators.cache import cache_page, cache_control
-from django.core.cache import cache
-from django.conf import settings
-import time
 from courses.models import Course, Lesson, PublishStatus, WatchProgress
 import traceback
 import logging
 import stripe
-from django.middleware.csrf import get_token
+import time
+import re
 
 logger = logging.getLogger('goldmage')
 

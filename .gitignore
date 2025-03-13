@@ -1,4 +1,5 @@
 .env.prod
+.env.popup-store-1
 .DS_Store
 local-cdn/media/
 .kube/
