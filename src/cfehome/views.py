@@ -24,6 +24,8 @@ import logging
 import stripe
 import time
 import re
+import psutil
+import os
 
 logger = logging.getLogger('goldmage')
 
@@ -440,14 +442,18 @@ def create_portal_session(request):
         return JsonResponse({'error': str(e)}, status=400)
     
 @login_required
+@ensure_csrf_cookie
 def create_checkout_session(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+        
     try:
         checkout_session = stripe.checkout.Session.create(
-            customer=request.user.customer_id,  # Optional - for existing customers
-            client_reference_id=request.user.id,  # To link the session to your user
+            customer=request.user.customer_id,
+            client_reference_id=request.user.id,
             mode='subscription',
             line_items=[{
-                'price': settings.STRIPE_PRO_PRICE_ID,  # Your price ID from Stripe
+                'price': settings.STRIPE_PRO_PRICE_ID,
                 'quantity': 1,
             }],
             success_url=request.build_absolute_uri(reverse('dashboard')) + '?success=true',
@@ -507,3 +513,35 @@ def invalidate_user_cache(user_id):
 def invalidate_featured_cache():
     """Call this when featured content changes"""
     cache.delete('featured_lessons')
+
+def health_check(request):
+    try:
+        # Basic system stats
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        health_data = {
+            'status': 'healthy',
+            'memory': {
+                'total': memory.total,
+                'available': memory.available,
+                'percent': memory.percent,
+            },
+            'disk': {
+                'total': disk.total,
+                'free': disk.free,
+                'percent': disk.percent,
+            },
+            'load_average': os.getloadavg(),
+        }
+        
+        return JsonResponse(health_data)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'unhealthy',
+            'error': str(e)
+        }, status=500)
+    
+@login_required
+def product_page(request):
+    return render(request, 'product.html')

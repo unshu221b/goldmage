@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
 document.addEventListener('DOMContentLoaded', function() {
     const sidebarButton = document.querySelector('[data-drawer-toggle="logo-sidebar"]');
     const sidebar = document.getElementById('logo-sidebar');

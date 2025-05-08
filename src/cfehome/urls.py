@@ -56,6 +56,7 @@ urlpatterns = [
     path('featured-content/', views.featured_content_all_view, name='featured_content_all'),
     path('suggested-content/', views.suggested_content_all_view, name='suggested_content_all'),
     path('favicon.ico', RedirectView.as_view(url='/static/img/favicon.ico', permanent=True)),
+    path('product/', views.product_page, name='product'),
 ]
 
 if settings.DEBUG:

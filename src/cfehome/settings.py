@@ -54,8 +54,18 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ENV_ALLOWED_HOSTS = os.environ.get("ENV_ALLOWED_HOSTS", "127.0.0.1,localhost")
-ALLOWED_HOSTS = ENV_ALLOWED_HOSTS.split(",") + ["0.0.0.0"]
+# Base allowed hosts (always include these)
+BASE_ALLOWED_HOSTS = [
+    "0.0.0.0",
+    "localhost",
+    "127.0.0.1",
+]
+
+# Get additional hosts from environment
+ENV_ALLOWED_HOSTS = config("ALLOWED_HOSTS", 
+                         default="52aichan.com,.52aichan.com,163.47.8.50", 
+                         cast=Csv())
+ALLOWED_HOSTS = BASE_ALLOWED_HOSTS + list(ENV_ALLOWED_HOSTS)
 
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
@@ -258,8 +268,20 @@ SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-# Security Settings
-CSRF_TRUSTED_ORIGINS = ['https://goldmage.art']
+# Base CSRF trusted origins
+BASE_CSRF_TRUSTED_ORIGINS = [
+    'https://52aichan.com',
+    'http://52aichan.com',
+    'https://*.52aichan.com',
+    'http://*.52aichan.com',
+]
+
+# Get additional CSRF origins from environment
+ENV_CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", 
+                                default="http://163.47.8.50,https://163.47.8.50", 
+                                cast=Csv())
+CSRF_TRUSTED_ORIGINS = BASE_CSRF_TRUSTED_ORIGINS + [origin for origin in ENV_CSRF_TRUSTED_ORIGINS]
+
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'

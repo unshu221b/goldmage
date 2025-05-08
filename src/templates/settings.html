@@ -17,6 +17,7 @@
 <body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {% include 'base/navbar-dashboard.html' %}
   <div class="p-4 sm:ml-64" style="padding-top: 40px;">
+    {% csrf_token %}
     <div class="dash-body-settings rounded-lg mt-14">
         <header class="py-6 px-4 sm:px-6 lg:px-8">
             <div class="max-w-7xl mx-auto">
@@ -143,14 +144,32 @@ async function createPortalSession(button) {
     }
 }
 
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 async function createCheckoutSession(button) {
     button.disabled = true;
     try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         const response = await fetch('/create-checkout-session/', {
             method: 'POST',
             headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
             },
+            credentials: 'same-origin',
         });
         const data = await response.json();
         if (data.url) {
@@ -160,12 +179,6 @@ async function createCheckoutSession(button) {
         console.error('Error:', error);
         button.disabled = false;
     }
-}
-
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
 document.addEventListener('DOMContentLoaded', function() {

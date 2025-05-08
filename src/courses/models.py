@@ -141,18 +141,6 @@ class Course(models.Model):
     - Status: Published, Coming Soon, Draft
 """
 
-# Lesson.objects.all() # lesson queryset -> all rows
-# Lesson.objects.first()
-# course_obj = Course.objects.first()
-# course_qs = Course.objects.filter(id=course_obj.id)
-# Lesson.objects.filter(course__id=course_obj.id)
-# course_obj.lesson_set.all()
-# lesson_obj = Lesson.objects.first()
-# ne_course_obj = lesson_obj.course
-# ne_course_lessons = ne_course_obj.lesson_set.all()
-# lesson_obj.course_id
-# course_obj.lesson_set.all().order_by("-title")
-
 class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     # course_id 
