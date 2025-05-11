@@ -39,6 +39,6 @@ kubectl logs -f deployment/django-k8s-web-deployment
 kubectl logs -f
 
 6. Commit and push
-git add . ; git commit -m "feat: update hero section and styles" ; git push
+git add . ; git commit -m "feat: update " ; git push
 
 kubectl get secrets

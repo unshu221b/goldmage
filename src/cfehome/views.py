@@ -173,13 +173,39 @@ def analyze_view(request):
 
             # Build the prompt
             prompt = (
-                "Analyze the following chat message. "
+                "Analyze the following chat message and generate a reaction and 4 different response suggestions. "
                 "Return a JSON object with these fields:\n"
-                "- reaction: a one-sentence summary of the message's emotional tone\n"
-                "- sentiment: a single word (e.g., Warm, Neutral, Cold)\n"
-                "- clarity: a percentage (e.g., 78%)\n"
-                "- tone: a single word (e.g., Thoughtful, Direct)\n"
-                "- vibe: a short phrase (e.g., Seeking closeness, Playful)\n\n"
+                "{\n"
+                '  "reaction": "A brief emotional reaction to the message",\n'
+                '  "suggestions": [\n'
+                '    {\n'
+                '      "faceSrc": "/static/52aichan.png",\n'
+                '      "suggestion": "first suggestion text",\n'
+                '      "style": "casual/professional/friendly/formal"\n'
+                '    },\n'
+                '    {\n'
+                '      "faceSrc": "/static/52aichan.png",\n'
+                '      "suggestion": "second suggestion text",\n'
+                '      "style": "casual/professional/friendly/formal"\n'
+                '    },\n'
+                '    {\n'
+                '      "faceSrc": "/static/52aichan.png",\n'
+                '      "suggestion": "third suggestion text",\n'
+                '      "style": "casual/professional/friendly/formal"\n'
+                '    },\n'
+                '    {\n'
+                '      "faceSrc": "/static/52aichan.png",\n'
+                '      "suggestion": "fourth suggestion text",\n'
+                '      "style": "casual/professional/friendly/formal"\n'
+                '    }\n'
+                '  ],\n'
+                '  "metrics": {\n'
+                '    "intelligence": number between 0-100,\n'
+                '    "charisma": number between 0-100,\n'
+                '    "strength": number between 0-100,\n'
+                '    "kindness": number between 0-100\n'
+                '  }\n'
+                "}\n\n"
                 f"Message: \"{user_message}\""
             )
 
@@ -187,10 +213,10 @@ def analyze_view(request):
             response = client.chat.completions.create(
                 model="gpt-4.1",
                 messages=[
-                    {"role": "system", "content": "You are an expert communication analyst."},
+                    {"role": "system", "content": "You are an expert communication analyst and response generator."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=256,
+                max_tokens=512,
                 temperature=0.7,
             )
             ai_content = response.choices[0].message.content.strip()
@@ -209,18 +235,14 @@ def analyze_view(request):
 
             # Build the response structure
             response_data = {
-                "intells": [
-                    {
-                        "faceSrc": "/static/52aichan.png",
-                        "reaction": openai_result.get("reaction", ""),
-                        "details": [
-                            {"type": "sentiment", "label": "Sentiment", "value": openai_result.get("sentiment", "")},
-                            {"type": "clarity", "label": "Clarity", "value": openai_result.get("clarity", "")},
-                            {"type": "tone", "label": "Tone", "value": openai_result.get("tone", "")},
-                            {"type": "vibe", "label": "Vibe", "value": openai_result.get("vibe", "")},
-                        ]
-                    }
-                ]
+                "reaction": openai_result.get("reaction", ""),
+                "suggestions": openai_result.get("suggestions", []),
+                "metrics": openai_result.get("metrics", {
+                    "intelligence": 50,
+                    "charisma": 50,
+                    "strength": 50,
+                    "kindness": 50
+                })
             }
             return JsonResponse(response_data)
 
