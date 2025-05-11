@@ -26,11 +26,13 @@ import time
 import re
 import psutil
 import os
+from openai import OpenAI
+import json
+import ast
 
 logger = logging.getLogger('goldmage')
-
-# This is your test secret API key.
 stripe.api_key = settings.STRIPE_SECRET_KEY
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 def monitor_cache_stats(view_name):
     """
@@ -150,6 +152,83 @@ def dashboard_view(request):
     duration = end_time - start_time
     print(f"Dashboard view took {duration:.2f} seconds")
     return render(request, 'dashboard.html', context)
+
+
+@ensure_csrf_cookie
+@csrf_protect
+@login_required
+def product_page(request):
+    return render(request, 'product.html')
+
+@ensure_csrf_cookie
+@csrf_protect
+@login_required
+def analyze_view(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            messages = data.get("messages", [])
+            # Combine messages into a single string for analysis
+            user_message = messages[-1]["text"] if messages else ""
+
+            # Build the prompt
+            prompt = (
+                "Analyze the following chat message. "
+                "Return a JSON object with these fields:\n"
+                "- reaction: a one-sentence summary of the message's emotional tone\n"
+                "- sentiment: a single word (e.g., Warm, Neutral, Cold)\n"
+                "- clarity: a percentage (e.g., 78%)\n"
+                "- tone: a single word (e.g., Thoughtful, Direct)\n"
+                "- vibe: a short phrase (e.g., Seeking closeness, Playful)\n\n"
+                f"Message: \"{user_message}\""
+            )
+
+            # Call OpenAI
+            response = client.chat.completions.create(
+                model="gpt-4.1",
+                messages=[
+                    {"role": "system", "content": "You are an expert communication analyst."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=256,
+                temperature=0.7,
+            )
+            ai_content = response.choices[0].message.content.strip()
+
+            # Try to parse the JSON from the AI's response
+            try:
+                openai_result = json.loads(ai_content)
+            except json.JSONDecodeError:
+                # Fallback: try to extract JSON from the response text
+                import re
+                match = re.search(r'\{.*\}', ai_content, re.DOTALL)
+                if match:
+                    openai_result = json.loads(match.group(0))
+                else:
+                    return JsonResponse({"error": "AI response was not valid JSON", "raw": ai_content}, status=500)
+
+            # Build the response structure
+            response_data = {
+                "intells": [
+                    {
+                        "faceSrc": "/static/52aichan.png",
+                        "reaction": openai_result.get("reaction", ""),
+                        "details": [
+                            {"type": "sentiment", "label": "Sentiment", "value": openai_result.get("sentiment", "")},
+                            {"type": "clarity", "label": "Clarity", "value": openai_result.get("clarity", "")},
+                            {"type": "tone", "label": "Tone", "value": openai_result.get("tone", "")},
+                            {"type": "vibe", "label": "Vibe", "value": openai_result.get("vibe", "")},
+                        ]
+                    }
+                ]
+            }
+            return JsonResponse(response_data)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
 
 @login_required
 def continue_watching_all_view(request):
@@ -541,7 +620,3 @@ def health_check(request):
             'status': 'unhealthy',
             'error': str(e)
         }, status=500)
-    
-@login_required
-def product_page(request):
-    return render(request, 'product.html')

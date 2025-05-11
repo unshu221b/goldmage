@@ -37,6 +37,7 @@ AWS_SECRET_ACCESS_KEY=dummy\n\
 REDIS_HOST=redis\n\
 REDIS_PORT=6379\n\
 REDIS_PASSWORD=\n\
+OPENAI_API_KEY=dummy\n\
 ENVIRONMENT=development" > .env
 
 RUN /opt/venv/bin/pip install pip --upgrade && \

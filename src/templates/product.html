@@ -1,6 +1,7 @@
 {% load static tailwind_tags %}
 {% load custom_filters %}
 {% load humanize %}
+
 <!doctype html>
 <html>
 <head>
@@ -11,12 +12,12 @@
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'dist/my.css' %}">
     <link rel="stylesheet" href="{% static 'dist/52.css' %}">
-    <link rel="stylesheet" href="{% static 'react/static/css/main.1dee7969.css' %}">
+    <link rel="stylesheet" href="{% static 'react/static/css/main.f8fe183a.css' %}">
     <script src="{% static 'js/jssor.slider.min.js' %}"></script>
     <script src="{% static 'js/dashboard.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
   {% tailwind_css %}
-  
+  {% csrf_token %}
 
   <title>Home | 52aichan</title>
   <style>
@@ -33,12 +34,13 @@
     }
   </style>
 </head>
+
 <body class="bg-gm" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     {% include 'base/navbar-product.html' %}
     
     <div class="chat-architect-container">
         <div id="chat-architect-root"></div>
-        <script src="{% static 'react/static/js/main.579a03b0.js' %}"></script>
+        <script src="{% static 'react/static/js/main.01c90394.js' %}"></script>
     </div>
         <!-- Mobile Sections (hidden on desktop) -->
         <div class="block sm:hidden">

@@ -57,6 +57,7 @@ urlpatterns = [
     path('suggested-content/', views.suggested_content_all_view, name='suggested_content_all'),
     path('favicon.ico', RedirectView.as_view(url='/static/img/favicon.ico', permanent=True)),
     path('product/', views.product_page, name='product'),
+    path('api/analyze/', views.analyze_view, name='analyze'),
 ]
 
 if settings.DEBUG:
