@@ -4,7 +4,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy project files
-COPY . /app/
+COPY src/ /app/
 
 # Create virtual environment and install dependencies
 RUN python3 -m venv /opt/venv && \
