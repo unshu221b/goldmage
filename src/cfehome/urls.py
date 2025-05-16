@@ -16,12 +16,11 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf.urls.static import static
 from django.http import HttpResponse
 from django.views.generic.base import RedirectView
-
-from emails.views import verify_email_token_view, resend_verification_email, reset_password_view, reset_password_confirm_view
+from django.views.generic import TemplateView
 from . import views, webhooks
 from courses import views as course_views
 
@@ -30,34 +29,20 @@ def health_check(request):
     return HttpResponse("OK")
 
 urlpatterns = [
-    path("", views.home_view, name="home"),
-    path("dashboard/", views.dashboard_view, name="dashboard"),
-    path("settings/", views.settings_view, name="settings"),
-    path("login/", views.login_view, name="login"),
-    path("logout/", views.logout_view, name="logout"),
-    path("signup/", views.signup_view, name="signup"),
-    path("reset-password/", reset_password_view, name="reset_password"),
-    path('reset-password/confirm/<uuid:token>/', reset_password_confirm_view, name='reset_password_confirm'),
-    path('verify/<uuid:token>/', verify_email_token_view, name='verify_email_token'),
-    path('resend-verification/', resend_verification_email, name='resend_verification'),
-    path("courses/", include("courses.urls")),
-    path("admin/", admin.site.urls),
-    path('health/', health_check, name='health_check'),
+    # Home page (Django template)
+    path('', views.home_view, name='home'),
+    # API endpoints
+    path('api/analyze/', views.analyze_view, name='analyze'),
+    path('webhook/', webhooks.stripe_webhook, name='stripe-webhook'),
     path('payment/checkout/', views.payment_checkout, name='payment_checkout'),
     path('payment/return/', views.payment_return, name='payment_return'),
-    path('webhook/', webhooks.stripe_webhook, name='stripe-webhook'),
     path('create-customer-portal-session', views.create_portal_session, name='create-portal-session'),
     path('create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
-    path('help/', views.help_view, name='help'),
-    path('liked-videos/', views.liked_videos_view, name='liked_videos'),
-    path('history/', views.history_view, name='history'),
-    path('search/', views.search_view, name='search'),
-    path('continue-watching/', views.continue_watching_all_view, name='continue_watching_all'),
-    path('featured-content/', views.featured_content_all_view, name='featured_content_all'),
-    path('suggested-content/', views.suggested_content_all_view, name='suggested_content_all'),
+    # Admin, static, etc.
+    path("admin/", admin.site.urls),
     path('favicon.ico', RedirectView.as_view(url='/static/img/favicon.ico', permanent=True)),
-    path('product/', views.product_page, name='product'),
-    path('api/analyze/', views.analyze_view, name='analyze'),
+    # Catch-all for React frontend (must be last!)
+    re_path(r'^(?!api/|admin/|static/|media/|webhook/|create-customer-portal-session|create-checkout-session|payment/|search/|help/|history/|product/|dashboard/|settings/|favicon\.ico).*$', TemplateView.as_view(template_name='index.html')),
 ]
 
 if settings.DEBUG:

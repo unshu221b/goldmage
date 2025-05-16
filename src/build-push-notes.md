@@ -1,3 +1,5 @@
+venv\Scripts\activate
+
 ## verify working with the right cluster
 kubectl config current-context
 

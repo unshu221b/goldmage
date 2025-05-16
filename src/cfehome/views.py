@@ -1,34 +1,23 @@
 from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout, get_user_model
-from django.contrib.auth.decorators import login_required
+from helpers.myclerk.decorators import api_login_required
 from django.core.mail import send_mail
-from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.http import JsonResponse
 from django.core.cache import cache
 from django.conf import settings
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.views.decorators.cache import cache_page, cache_control
+from django.views.decorators.cache import cache_control
 
 from itertools import chain
-from emails import services as emails_services
-from emails.models import Email, EmailVerificationEvent, LoginAttempt
-from emails.forms import EmailForm
-from emails.decorators import login_ratelimit
 from courses.models import Course, Lesson, PublishStatus, WatchProgress
 import traceback
 import logging
 import stripe
 import time
-import re
-import psutil
 import os
 from openai import OpenAI
 import json
-import ast
 
 logger = logging.getLogger('goldmage')
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -59,34 +48,23 @@ def monitor_cache_stats(view_name):
     
     return stats, update_stats
 
-def login_logout_template_view(request):
-    return render(request, "auth/login-logout.html", {})
-
 EMAIL_ADDRESS = settings.EMAIL_ADDRESS
 @cache_control(max_age=3600, public=True)  # 1 hour
 def home_view(request):
-    # Redirect to dashboard if authenticated
-    if request.user.is_authenticated:
-        return redirect('dashboard')
+    # Only show home page if NOT authenticated
+    if not request.user.is_authenticated:
+        template_name = "home.html"
+        context = {
+            'VITE_CLERK_PUBLISHABLE_KEY': settings.VITE_CLERK_PUBLISHABLE_KEY
+        }
+        return render(request, template_name, context)
     
-    template_name = "home.html"
-    context = {
-        "form": EmailForm(request.POST or None),
-        "message": ""
-    }
-    
-    if request.method == "POST":
-        form = EmailForm(request.POST)
-        if form.is_valid():
-            email_val = form.cleaned_data.get('email')
-            obj = emails_services.start_verification_event(email_val)
-            context['form'] = EmailForm()
-            context['message'] = f"Success! Check your email for verification from {EMAIL_ADDRESS}"
-    
-    return render(request, template_name, context)
+    # If authenticated, redirect to dashboard
+    return redirect('https://52aichan.com/dashboard')
+
 
 @cache_control(private=True, max_age=300)  # 5 minutes
-@login_required
+@api_login_required
 def dashboard_view(request):
     start_time = time.time()
     stats, update_stats = monitor_cache_stats('dashboard')
@@ -156,13 +134,13 @@ def dashboard_view(request):
 
 @ensure_csrf_cookie
 @csrf_protect
-@login_required
+@api_login_required
 def product_page(request):
     return render(request, 'product.html')
 
 @ensure_csrf_cookie
 @csrf_protect
-@login_required
+@api_login_required
 def analyze_view(request):
     if request.method == "POST":
         try:
@@ -252,7 +230,7 @@ def analyze_view(request):
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
 
-@login_required
+@api_login_required
 def continue_watching_all_view(request):
     # Get recently watched videos with related lesson data
     watched_videos = WatchProgress.objects.filter(
@@ -265,7 +243,7 @@ def continue_watching_all_view(request):
     }
     return render(request, 'courses/continue_watching_all.html', context)
 
-@login_required
+@api_login_required
 def featured_content_all_view(request):
     # Get recently watched videos with related lesson data
     featured_lessons = Lesson.get_featured()
@@ -276,7 +254,7 @@ def featured_content_all_view(request):
     }
     return render(request, 'courses/featured_content_all.html', context)
 
-@login_required
+@api_login_required
 def suggested_content_all_view(request):
     suggested_lessons = Lesson.get_suggested(user=request.user)
     
@@ -286,7 +264,7 @@ def suggested_content_all_view(request):
     }
     return render(request, 'courses/suggested_content_all.html', context)
 
-@login_required
+@api_login_required
 def settings_view(request):
     context = {
         'user': request.user,
@@ -306,7 +284,7 @@ def settings_view(request):
     
     return render(request, 'settings.html', context)
 
-@login_required
+@api_login_required
 def history_view(request):
     # Get watch history ordered by most recently watched
     watch_history = WatchProgress.objects.filter(
@@ -324,7 +302,7 @@ def history_view(request):
     }
     return render(request, 'history.html', context)
 
-@login_required
+@api_login_required
 def liked_videos_view(request):
     # Get all lessons liked by the user
     liked_videos = Lesson.objects.filter(
@@ -337,7 +315,7 @@ def liked_videos_view(request):
     }
     return render(request, 'liked_videos.html', context)
 
-@login_required
+@api_login_required
 def search_view(request):
     query = request.GET.get('q', '')
     results = []
@@ -362,120 +340,6 @@ def search_view(request):
 def help_view(request):
     return render(request, 'help.html')  # Just render the template
 
-@csrf_protect
-@login_ratelimit(timeout=3600, max_attempts=20)  # 20 attempts per hour, matching the model
-def login_view(request):
-    logger.info(f"Login attempt from IP: {request.META.get('REMOTE_ADDR')}")
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-        
-    try:
-        if request.method == 'POST':
-            email = request.POST.get('email')
-            logger.info(f"Login attempt for email: {email}")
-            
-            password = request.POST.get('password')
-            remember_me = request.POST.get('remember_me')
-            ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
-            
-            # Record login attempt
-            attempt = LoginAttempt.objects.create(
-                email=email,
-                ip_address=ip,
-                user_agent=request.META.get('HTTP_USER_AGENT'),
-            )
-            
-            # Simple rate limit check
-            is_limited, reasons = attempt.is_suspicious
-            if is_limited:
-                messages.error(request, "Too many login attempts. Please try again later.")
-                return render(request, 'auth/login.html')
-            
-            user = authenticate(request, email=email, password=password)
-            if user is not None:
-                logger.info(f"Successful login for user: {email}")
-                # Update attempt as successful
-                attempt.was_successful = True
-                attempt.save()
-                
-                login(request, user)
-                
-                # Set session expiry based on remember me
-                if not remember_me:
-                    request.session.set_expiry(0)  # Expires when browser closes
-                else:
-                    # 2 weeks in seconds
-                    request.session.set_expiry(1209600)
-
-                # Reset rate limit counters on successful login
-                cache.delete(f"login_ip_{ip}")
-                cache.delete(f"login_email_{email}")
-                
-                return redirect('dashboard')
-            else:
-                logger.warning(f"Failed login attempt for email: {email}")
-                messages.error(request, "Invalid email or password.")
-    except Exception as e:
-        logger.error(f"Login error: {str(e)}", exc_info=True)
-        messages.error(request, "An error occurred. Please try again.")
-    
-    return render(request, 'auth/login.html')
-
-def logout_view(request):
-    logout(request)
-    return redirect('home')
-
-def signup_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-        
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-        
-        try:
-            # Check if email already exists
-            if Email.objects.filter(email=email).exists():
-                messages.error(request, "Email already registered. Please login.")
-                return redirect('login')
-            
-            # Validate passwords match
-            if password != confirm_password:
-                messages.error(request, "Passwords do not match.")
-                return render(request, 'auth/signup.html')
-            
-            # Validate password requirements
-            if len(password) < 8:
-                messages.error(request, "Password must be at least 8 characters long.")
-                return render(request, 'auth/signup.html')
-            
-            if not re.search(r'[A-Z]', password):
-                messages.error(request, "Password must contain at least one uppercase letter.")
-                return render(request, 'auth/signup.html')
-            
-            if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-                messages.error(request, "Password must contain at least one special character.")
-                return render(request, 'auth/signup.html')
-            
-            # Create new user
-            user = Email.objects.create_user(email=email, password=password)
-            
-            # Start verification process
-            obj = emails_services.start_verification_event(email)
-            
-            # Log the user in
-            login(request, user)
-            
-            # Redirect to payment page instead of login
-            return redirect('payment_checkout')
-            
-        except Exception as e:
-            messages.error(request, "An error occurred. Please try again.")
-            print(e)
-    
-    return render(request, 'auth/signup.html')
-
 @ensure_csrf_cookie
 def payment_checkout(request):
     if not request.user.is_authenticated:
@@ -491,7 +355,7 @@ def payment_checkout(request):
                 }],
                 mode='subscription',
                 locale='zh-HK',
-                customer_email=request.user.email,
+                customer=request.user.clerk_user_id,  # Use Clerk ID as Stripe customer ID
                 return_url=request.build_absolute_uri(
                     reverse('payment_return')
                 ) + '?session_id={CHECKOUT_SESSION_ID}',
@@ -500,8 +364,8 @@ def payment_checkout(request):
             return JsonResponse({'clientSecret': session.client_secret})
             
         except Exception as e:
-            logger.error(f"Payment error occurred", exc_info=True)  # Log full error server-side only
-            return JsonResponse({'error': 'Unable to process payment'}, status=400)  # Generic message to client
+            logger.error(f"Payment error occurred", exc_info=True)
+            return JsonResponse({'error': 'Unable to process payment'}, status=400)
     
     return render(request, 'payment/checkout.html', {
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY
@@ -527,22 +391,18 @@ def payment_return(request):
     # No need to redirect; let the user stay on the current page
 
     
-@login_required
+@api_login_required
 def create_portal_session(request):
-    if not request.user.customer_id:
-        return JsonResponse({'error': 'No customer ID found'}, status=400)
-        
     try:
-        # Create portal session with minimal configuration
         session = stripe.billing_portal.Session.create(
-            customer=request.user.customer_id,
+            customer=request.user.clerk_user_id,  # Use Clerk ID
             return_url=request.build_absolute_uri(reverse('settings')),
         )
         return JsonResponse({'url': session.url})
     except stripe.error.StripeError as e:
         return JsonResponse({'error': str(e)}, status=400)
     
-@login_required
+@api_login_required
 @ensure_csrf_cookie
 def create_checkout_session(request):
     if request.method != 'POST':
@@ -550,7 +410,7 @@ def create_checkout_session(request):
         
     try:
         checkout_session = stripe.checkout.Session.create(
-            customer=request.user.customer_id,
+            customer=request.user.clerk_user_id,  # Use Clerk ID
             client_reference_id=request.user.id,
             mode='subscription',
             line_items=[{
@@ -614,31 +474,3 @@ def invalidate_user_cache(user_id):
 def invalidate_featured_cache():
     """Call this when featured content changes"""
     cache.delete('featured_lessons')
-
-def health_check(request):
-    try:
-        # Basic system stats
-        memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
-        
-        health_data = {
-            'status': 'healthy',
-            'memory': {
-                'total': memory.total,
-                'available': memory.available,
-                'percent': memory.percent,
-            },
-            'disk': {
-                'total': disk.total,
-                'free': disk.free,
-                'percent': disk.percent,
-            },
-            'load_average': os.getloadavg(),
-        }
-        
-        return JsonResponse(health_data)
-    except Exception as e:
-        return JsonResponse({
-            'status': 'unhealthy',
-            'error': str(e)
-        }, status=500)

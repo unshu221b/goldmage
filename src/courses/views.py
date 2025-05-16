@@ -6,7 +6,7 @@ from cloudinary.utils import cloudinary_url
 from django.views.decorators.http import require_POST, require_GET
 import json
 from django.views.decorators.csrf import csrf_exempt  # Temporarily add this
-from django.contrib.auth.decorators import login_required
+from helpers.myclerk.decorators import api_login_required
 from django.core.exceptions import PermissionDenied
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -36,7 +36,7 @@ def course_list_view(request):
     
     return render(request, 'courses/list.html', {'courses': courses})
 
-@login_required
+@api_login_required
 def course_detail_view(request, course_id=None, *args, **kwarg):
     course_obj = services.get_course_detail(course_id=course_id)
     if course_obj is None:
@@ -76,7 +76,7 @@ def course_detail_view(request, course_id=None, *args, **kwarg):
     return render(request, "courses/detail.html", context)
 
 @cache_control(private=True, max_age=300)  # 5 minutes
-@login_required
+@api_login_required
 def lesson_detail_view(request, course_id, lesson_id, *args, **kwargs):
 
     # Get lesson or 404
@@ -130,7 +130,7 @@ def get_thumbnails(request, category):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-@login_required
+@api_login_required
 @require_POST
 def update_progress(request):
     logger = logging.getLogger('goldmage')
@@ -173,7 +173,7 @@ def update_progress(request):
         logger.error(f"Progress update failed: {str(e)}", exc_info=True)
         return JsonResponse({'error': str(e)}, status=400)
 
-@login_required
+@api_login_required
 def get_progress(request, lesson_id):
     try:
         lesson = Lesson.objects.get(public_id=lesson_id)
@@ -194,7 +194,7 @@ def get_progress(request, lesson_id):
         print("Error in get_progress:", str(e))
         return JsonResponse({'error': str(e)}, status=400)
 
-@login_required
+@api_login_required
 def toggle_like(request, lesson_id):
     try:
         lesson = Lesson.objects.get(public_id=lesson_id)

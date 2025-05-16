@@ -30,7 +30,7 @@ ADMIN_USER_NAME=config("ADMIN_USER_NAME", default="Charles")
 ADMIN_USER_EMAIL=config("ADMIN_USER_EMAIL", default=None)
 
 # Custom user model
-AUTH_USER_MODEL = 'emails.Email'
+AUTH_USER_MODEL = 'emails.CustomUser'
 
 MANAGERS=[]
 ADMINS=[]
@@ -72,6 +72,16 @@ STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
 STRIPE_PRO_PRICE_ID = config("STRIPE_PRO_PRICE_ID")
+
+# Clerk Config
+VITE_CLERK_PUBLISHABLE_KEY = config("VITE_CLERK_PUBLISHABLE_KEY")
+CLERK_SECRET_KEY = config("CLERK_SECRET_KEY")
+
+CLERK_AUTH_PARTIES = [
+    'https://52aichan.com',
+    'http://52aichan.com',
+]
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -85,6 +95,7 @@ INSTALLED_APPS = [
     "django_htmx",
     "tailwind",
     "theme", # django-tailwind theme app
+    "corsheaders",
     # internal
     "courses",
     "emails",
@@ -102,6 +113,7 @@ INTERNAL_IPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -110,6 +122,7 @@ MIDDLEWARE = [
     "django_htmx.middleware.HtmxMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "cfehome.middleware.AdminAccessMiddleware",
+    "helpers.myclerk.middleware.ClerkAuthMiddleware",
 ]
 
 ROOT_URLCONF = "cfehome.urls"
@@ -276,6 +289,14 @@ BASE_CSRF_TRUSTED_ORIGINS = [
     'https://*.52aichan.com',
     'http://*.52aichan.com',
 ]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    'https://52aichan.com',
+    'http://52aichan.com',
+    'https://*.52aichan.com',
+    'http://*.52aichan.com',
+]
+
 
 # Get additional CSRF origins from environment
 ENV_CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", 
