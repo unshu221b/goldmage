@@ -1,16 +1,18 @@
 FROM python:3.11-slim
 
-COPY . /app/
-# Set work directory
+RUN python -m venv /opt/venv/
+ENV PATH=/opt/venv/bin:$PATH
+
 WORKDIR /app
 
-RUN python3 -m venv /opt/venv
-RUN /opt/venv/bin/pip install pip --upgrade && \
-    /opt/venv/bin/pip install -r requirements.txt && \
-    chmod +x entrypoint.sh
+COPY ./requirements.txt /tmp/requirements.txt
 
-# Collect static files (if you use Django staticfiles)
+COPY ./src /app/
+
+RUN pip install pip --upgrade
+RUN pip install -r /tmp/requirements.txt
+
+# Collect static files
 RUN /opt/venv/bin/python manage.py collectstatic --noinput --clear
 
-# Entrypoint
 CMD ["/app/entrypoint.sh"]
