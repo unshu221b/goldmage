@@ -5,7 +5,7 @@ metadata:
   labels:
     app: django-k8s-web-deployment
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: django-k8s-web-deployment
@@ -44,11 +44,12 @@ metadata:
   name: django-k8s-web-service
   annotations:
     service.beta.kubernetes.io/do-loadbalancer-protocol: "https"
-    service.beta.kubernetes.io/do-loadbalancer-certificate-name: "gm-do"
+    service.beta.kubernetes.io/do-loadbalancer-certificate-name: "52-do"
     service.beta.kubernetes.io/do-loadbalancer-disable-lets-encrypt-dns-records: "false"
     service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https: "true"
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local  # Optional, improves traffic handling and client IP retention
   ports:
     - name: https
       protocol: TCP
