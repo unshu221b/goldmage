@@ -47,4 +47,7 @@ RUN /opt/venv/bin/python manage.py collectstatic --noinput --clear
 
 RUN rm .env
 
+# Make sure entrypoint.sh is executable
+RUN chmod +x /app/entrypoint.sh
+
 CMD ["/app/entrypoint.sh"]
