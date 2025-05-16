@@ -1,14 +1,11 @@
 FROM python:3.11-slim
 
+COPY . /app/
 # Set work directory
 WORKDIR /app
 
-# Copy project files
-COPY src/ /app/
-
-# Create virtual environment and install dependencies
-RUN python3 -m venv /opt/venv && \
-    /opt/venv/bin/pip install --upgrade pip && \
+RUN python3 -m venv /opt/venv
+RUN /opt/venv/bin/pip install pip --upgrade && \
     /opt/venv/bin/pip install -r requirements.txt && \
     chmod +x entrypoint.sh
 
