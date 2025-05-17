@@ -47,7 +47,6 @@ def clerk_webhook(request):
         event = clerk.webhooks.construct_event(payload, headers, webhook_secret)
         
         logger.info(f"Processing Clerk webhook event: {event.type}")
-        logger.info(f"Event data: {event.data}")  # Log the full event data
         
         # Handle different event types
         if event.type == 'user.created':
@@ -59,6 +58,8 @@ def clerk_webhook(request):
                 "last_name": event.data.last_name or "",
                 "email": event.data.email_addresses[0].email_address if event.data.email_addresses else "",
             }
+            
+            logger.info(f"Creating user with data: {user_data}")
             
             try:
                 user, created = CustomUser.objects.update_or_create(
@@ -82,6 +83,8 @@ def clerk_webhook(request):
                 "last_name": event.data.last_name or "",
                 "email": event.data.email_addresses[0].email_address if event.data.email_addresses else "",
             }
+            
+            logger.info(f"Updating user with data: {user_data}")
             
             try:
                 user, created = CustomUser.objects.update_or_create(
