@@ -10,7 +10,7 @@ def django_user_session_via_clerk(request):
     # Log all relevant headers
     logger.info("Request headers:")
     for header, value in request.headers.items():
-        if header.lower() in ['authorization', 'x-clerk-token', 'cookie']:
+        if header.lower() in ['authorization', 'x-clerk-token', 'cookie', 'origin']:
             logger.info(f"{header}: {value}")
     
     clerk_user_id = get_clerk_user_id_from_request(request)
@@ -34,6 +34,9 @@ class ClerkAuthMiddleware:
 
     def __call__(self, request):
         logger.info(f"Processing request to: {request.path}")
+        logger.info(f"Request method: {request.method}")
+        logger.info(f"Request origin: {request.headers.get('origin', 'No origin')}")
+        
         user = django_user_session_via_clerk(request)
         if user:
             request.user = user

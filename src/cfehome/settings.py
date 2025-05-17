@@ -287,14 +287,17 @@ BASE_CSRF_TRUSTED_ORIGINS = [
     'http://52aichan.com',
     'https://*.52aichan.com',
     'http://*.52aichan.com',
+    'http://localhost:3000',
+    'http://localhost:8000',
 ]
 
-CORS_ALLOWED_ORIGIN_REGEXES = [
+CORS_ALLOWED_ORIGINS = [
     'https://52aichan.com',
     'http://52aichan.com',
-    'https://*.52aichan.com',
-    'http://*.52aichan.com',
+    'https://api.52aichan.com',
+    'http://api.52aichan.com',
     'http://localhost:3000',
+    'http://localhost:8000',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -319,6 +322,9 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 
 # Get additional CSRF origins from environment
 ENV_CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", 
