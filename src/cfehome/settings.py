@@ -294,6 +294,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     'http://52aichan.com',
     'https://*.52aichan.com',
     'http://*.52aichan.com',
+    'http://localhost:3000',
 ]
 
 
