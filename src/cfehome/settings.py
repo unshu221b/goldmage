@@ -63,7 +63,7 @@ BASE_ALLOWED_HOSTS = [
 
 # Get additional hosts from environment
 ENV_ALLOWED_HOSTS = config("ALLOWED_HOSTS", 
-                         default="52aichan.com,.52aichan.com,163.47.8.50", 
+                         default="52aichan.com,.52aichan.com", 
                          cast=Csv())
 ALLOWED_HOSTS = BASE_ALLOWED_HOSTS + list(ENV_ALLOWED_HOSTS)
 
@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     "emails",
     "storages",
     "channels",
+    "rest_framework",
     #"sslserver", #remove before build
 ]
 

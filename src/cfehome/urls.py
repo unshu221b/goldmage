@@ -23,7 +23,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic import TemplateView
 from . import views, webhooks
 from courses import views as course_views
-
+from .api import user_summary
 
 def health_check(request):
     return HttpResponse("OK")
@@ -38,11 +38,7 @@ urlpatterns = [
     path('payment/return/', views.payment_return, name='payment_return'),
     path('create-customer-portal-session', views.create_portal_session, name='create-portal-session'),
     path('create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
-    # Admin, static, etc.
-    path("admin/", admin.site.urls),
-    path('favicon.ico', RedirectView.as_view(url='/static/img/favicon.ico', permanent=True)),
-    # Catch-all for React frontend (must be last!)
-    re_path(r'^(?!api/|admin/|static/|media/|webhook/|create-customer-portal-session|create-checkout-session|payment/|search/|help/|history/|product/|dashboard/|settings/|favicon\.ico).*$', TemplateView.as_view(template_name='index.html')),
+    path('api/user/summary/', user_summary, name='user-summary'),
 ]
 
 if settings.DEBUG:
