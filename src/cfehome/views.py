@@ -51,16 +51,10 @@ def monitor_cache_stats(view_name):
 EMAIL_ADDRESS = settings.EMAIL_ADDRESS
 @cache_control(max_age=3600, public=True)  # 1 hour
 def home_view(request):
-    # Only show home page if NOT authenticated
-    if not request.user.is_authenticated:
-        template_name = "home.html"
-        context = {
-            'VITE_CLERK_PUBLISHABLE_KEY': settings.VITE_CLERK_PUBLISHABLE_KEY
-        }
-        return render(request, template_name, context)
-    
-    # If authenticated, redirect to dashboard
-    return redirect('https://52aichan.com/dashboard')
+ 
+    template_name = "home.html"
+
+    return render(request, template_name)
 
 
 @cache_control(private=True, max_age=300)  # 5 minutes
