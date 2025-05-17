@@ -35,31 +35,63 @@ def clerk_webhook(request):
         # Initialize Clerk SDK
         clerk = Clerk(webhook_secret)
         
-        # Verify the webhook
+        # Verify the webhook using the correct method
         payload = request.body
-        event = clerk.webhooks.verify_webhook(payload, {
+        headers = {
             'svix-signature': signature,
             'svix-timestamp': timestamp,
             'svix-id': webhook_id
-        })
+        }
+        
+        # Use the correct verification method
+        event = clerk.webhooks.construct_event(payload, headers, webhook_secret)
         
         logger.info(f"Processing Clerk webhook event: {event.type}")
+        logger.info(f"Event data: {event.data}")  # Log the full event data
         
         # Handle different event types
         if event.type == 'user.created':
             # Create user in Django database
             clerk_user_id = event.data.id
-            user, created = update_or_create_clerk_user(clerk_user_id)
-            if created:
-                logger.info(f"Created new user from webhook: {clerk_user_id}")
-            else:
-                logger.info(f"Updated existing user from webhook: {clerk_user_id}")
+            user_data = {
+                "username": event.data.username or f"user_{clerk_user_id[-8:]}",
+                "first_name": event.data.first_name or "",
+                "last_name": event.data.last_name or "",
+                "email": event.data.email_addresses[0].email_address if event.data.email_addresses else "",
+            }
+            
+            try:
+                user, created = CustomUser.objects.update_or_create(
+                    clerk_user_id=clerk_user_id,
+                    defaults=user_data
+                )
+                if created:
+                    logger.info(f"Created new user from webhook: {clerk_user_id}")
+                else:
+                    logger.info(f"Updated existing user from webhook: {clerk_user_id}")
+            except Exception as e:
+                logger.error(f"Error creating/updating user: {str(e)}", exc_info=True)
+                return HttpResponse(status=500)
                 
         elif event.type == 'user.updated':
             # Update user in Django database
             clerk_user_id = event.data.id
-            user, created = update_or_create_clerk_user(clerk_user_id)
-            logger.info(f"Updated user from webhook: {clerk_user_id}")
+            user_data = {
+                "username": event.data.username or f"user_{clerk_user_id[-8:]}",
+                "first_name": event.data.first_name or "",
+                "last_name": event.data.last_name or "",
+                "email": event.data.email_addresses[0].email_address if event.data.email_addresses else "",
+            }
+            
+            try:
+                user, created = CustomUser.objects.update_or_create(
+                    clerk_user_id=clerk_user_id,
+                    defaults=user_data
+                )
+                logger.info(f"Updated user from webhook: {clerk_user_id}")
+            except Exception as e:
+                logger.error(f"Error updating user: {str(e)}", exc_info=True)
+                return HttpResponse(status=500)
             
         elif event.type == 'user.deleted':
             # Handle user deletion if needed
@@ -69,7 +101,10 @@ def clerk_webhook(request):
                 user.delete()
                 logger.info(f"Deleted user from webhook: {clerk_user_id}")
             except CustomUser.DoesNotExist:
-                pass
+                logger.info(f"User already deleted: {clerk_user_id}")
+            except Exception as e:
+                logger.error(f"Error deleting user: {str(e)}", exc_info=True)
+                return HttpResponse(status=500)
         
         return HttpResponse(status=200)
         
