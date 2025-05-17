@@ -59,23 +59,54 @@ def get_clerk_user_id_from_request(request):
 
 def update_or_create_clerk_user(clerk_user_id):
     if not clerk_user_id:
+        logger.warning("No clerk_user_id provided")
         return None, None
+        
     sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
-    clerk_user = sdk.users.get(user_id=clerk_user_id)
-    if not clerk_user:
+    try:
+        clerk_user = sdk.users.get(user_id=clerk_user_id)
+        if not clerk_user:
+            logger.warning(f"No Clerk user found for ID: {clerk_user_id}")
+            return None, None
+            
+        # Log the full Clerk user data for debugging
+        logger.info(f"Clerk user data: {clerk_user.model_dump_json()}")
+        
+        # Get primary email
+        primary_email_address_id = clerk_user.primary_email_address_id
+        primary_email = next(
+            (email.email_address for email in clerk_user.email_addresses if email.id == primary_email_address_id),
+            None
+        )
+        
+        # Prepare user data with defaults for missing fields
+        django_user_data = {
+            "username": clerk_user.username or "",
+            "first_name": clerk_user.first_name or "",
+            "last_name": clerk_user.last_name or "",
+            "email": primary_email or "",
+        }
+        
+        logger.info(f"Attempting to create/update user with data: {django_user_data}")
+        
+        try:
+            user_obj, created = User.objects.update_or_create(
+                clerk_user_id=clerk_user_id,
+                defaults=django_user_data
+            )
+            
+            if created:
+                logger.info(f"Created new user with ID: {user_obj.id}")
+            else:
+                logger.info(f"Updated existing user with ID: {user_obj.id}")
+                
+            return user_obj, created
+            
+        except Exception as e:
+            logger.error(f"Database error while creating/updating user: {str(e)}", exc_info=True)
+            return None, None
+            
+    except Exception as e:
+        logger.error(f"Error fetching Clerk user data: {str(e)}", exc_info=True)
         return None, None
-    primary_email_address_id = clerk_user.primary_email_address_id
-    primary_email = next((email.email_address for email in clerk_user.email_addresses if email.id == primary_email_address_id), None)   
-    django_user_data = {
-        "username": clerk_user.username,
-        "first_name": clerk_user.first_name,
-        "last_name": clerk_user.last_name,
-        "email": primary_email,
-    }
-    user_obj, created = User.objects.update_or_create(
-        clerk_user_id=clerk_user_id,
-        defaults=django_user_data
-    )
-    return user_obj, created
-    # clerk_user_json = json.loads(clerk_user.model_dump_json())
     
