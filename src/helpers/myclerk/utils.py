@@ -17,29 +17,20 @@ CLERK_AUTH_PARTIES = settings.CLERK_AUTH_PARTIES
 
 User = get_user_model()
 
-logger = logging.getLogger(__name__)
-
 
 def get_clerk_user_id_from_request(request):
     sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
-    try:
-        request_state = sdk.authenticate_request(
-            request,
-            AuthenticateRequestOptions(
-                authorized_parties=CLERK_AUTH_PARTIES
-            )
+    request_state = sdk.authenticate_request(
+        request,
+        AuthenticateRequestOptions(
+            authorized_parties=CLERK_AUTH_PARTIES
         )
-        # Check if user is signed in
-        if not request_state.is_signed_in or not request_state.payload:
-            return None
-            
-        # Get the user ID from the payload
-        payload = request_state.payload
-        clerk_user_id = payload.get('sub')
-        return clerk_user_id
-    except Exception as e:
-        print(f"Authentication error: {str(e)}")
+    )
+    if not request_state.is_signed_in:
         return None
+    payload = request_state.payload
+    clerk_user_id = payload.get('sub')
+    return clerk_user_id
 
 
 def update_or_create_clerk_user(clerk_user_id):
