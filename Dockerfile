@@ -4,7 +4,6 @@ RUN python -m venv /opt/venv/
 ENV PATH=/opt/venv/bin:$PATH
 
 WORKDIR /app
-RUN python3 -m venv /opt/venv
 
 # Create temporary env file BEFORE pip install
 RUN echo "CLOUDINARY_CLOUD_NAME=dummy\n\
@@ -39,8 +38,8 @@ COPY ./requirements.txt /tmp/requirements.txt
 
 COPY ./src /app/
 
-RUN pip install pip --upgrade
-RUN pip install -r /tmp/requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Collect static files
 RUN /opt/venv/bin/python manage.py collectstatic --noinput --clear
