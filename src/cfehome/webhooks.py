@@ -44,19 +44,40 @@ def clerk_webhook(request):
         }
         
         # Use the correct verification method
-        event = clerk.webhooks.construct_event(payload, headers, webhook_secret)
+        event = clerk.webhooks.verify_webhook(payload, headers)
         
         logger.info(f"Processing Clerk webhook event: {event.type}")
+        logger.info(f"Event data: {event.data}")
         
         # Handle different event types
         if event.type == 'user.created':
             # Create user in Django database
             clerk_user_id = event.data.id
+            
+            # Get primary email from email_addresses array
+            primary_email = None
+            if event.data.email_addresses and len(event.data.email_addresses) > 0:
+                for email in event.data.email_addresses:
+                    if email.id == event.data.primary_email_address_id:
+                        primary_email = email.email_address
+                        break
+            
+            # Get name from external accounts if available
+            first_name = event.data.first_name
+            last_name = event.data.last_name
+            
+            if event.data.external_accounts and len(event.data.external_accounts) > 0:
+                external_account = event.data.external_accounts[0]
+                if not first_name and external_account.first_name:
+                    first_name = external_account.first_name
+                if not last_name and external_account.last_name:
+                    last_name = external_account.last_name
+            
             user_data = {
                 "username": event.data.username or f"user_{clerk_user_id[-8:]}",
-                "first_name": event.data.first_name or "",
-                "last_name": event.data.last_name or "",
-                "email": event.data.email_addresses[0].email_address if event.data.email_addresses else "",
+                "first_name": first_name or "",
+                "last_name": last_name or "",
+                "email": primary_email or "",
             }
             
             logger.info(f"Creating user with data: {user_data}")
@@ -77,11 +98,31 @@ def clerk_webhook(request):
         elif event.type == 'user.updated':
             # Update user in Django database
             clerk_user_id = event.data.id
+            
+            # Get primary email from email_addresses array
+            primary_email = None
+            if event.data.email_addresses and len(event.data.email_addresses) > 0:
+                for email in event.data.email_addresses:
+                    if email.id == event.data.primary_email_address_id:
+                        primary_email = email.email_address
+                        break
+            
+            # Get name from external accounts if available
+            first_name = event.data.first_name
+            last_name = event.data.last_name
+            
+            if event.data.external_accounts and len(event.data.external_accounts) > 0:
+                external_account = event.data.external_accounts[0]
+                if not first_name and external_account.first_name:
+                    first_name = external_account.first_name
+                if not last_name and external_account.last_name:
+                    last_name = external_account.last_name
+            
             user_data = {
                 "username": event.data.username or f"user_{clerk_user_id[-8:]}",
-                "first_name": event.data.first_name or "",
-                "last_name": event.data.last_name or "",
-                "email": event.data.email_addresses[0].email_address if event.data.email_addresses else "",
+                "first_name": first_name or "",
+                "last_name": last_name or "",
+                "email": primary_email or "",
             }
             
             logger.info(f"Updating user with data: {user_data}")
