@@ -3,10 +3,16 @@ from helpers.myclerk.utils import (
     get_clerk_user_id_from_request,
     update_or_create_clerk_user
 )
+from django.conf import settings
 
 logger = logging.getLogger('goldmage')
 
 def django_user_session_via_clerk(request):
+    # Check if Clerk is properly configured
+    if not settings.CLERK_SECRET_KEY:
+        logger.error("CLERK_SECRET_KEY is not set in settings")
+        return None
+        
     # Log all relevant headers
     logger.info("Request headers:")
     for header, value in request.headers.items():

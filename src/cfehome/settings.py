@@ -81,6 +81,8 @@ CLERK_AUTH_PARTIES = [
     'http://52aichan.com',
     'https://api.52aichan.com',
     'http://api.52aichan.com',
+    'http://localhost:3000',
+    'http://localhost:8000',
 ]
 
 # Application definition

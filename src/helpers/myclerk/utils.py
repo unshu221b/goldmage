@@ -25,6 +25,12 @@ def get_clerk_user_id_from_request(request):
         logger.info("Attempting to authenticate request with Clerk")
         logger.info(f"Using CLERK_AUTH_PARTIES: {CLERK_AUTH_PARTIES}")
         
+        # Log the token for debugging (remove in production)
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            token = auth_header[7:]
+            logger.info(f"Received token: {token[:20]}...")
+        
         request_state = sdk.authenticate_request(
             request,
             AuthenticateRequestOptions(
@@ -33,7 +39,8 @@ def get_clerk_user_id_from_request(request):
         )
         
         if not request_state.is_signed_in:
-            logger.debug("User is not signed in according to Clerk")
+            logger.warning("User is not signed in according to Clerk")
+            logger.warning(f"Request state: {request_state}")
             return None
             
         payload = request_state.payload
