@@ -202,7 +202,6 @@ USE_TZ = True
 
 
 
-
 # nginx
 MEDIA_URL = "media/"
 MEDIA_ROOT = LOCAL_CDN / "media"
