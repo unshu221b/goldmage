@@ -7,6 +7,12 @@ from helpers.myclerk.utils import (
 logger = logging.getLogger('goldmage')
 
 def django_user_session_via_clerk(request):
+    # Log all relevant headers
+    logger.info("Request headers:")
+    for header, value in request.headers.items():
+        if header.lower() in ['authorization', 'x-clerk-token', 'cookie']:
+            logger.info(f"{header}: {value}")
+    
     clerk_user_id = get_clerk_user_id_from_request(request)
     if not clerk_user_id:
         logger.debug("No Clerk user ID found in request")
@@ -27,8 +33,11 @@ class ClerkAuthMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        logger.info(f"Processing request to: {request.path}")
         user = django_user_session_via_clerk(request)
         if user:
             request.user = user
             logger.debug(f"Set user in request: {user.clerk_user_id}")
+        else:
+            logger.warning(f"No user found for request to: {request.path}")
         return self.get_response(request)

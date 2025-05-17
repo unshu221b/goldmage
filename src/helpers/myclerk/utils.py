@@ -22,16 +22,23 @@ logger = logging.getLogger('goldmage')
 def get_clerk_user_id_from_request(request):
     sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
     try:
+        logger.info("Attempting to authenticate request with Clerk")
+        logger.info(f"Using CLERK_AUTH_PARTIES: {CLERK_AUTH_PARTIES}")
+        
         request_state = sdk.authenticate_request(
             request,
             AuthenticateRequestOptions(
                 authorized_parties=CLERK_AUTH_PARTIES
             )
         )
+        
         if not request_state.is_signed_in:
             logger.debug("User is not signed in according to Clerk")
             return None
+            
         payload = request_state.payload
+        logger.info(f"Clerk payload: {payload}")
+        
         clerk_user_id = payload.get('sub')
         if clerk_user_id:
             logger.debug(f"Successfully extracted Clerk user ID: {clerk_user_id}")
@@ -39,7 +46,7 @@ def get_clerk_user_id_from_request(request):
             logger.warning("No 'sub' field found in Clerk payload")
         return clerk_user_id
     except Exception as e:
-        logger.error(f"Error authenticating request with Clerk: {str(e)}")
+        logger.error(f"Error authenticating request with Clerk: {str(e)}", exc_info=True)
         return None
 
 
