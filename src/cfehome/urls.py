@@ -34,6 +34,7 @@ urlpatterns = [
     # API endpoints
     path('api/analyze/', views.analyze_view, name='analyze'),
     path('webhook/', webhooks.stripe_webhook, name='stripe-webhook'),
+    path('webhook/clerk/', webhooks.clerk_webhook, name='clerk-webhook'),
     path('payment/checkout/', views.payment_checkout, name='payment_checkout'),
     path('payment/return/', views.payment_return, name='payment_return'),
     path('create-customer-portal-session', views.create_portal_session, name='create-portal-session'),
