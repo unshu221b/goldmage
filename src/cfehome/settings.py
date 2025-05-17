@@ -29,7 +29,7 @@ ADMIN_USER_NAME=config("ADMIN_USER_NAME", default="Charles")
 ADMIN_USER_EMAIL=config("ADMIN_USER_EMAIL", default=None)
 
 # Custom user model
-AUTH_USER_MODEL = 'emails.CustomUser'
+AUTH_USER_MODEL = "accounts.CustomUser"
 
 MANAGERS=[]
 ADMINS=[]
@@ -73,12 +73,14 @@ STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
 STRIPE_PRO_PRICE_ID = config("STRIPE_PRO_PRICE_ID")
 
 # Clerk Config
-VITE_CLERK_PUBLISHABLE_KEY = config("VITE_CLERK_PUBLISHABLE_KEY")
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = config("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
 CLERK_SECRET_KEY = config("CLERK_SECRET_KEY")
 
 CLERK_AUTH_PARTIES = [
     'https://52aichan.com',
     'http://52aichan.com',
+    'https://api.52aichan.com',
+    'http://api.52aichan.com',
 ]
 
 # Application definition
@@ -97,7 +99,7 @@ INSTALLED_APPS = [
     "corsheaders",
     # internal
     "courses",
-    "emails",
+    "accounts",
     "storages",
     "channels",
     "rest_framework",
