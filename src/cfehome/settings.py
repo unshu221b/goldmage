@@ -15,7 +15,6 @@ import os
 from decouple import config, Csv
 import logging
 
-
 BASE_URL = config("BASE_URL", default='http://127.0.0.1:8000')
 # default backend
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
