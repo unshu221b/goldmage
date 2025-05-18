@@ -35,7 +35,16 @@ class CustomUser(AbstractBaseUser):
 
     objects = CustomUserManager()
 
-
+    MEMBERSHIP_CHOICES = [
+        ('free', 'Free'),
+        ('premium', 'Premium'),
+    ]
+    membership = models.CharField(
+        max_length=10,
+        choices=MEMBERSHIP_CHOICES,
+        default='free'
+    )
+    
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always

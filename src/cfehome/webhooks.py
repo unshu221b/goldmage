@@ -73,12 +73,13 @@ def clerk_webhook(request):
                 if not last_name and external_account.get('last_name'):
                     last_name = external_account['last_name']
             
-            user_data = {
-                "username": event_data['data'].get('username') or f"user_{clerk_user_id[-8:]}",
-                "first_name": first_name or "",
-                "last_name": last_name or "",
-                "email": primary_email or "",
-            }
+                user_data = {
+                    "username": event_data['data'].get('username') or f"user_{clerk_user_id[-8:]}",
+                    "first_name": first_name or "",
+                    "last_name": last_name or "",
+                    "email": primary_email or "",
+                    "membership": "free"  # Default to free membership
+                }
             
             logger.info(f"Creating user with data: {user_data}")
             
@@ -197,7 +198,7 @@ def stripe_webhook(request):
             try:
                 user = CustomUser.objects.get(clerk_user_id=subscription.customer)
                 if subscription.status == 'active':
-                    user.account_type = 'PRO'
+                    user.account_type = 'premium'
                 else:
                     user.account_type = 'FREE'
                 user.save()
