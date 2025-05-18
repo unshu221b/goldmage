@@ -43,10 +43,8 @@ def clerk_webhook(request):
             'svix-id': webhook_id
         }
         
-        # Use the correct verification method from clerk_backend_api
-        from clerk_backend_api.webhooks import Webhook
-        webhook = Webhook(webhook_secret)
-        event = webhook.verify(payload, headers)
+        # Verify the webhook using the Clerk SDK
+        event = clerk.webhooks.verify(payload, headers)
         
         logger.info(f"Processing Clerk webhook event: {event.type}")
         logger.info(f"Event data: {event.data}")
