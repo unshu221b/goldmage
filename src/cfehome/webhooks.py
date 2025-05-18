@@ -40,14 +40,11 @@ def clerk_webhook(request):
         payload = request.body
         
         # Verify the webhook
-        event = wh.verify(payload, {
+        event_data = wh.verify(payload, {
             'svix-signature': signature,
             'svix-timestamp': timestamp,
             'svix-id': webhook_id
         })
-        
-        # Parse the event data
-        event_data = json.loads(event)
         
         logger.info(f"Processing Clerk webhook event: {event_data.get('type')}")
         logger.info(f"Event data: {event_data.get('data')}")
