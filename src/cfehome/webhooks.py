@@ -4,10 +4,11 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from accounts.models import CustomUser
+import json
 
 from clerk_backend_api import Clerk
 from helpers.myclerk.utils import update_or_create_clerk_user
-
+from svix.webhooks import Webhook, WebhookVerificationError
 
 import logging
 logger = logging.getLogger('goldmage')
@@ -32,49 +33,51 @@ def clerk_webhook(request):
         return HttpResponse(status=400)
     
     try:
-        # Initialize Clerk SDK
-        clerk = Clerk(webhook_secret)
+        # Initialize webhook verifier
+        wh = Webhook(webhook_secret)
         
-        # Verify the webhook using the correct method
+        # Get the raw payload
         payload = request.body
-        headers = {
+        
+        # Verify the webhook
+        event = wh.verify(payload, {
             'svix-signature': signature,
             'svix-timestamp': timestamp,
             'svix-id': webhook_id
-        }
+        })
         
-        # Verify the webhook using the Clerk SDK
-        event = clerk.webhooks.verify(payload, headers)
+        # Parse the event data
+        event_data = json.loads(event)
         
-        logger.info(f"Processing Clerk webhook event: {event.type}")
-        logger.info(f"Event data: {event.data}")
+        logger.info(f"Processing Clerk webhook event: {event_data.get('type')}")
+        logger.info(f"Event data: {event_data.get('data')}")
         
         # Handle different event types
-        if event.type == 'user.created':
+        if event_data.get('type') == 'user.created':
             # Create user in Django database
-            clerk_user_id = event.data.id
+            clerk_user_id = event_data['data']['id']
             
             # Get primary email from email_addresses array
             primary_email = None
-            if event.data.email_addresses and len(event.data.email_addresses) > 0:
-                for email in event.data.email_addresses:
-                    if email.id == event.data.primary_email_address_id:
-                        primary_email = email.email_address
+            if event_data['data'].get('email_addresses'):
+                for email in event_data['data']['email_addresses']:
+                    if email['id'] == event_data['data'].get('primary_email_address_id'):
+                        primary_email = email['email_address']
                         break
             
             # Get name from external accounts if available
-            first_name = event.data.first_name
-            last_name = event.data.last_name
+            first_name = event_data['data'].get('first_name')
+            last_name = event_data['data'].get('last_name')
             
-            if event.data.external_accounts and len(event.data.external_accounts) > 0:
-                external_account = event.data.external_accounts[0]
-                if not first_name and external_account.first_name:
-                    first_name = external_account.first_name
-                if not last_name and external_account.last_name:
-                    last_name = external_account.last_name
+            if event_data['data'].get('external_accounts'):
+                external_account = event_data['data']['external_accounts'][0]
+                if not first_name and external_account.get('first_name'):
+                    first_name = external_account['first_name']
+                if not last_name and external_account.get('last_name'):
+                    last_name = external_account['last_name']
             
             user_data = {
-                "username": event.data.username or f"user_{clerk_user_id[-8:]}",
+                "username": event_data['data'].get('username') or f"user_{clerk_user_id[-8:]}",
                 "first_name": first_name or "",
                 "last_name": last_name or "",
                 "email": primary_email or "",
@@ -95,31 +98,31 @@ def clerk_webhook(request):
                 logger.error(f"Error creating/updating user: {str(e)}", exc_info=True)
                 return HttpResponse(status=500)
                 
-        elif event.type == 'user.updated':
+        elif event_data.get('type') == 'user.updated':
             # Update user in Django database
-            clerk_user_id = event.data.id
+            clerk_user_id = event_data['data']['id']
             
             # Get primary email from email_addresses array
             primary_email = None
-            if event.data.email_addresses and len(event.data.email_addresses) > 0:
-                for email in event.data.email_addresses:
-                    if email.id == event.data.primary_email_address_id:
-                        primary_email = email.email_address
+            if event_data['data'].get('email_addresses'):
+                for email in event_data['data']['email_addresses']:
+                    if email['id'] == event_data['data'].get('primary_email_address_id'):
+                        primary_email = email['email_address']
                         break
             
             # Get name from external accounts if available
-            first_name = event.data.first_name
-            last_name = event.data.last_name
+            first_name = event_data['data'].get('first_name')
+            last_name = event_data['data'].get('last_name')
             
-            if event.data.external_accounts and len(event.data.external_accounts) > 0:
-                external_account = event.data.external_accounts[0]
-                if not first_name and external_account.first_name:
-                    first_name = external_account.first_name
-                if not last_name and external_account.last_name:
-                    last_name = external_account.last_name
+            if event_data['data'].get('external_accounts'):
+                external_account = event_data['data']['external_accounts'][0]
+                if not first_name and external_account.get('first_name'):
+                    first_name = external_account['first_name']
+                if not last_name and external_account.get('last_name'):
+                    last_name = external_account['last_name']
             
             user_data = {
-                "username": event.data.username or f"user_{clerk_user_id[-8:]}",
+                "username": event_data['data'].get('username') or f"user_{clerk_user_id[-8:]}",
                 "first_name": first_name or "",
                 "last_name": last_name or "",
                 "email": primary_email or "",
@@ -137,9 +140,9 @@ def clerk_webhook(request):
                 logger.error(f"Error updating user: {str(e)}", exc_info=True)
                 return HttpResponse(status=500)
             
-        elif event.type == 'user.deleted':
+        elif event_data.get('type') == 'user.deleted':
             # Handle user deletion if needed
-            clerk_user_id = event.data.id
+            clerk_user_id = event_data['data']['id']
             try:
                 user = CustomUser.objects.get(clerk_user_id=clerk_user_id)
                 user.delete()
