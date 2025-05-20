@@ -89,7 +89,7 @@ CLERK_AUTH_PARTIES = [
     'http://localhost:8000',
 ]
 
-
+FRONTEND_URL=config("FRONTEND_URL", default="http://localhost:3000")
 
 # Application definition
 INSTALLED_APPS = [
