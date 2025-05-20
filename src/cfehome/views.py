@@ -158,7 +158,7 @@ def create_portal_session(request):
 
 
         portal_session = stripe.billing_portal.Session.create(
-            customer=request.user.email,
+            customer=request.user.clerk_user_id,
             return_url=f"{settings.FRONTEND_URL}/dashboard",
         )
         return JsonResponse({'portal_url': portal_session.url})
@@ -171,6 +171,13 @@ def create_portal_session(request):
 @require_http_methods(["POST"])
 def create_checkout_session(request):
     try:
+        # Log authentication details
+        logger.info("=== Checkout Session Creation Started ===")
+        logger.info(f"User authenticated: {request.user.is_authenticated}")
+        logger.info(f"User ID: {getattr(request.user, 'id', 'No ID')}")
+        logger.info(f"User email: {getattr(request.user, 'email', 'No email')}")
+        logger.info(f"User clerk_user_id: {getattr(request.user, 'clerk_user_id', 'No clerk ID')}")
+        
         # Log the raw request body
         logger.info(f"Raw request body: {request.body}")
         
@@ -181,19 +188,22 @@ def create_checkout_session(request):
 
         data = json.loads(request.body)
         period = data.get('period')
+        logger.info(f"Requested period: {period}")
         
-            
         # Map the period to the correct Stripe price ID
         price_mapping = {
             'monthly': settings.STRIPE_MONTHLY_PRICE_ID,
             'yearly': settings.STRIPE_YEARLY_PRICE_ID
         }
         price_id = price_mapping.get(period)
+        logger.info(f"Selected price ID: {price_id}")
 
         if not price_id:
+            logger.error(f"Invalid period requested: {period}")
             return JsonResponse({'error': 'Invalid period'}, status=400)
 
         # Create Stripe checkout session with the correct price
+        logger.info("Creating Stripe checkout session...")
         checkout_session = stripe.checkout.Session.create(
             # customer=request.user.clerk_user_id,
             customer_email=request.user.email,
@@ -210,14 +220,17 @@ def create_checkout_session(request):
             success_url=f"{settings.FRONTEND_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{settings.FRONTEND_URL}/dashboard",
         )
+        logger.info(f"Checkout session created successfully. URL: {checkout_session.url}")
             
         return JsonResponse({
             'checkout_url': checkout_session.url
         })
             
     except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error: {str(e)}")
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
+        logger.error(f"Unexpected error in create_checkout_session: {str(e)}", exc_info=True)
         return JsonResponse({'error': str(e)}, status=400)
 
 def send_error_email(request, error_code, error_message, stack_trace=None):
