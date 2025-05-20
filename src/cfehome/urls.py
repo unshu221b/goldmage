@@ -22,7 +22,6 @@ from django.http import HttpResponse
 from django.views.generic.base import RedirectView
 from django.views.generic import TemplateView
 from . import views, webhooks
-from courses import views as course_views
 from .api import user_summary
 
 def health_check(request):
@@ -35,10 +34,8 @@ urlpatterns = [
     path('api/analyze/', views.analyze_view, name='analyze'),
     path('webhook/', webhooks.stripe_webhook, name='stripe-webhook'),
     path('webhook/clerk/', webhooks.clerk_webhook, name='clerk-webhook'),
-    path('payment/checkout/', views.payment_checkout, name='payment_checkout'),
-    path('payment/return/', views.payment_return, name='payment_return'),
-    path('create-customer-portal-session', views.create_portal_session, name='create-portal-session'),
-    path('create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
+    path('api/create-customer-portal-session', views.create_portal_session, name='create-portal-session'),
+    path('api/create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
     path('api/user/summary/', user_summary, name='user-summary'),
 ]
 

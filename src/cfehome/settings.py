@@ -70,7 +70,9 @@ OPENAI_API_KEY = config("OPENAI_API_KEY")
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
 STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
-STRIPE_PRO_PRICE_ID = config("STRIPE_PRO_PRICE_ID")
+STRIPE_MONTHLY_PRICE_ID = config("STRIPE_MONTHLY_PRICE_ID")
+STRIPE_YEARLY_PRICE_ID = config("STRIPE_YEARLY_PRICE_ID")
+
 
 # Clerk Config
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = config("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
@@ -98,10 +100,8 @@ INSTALLED_APPS = [
     # third party
     "django_htmx",
     "tailwind",
-    "theme", # django-tailwind theme app
     "corsheaders",
     # internal
-    "courses",
     "accounts",
     "storages",
     "channels",
