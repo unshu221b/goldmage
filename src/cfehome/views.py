@@ -152,16 +152,19 @@ def analyze_view(request):
 @api_login_required
 @require_http_methods(["POST"])
 def create_portal_session(request):
-    if request.method == 'POST':
-        try:
-            portal_session = stripe.billing_portal.Session.create(
-                customer=request.user.clerk_user_id,  # Use Clerk ID
-                return_url=f"{settings.FRONTEND_URL}/dashboard",
-            )
-            return JsonResponse({'portal_url': portal_session.url})
-        except stripe.error.StripeError as e:
-            return JsonResponse({'error': str(e)}, status=400)
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    try:
+        for header, value in request.headers.items():
+            logger.info(f"{header}: {value}")
+
+
+        portal_session = stripe.billing_portal.Session.create(
+            customer=request.user.email,
+            return_url=f"{settings.FRONTEND_URL}/dashboard",
+        )
+        return JsonResponse({'portal_url': portal_session.url})
+    except stripe.error.StripeError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
 
 @csrf_exempt
 @api_login_required
@@ -188,7 +191,6 @@ def create_checkout_session(request):
         price_id = price_mapping.get(period)
 
         if not price_id:
-            logger.error(f"Invalid period received: {period}")
             return JsonResponse({'error': 'Invalid period'}, status=400)
 
         # Create Stripe checkout session with the correct price
