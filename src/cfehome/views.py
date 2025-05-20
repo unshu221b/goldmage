@@ -162,7 +162,6 @@ def create_portal_session(request):
     return JsonResponse({'error': 'Invalid request method'}, status=405)
     
 @api_login_required
-@ensure_csrf_cookie
 @require_http_methods(["POST"])
 def create_checkout_session(request):
     try:
