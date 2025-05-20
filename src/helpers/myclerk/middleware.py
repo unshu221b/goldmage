@@ -19,6 +19,10 @@ def django_user_session_via_clerk(request):
         if header.lower() in ['authorization', 'x-clerk-token', 'cookie', 'origin']:
             logger.info(f"{header}: {value}")
     
+    # Log Clerk configuration
+    logger.info(f"CLERK_AUTH_PARTIES: {settings.CLERK_AUTH_PARTIES}")
+    logger.info(f"FRONTEND_URL: {settings.FRONTEND_URL}")
+    
     clerk_user_id = get_clerk_user_id_from_request(request)
     if not clerk_user_id:
         logger.debug("No Clerk user ID found in request")
@@ -42,6 +46,8 @@ class ClerkAuthMiddleware:
         logger.info(f"Processing request to: {request.path}")
         logger.info(f"Request method: {request.method}")
         logger.info(f"Request origin: {request.headers.get('origin', 'No origin')}")
+        logger.info(f"Request host: {request.get_host()}")
+        logger.info(f"Request scheme: {request.scheme}")
         
         user = django_user_session_via_clerk(request)
         if user:

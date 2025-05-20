@@ -83,6 +83,8 @@ CLERK_WEBHOOK_SIGNING_SECRET = config("CLERK_WEBHOOK_SIGNING_SECRET")
 CLERK_AUTH_PARTIES = [
     'https://52aichan.com',
     'http://52aichan.com',
+    'https://www.52aichan.com',
+    'http://www.52aichan.com',
     'https://api.52aichan.com',
     'http://api.52aichan.com',
     'http://localhost:3000',
