@@ -165,45 +165,45 @@ def create_portal_session(request):
 @ensure_csrf_cookie
 @require_http_methods(["POST"])
 def create_checkout_session(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            period = data.get('period')
-            
-            # Map the period to the correct Stripe price ID
-            price_mapping = {
-                'monthly': settings.STRIPE_MONTHLY_PRICE_ID,
-                'yearly': settings.STRIPE_YEARLY_PRICE_ID
-            }
-            price_id = price_mapping.get(period)
+    try:
 
-            if not price_id:
-                return JsonResponse({'error': 'Invalid period'}, status=400)
+        data = json.loads(request.body)
+        period = data.get('period')
+            
+        # Map the period to the correct Stripe price ID
+        price_mapping = {
+            'monthly': settings.STRIPE_MONTHLY_PRICE_ID,
+            'yearly': settings.STRIPE_YEARLY_PRICE_ID
+        }
+        price_id = price_mapping.get(period)
 
-            # Create Stripe checkout session with the correct price
-            checkout_session = stripe.checkout.Session.create(
-                customer=request.user.clerk_user_id,  # Add customer ID
-                customer_email=request.user.email,  # Prefill email
-                client_reference_id=str(request.user.id),  # Add reference ID
-                metadata={
-                    'user_id': str(request.user.id),
-                    'period': period
-                },
-                line_items=[{
-                    'price': price_id,  # Use the mapped price ID
-                    'quantity': 1,
-                }],
-                mode='subscription',
-                success_url=f"{settings.FRONTEND_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
-                cancel_url=f"{settings.FRONTEND_URL}/upgrade",
-            )
+        if not price_id:
+            return JsonResponse({'error': 'Invalid period'}, status=400)
+
+        # Create Stripe checkout session with the correct price
+        checkout_session = stripe.checkout.Session.create(
+            customer=request.user.clerk_user_id,  # Add customer ID
+            customer_email=request.user.email,  # Prefill email
+            client_reference_id=str(request.user.id),  # Add reference ID
+            metadata={
+                'user_id': str(request.user.id),
+                'period': period
+            },
+            line_items=[{
+                'price': price_id,  # Use the mapped price ID
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=f"{settings.FRONTEND_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{settings.FRONTEND_URL}/upgrade",
+        )
             
-            return JsonResponse({
-                'checkout_url': checkout_session.url
-            })
+        return JsonResponse({
+            'checkout_url': checkout_session.url
+        })
             
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 def send_error_email(request, error_code, error_message, stack_trace=None):
     subject = f'Goldmage Error {error_code}'

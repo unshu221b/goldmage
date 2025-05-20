@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from decouple import config, Csv
 import logging
+from datetime import timedelta
 
 BASE_URL = config("BASE_URL", default='http://127.0.0.1:8000')
 # default backend
@@ -87,6 +88,8 @@ CLERK_AUTH_PARTIES = [
     'http://localhost:3000',
     'http://localhost:8000',
 ]
+
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -329,15 +332,21 @@ CORS_ALLOW_METHODS = [
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 
-# Get additional CSRF origins from environment
-ENV_CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", 
-                                default="http://163.47.8.50,https://163.47.8.50", 
-                                cast=Csv())
-CSRF_TRUSTED_ORIGINS = BASE_CSRF_TRUSTED_ORIGINS + [origin for origin in ENV_CSRF_TRUSTED_ORIGINS]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "https://52aichan.com",
+    "http://52aichan.com",
+    "https://api.52aichan.com",
+    "http://api.52aichan.com",
+]
+# Add this to allow requests without referer
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = True
 
 CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'Lax'
+
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
 
