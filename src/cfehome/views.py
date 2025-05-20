@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.http import JsonResponse
 from django.core.cache import cache
 from django.conf import settings
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import cache_control
 
@@ -160,7 +160,8 @@ def create_portal_session(request):
         except stripe.error.StripeError as e:
             return JsonResponse({'error': str(e)}, status=400)
     return JsonResponse({'error': 'Invalid request method'}, status=405)
-    
+
+@csrf_exempt  # Add this  
 @api_login_required
 @require_http_methods(["POST"])
 def create_checkout_session(request):

@@ -297,6 +297,7 @@ BASE_CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
 ]
 
+# CORS settings
 CORS_ALLOWED_ORIGINS = [
     'https://52aichan.com',
     'http://52aichan.com',
@@ -318,6 +319,7 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'x-clerk-token',
+    'referer',  # Add this
 ]
 
 CORS_ALLOW_METHODS = [
@@ -343,9 +345,11 @@ CSRF_TRUSTED_ORIGINS = [
 CSRF_USE_SESSIONS = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = True
-
 CSRF_COOKIE_SECURE = True
-
+# Add these new settings
+CSRF_COOKIE_DOMAIN = None
+CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
