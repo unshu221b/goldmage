@@ -203,7 +203,7 @@ def create_checkout_session(request):
 
         # Create Stripe checkout session with the correct price
         checkout_session = stripe.checkout.Session.create(
-            customer=request.user.clerk_user_id,
+            # customer=request.user.clerk_user_id,
             customer_email=request.user.email,
             client_reference_id=str(request.user.id),
             metadata={
