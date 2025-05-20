@@ -161,14 +161,25 @@ def create_portal_session(request):
             return JsonResponse({'error': str(e)}, status=400)
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-@csrf_exempt  # Add this  
+@csrf_exempt
 @api_login_required
 @require_http_methods(["POST"])
 def create_checkout_session(request):
     try:
+        # Log the raw request body
+        logger.info(f"Raw request body: {request.body}")
+        
+        # Log request headers
+        logger.info("Request headers:")
+        for header, value in request.headers.items():
+            logger.info(f"{header}: {value}")
 
         data = json.loads(request.body)
         period = data.get('period')
+        
+        # Log the parsed data
+        logger.info(f"Parsed data: {data}")
+        logger.info(f"Period: {period}")
             
         # Map the period to the correct Stripe price ID
         price_mapping = {
@@ -177,32 +188,50 @@ def create_checkout_session(request):
         }
         price_id = price_mapping.get(period)
 
+        # Log the price mapping
+        logger.info(f"Price mapping: {price_mapping}")
+        logger.info(f"Selected price ID: {price_id}")
+
         if not price_id:
+            logger.error(f"Invalid period received: {period}")
             return JsonResponse({'error': 'Invalid period'}, status=400)
+
+        # Log user information
+        logger.info(f"User ID: {request.user.id}")
+        logger.info(f"User email: {request.user.email}")
+        logger.info(f"Clerk user ID: {request.user.clerk_user_id}")
 
         # Create Stripe checkout session with the correct price
         checkout_session = stripe.checkout.Session.create(
-            customer=request.user.clerk_user_id,  # Add customer ID
-            customer_email=request.user.email,  # Prefill email
-            client_reference_id=str(request.user.id),  # Add reference ID
+            customer=request.user.clerk_user_id,
+            customer_email=request.user.email,
+            client_reference_id=str(request.user.id),
             metadata={
                 'user_id': str(request.user.id),
                 'period': period
             },
             line_items=[{
-                'price': price_id,  # Use the mapped price ID
+                'price': price_id,
                 'quantity': 1,
             }],
             mode='subscription',
             success_url=f"{settings.FRONTEND_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{settings.FRONTEND_URL}/upgrade",
         )
+        
+        # Log the checkout session
+        logger.info(f"Created checkout session: {checkout_session.id}")
+        logger.info(f"Checkout URL: {checkout_session.url}")
             
         return JsonResponse({
             'checkout_url': checkout_session.url
         })
             
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error: {str(e)}")
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
+        logger.error(f"Error creating checkout session: {str(e)}")
         return JsonResponse({'error': str(e)}, status=400)
 
 def send_error_email(request, error_code, error_message, stack_trace=None):
