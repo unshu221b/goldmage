@@ -60,3 +60,25 @@ class CustomUser(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+    
+class Conversation(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='conversations')
+    title = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.CharField(max_length=50)  # "user" or "assistant"
+    input_type = models.CharField(max_length=10, choices=[('text', 'Text'), ('image', 'Image')])
+    text_content = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
+    openai_response = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class MessageAnalysis(models.Model):
+    message = models.OneToOneField(Message, on_delete=models.CASCADE, related_name='analysis')
+    dominant_emotion = models.CharField(max_length=50)
+    emotion_scores = models.JSONField()  # e.g., {"happiness": 15, "sadness": 35, ...}
+    summary = models.TextField(blank=True, null=True)
