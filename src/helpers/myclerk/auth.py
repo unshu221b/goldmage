@@ -18,7 +18,6 @@ class ClerkAuthentication(BaseAuthentication):
                 token,
                 settings.CLERK_JWT_PUBLIC_KEY,
                 algorithms=['RS256'],
-                audience=settings.CLERK_AUDIENCE
             )
             
             clerk_user_id = payload['sub']
