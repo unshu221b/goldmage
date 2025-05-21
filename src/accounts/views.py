@@ -3,9 +3,11 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
+from helpers.myclerk.auth import ClerkAuthentication
 
 class ConversationListCreateView(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
+    authentication_classes = [ClerkAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):

@@ -69,6 +69,7 @@ STRIPE_YEARLY_PRICE_ID = config("STRIPE_YEARLY_PRICE_ID")
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = config("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
 CLERK_SECRET_KEY = config("CLERK_SECRET_KEY")
 CLERK_WEBHOOK_SIGNING_SECRET = config("CLERK_WEBHOOK_SIGNING_SECRET")
+CLERK_AUDIENCE = "https://api.52aichan.com"
 
 CLERK_AUTH_PARTIES = [
     'https://52aichan.com',
@@ -112,10 +113,9 @@ INTERNAL_IPS = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',  # Keep this for now
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'helpers.myclerk.authentication.ClerkAuthentication',
+    ),
 }
 
 MIDDLEWARE = [
