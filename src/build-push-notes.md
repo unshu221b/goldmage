@@ -44,3 +44,6 @@ kubectl logs -f
 git add . ; git commit -m "feat: update " ; git push
 
 kubectl get secrets
+
+
+console.log(window.Clerk.session.lastActiveToken)
