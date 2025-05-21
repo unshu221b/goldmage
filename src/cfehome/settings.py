@@ -231,7 +231,11 @@ NPM_BIN_PATH = "/usr/bin/npm"
 # STATIC_URL = "static/"
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-
+STATIC_ROOT = BASE_DIR / 'staticfiles-cdn'
+# STATICFILES_DIRS= [
+#     BASE_DIR / "staticfiles",
+#     BASE_DIR / "theme/static",
+# ]
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
