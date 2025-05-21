@@ -16,7 +16,7 @@ class ClerkAuthentication(BaseAuthentication):
             token = auth_header.split(' ')[1]
             payload = jwt.decode(
                 token,
-                settings.CLERK_PUBLIC_KEY,
+                settings.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
                 algorithms=['RS256'],
                 audience=settings.CLERK_AUDIENCE
             )
