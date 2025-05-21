@@ -4,13 +4,17 @@ from rest_framework.decorators import action
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from helpers.myclerk.auth import ClerkAuthentication
+from helpers.myclerk.decorators import api_login_required
+from django.utils.decorators import method_decorator
 
+@method_decorator(api_login_required, name='dispatch')
 class ConversationListCreateView(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
-    authentication_classes = [ClerkAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+
 
     def get_queryset(self):
+        print("User:", self.request.user)
+        print("Is authenticated:", self.request.user.is_authenticated)
         return Conversation.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
