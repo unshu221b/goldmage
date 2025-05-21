@@ -111,8 +111,16 @@ INSTALLED_APPS = [
     "storages",
     "channels",
     "rest_framework",
+    "rest_framework.authtoken",
     #"sslserver", #remove before build
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
 
 TAILWIND_APP_NAME="theme" # django-tailwind theme app
 INTERNAL_IPS = [
