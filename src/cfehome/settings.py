@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     "storages",
     "channels",
     "rest_framework",
+    "rest_framework.authtoken",
     #"sslserver", #remove before build
 ]
 
@@ -109,6 +110,13 @@ INTERNAL_IPS = [
     "0.0.0.0",
     "127.0.0.1",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',  # Keep this for now
+    ],
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
