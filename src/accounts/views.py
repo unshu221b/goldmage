@@ -6,7 +6,6 @@ from .serializers import ConversationSerializer
 
 class ConversationListCreateView(generics.ListCreateAPIView):
     serializer_class = ConversationSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         # Only show conversations belonging to the logged-in user
