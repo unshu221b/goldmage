@@ -10,6 +10,9 @@ class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
         fields = '__all__'
+        extra_kwargs = {
+            'user': {'read_only': True}
+        }
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
