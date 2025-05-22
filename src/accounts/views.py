@@ -7,6 +7,15 @@ from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
 
+from .serializers import (
+    AnalysisRequestSerializer,
+    AnalysisResponseSerializer
+)
+import json
+from openai import OpenAI
+
+client = OpenAI()
+
 @method_decorator(api_login_required, name='dispatch')
 class ConversationListCreateView(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
@@ -97,4 +106,128 @@ class ConversationListCreateView(viewsets.ModelViewSet):
             return Response(
                 {'detail': 'Conversation not found'}, 
                 status=status.HTTP_404_NOT_FOUND
+            )
+        
+
+@method_decorator(api_login_required, name='dispatch')
+class AnalysisViewSet(viewsets.ViewSet):
+    @action(detail=False, methods=['post'])
+    def analyze(self, request):
+        # Validate request data
+        serializer = AnalysisRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            messages = serializer.validated_data['messages']
+            user_message = messages[-1]["text"] if messages else ""
+
+            # Build the prompt
+            prompt = (
+                "Analyze the following chat message and generate a reaction, suggestions, and metrics. "
+                "Return a JSON object with these fields:\n"
+                "{\n"
+                '  "reaction": "A brief emotional reaction to the message",\n'
+                '  "suggestions": [\n'
+                '    {\n'
+                '      "id": "unique-id-1",\n'
+                '      "suggestion": "first suggestion text",\n'
+                '      "style": "casual/professional/friendly/formal"\n'
+                '    },\n'
+                '    {\n'
+                '      "id": "unique-id-2",\n'
+                '      "suggestion": "second suggestion text",\n'
+                '      "style": "casual/professional/friendly/formal"\n'
+                '    },\n'
+                '    {\n'
+                '      "id": "unique-id-3",\n'
+                '      "suggestion": "third suggestion text",\n'
+                '      "style": "casual/professional/friendly/formal"\n'
+                '    },\n'
+                '    {\n'
+                '      "id": "unique-id-4",\n'
+                '      "suggestion": "fourth suggestion text",\n'
+                '      "style": "casual/professional/friendly/formal"\n'
+                '    }\n'
+                '  ],\n'
+                '  "personality_metrics": {\n'
+                '    "intelligence": number between 0-100 or null,\n'
+                '    "charisma": number between 0-100 or null,\n'
+                '    "strength": number between 0-100 or null,\n'
+                '    "kindness": number between 0-100 or null\n'
+                '  },\n'
+                '  "emotion_metrics": {\n'
+                '    "happiness": number between 0-100,\n'
+                '    "sadness": number between 0-100,\n'
+                '    "anger": number between 0-100,\n'
+                '    "surprise": number between 0-100,\n'
+                '    "fear": number between 0-100,\n'
+                '    "disgust": number between 0-100,\n'
+                '    "neutral": number between 0-100\n'
+                '  }\n'
+                "}\n\n"
+                f"Message: \"{user_message}\""
+            )
+
+            # Call OpenAI
+            response = client.chat.completions.create(
+                model="gpt-4.1",
+                messages=[
+                    {"role": "system", "content": "You are an expert communication analyst and response generator."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=512,
+                temperature=0.7,
+            )
+            ai_content = response.choices[0].message.content.strip()
+
+            # Parse OpenAI response
+            try:
+                openai_result = json.loads(ai_content)
+            except json.JSONDecodeError:
+                import re
+                match = re.search(r'\{.*\}', ai_content, re.DOTALL)
+                if match:
+                    openai_result = json.loads(match.group(0))
+                else:
+                    return Response(
+                        {"error": "AI response was not valid JSON", "raw": ai_content}, 
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+
+            # Validate and serialize the response
+            response_data = {
+                "reaction": openai_result.get("reaction", ""),
+                "suggestions": openai_result.get("suggestions", []),
+                "personality_metrics": openai_result.get("personality_metrics", {
+                    "intelligence": None,
+                    "charisma": None,
+                    "strength": None,
+                    "kindness": None
+                }),
+                "emotion_metrics": openai_result.get("emotion_metrics", {
+                    "happiness": 50,
+                    "sadness": 50,
+                    "anger": 50,
+                    "surprise": 50,
+                    "fear": 50,
+                    "disgust": 50,
+                    "neutral": 50
+                })
+            }
+
+            # Validate the response data
+            response_serializer = AnalysisResponseSerializer(data=response_data)
+            if not response_serializer.is_valid():
+                return Response(
+                    {"error": "Invalid response format", "details": response_serializer.errors},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+            return Response(response_serializer.validated_data)
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
