@@ -54,8 +54,6 @@ def home_view(request):
     return render(request, template_name)
 
 
-@ensure_csrf_cookie
-@csrf_protect
 @api_login_required
 def analyze_view(request):
     if request.method == "POST":
@@ -67,37 +65,46 @@ def analyze_view(request):
 
             # Build the prompt
             prompt = (
-                "Analyze the following chat message and generate a reaction and 4 different response suggestions. "
+                "Analyze the following chat message and generate a reaction, suggestions, and metrics. "
                 "Return a JSON object with these fields:\n"
                 "{\n"
                 '  "reaction": "A brief emotional reaction to the message",\n'
                 '  "suggestions": [\n'
                 '    {\n'
-                '      "faceSrc": "/static/52aichan.png",\n'
+                '      "id": "unique-id-1",\n'
                 '      "suggestion": "first suggestion text",\n'
                 '      "style": "casual/professional/friendly/formal"\n'
                 '    },\n'
                 '    {\n'
-                '      "faceSrc": "/static/52aichan.png",\n'
+                '      "id": "unique-id-2",\n'
                 '      "suggestion": "second suggestion text",\n'
                 '      "style": "casual/professional/friendly/formal"\n'
                 '    },\n'
                 '    {\n'
-                '      "faceSrc": "/static/52aichan.png",\n'
+                '      "id": "unique-id-3",\n'
                 '      "suggestion": "third suggestion text",\n'
                 '      "style": "casual/professional/friendly/formal"\n'
                 '    },\n'
                 '    {\n'
-                '      "faceSrc": "/static/52aichan.png",\n'
+                '      "id": "unique-id-4",\n'
                 '      "suggestion": "fourth suggestion text",\n'
                 '      "style": "casual/professional/friendly/formal"\n'
                 '    }\n'
                 '  ],\n'
-                '  "metrics": {\n'
-                '    "intelligence": number between 0-100,\n'
-                '    "charisma": number between 0-100,\n'
-                '    "strength": number between 0-100,\n'
-                '    "kindness": number between 0-100\n'
+                '  "personality_metrics": {\n'
+                '    "intelligence": number between 0-100 or null,\n'
+                '    "charisma": number between 0-100 or null,\n'
+                '    "strength": number between 0-100 or null,\n'
+                '    "kindness": number between 0-100 or null\n'
+                '  },\n'
+                '  "emotion_metrics": {\n'
+                '    "happiness": number between 0-100,\n'
+                '    "sadness": number between 0-100,\n'
+                '    "anger": number between 0-100,\n'
+                '    "surprise": number between 0-100,\n'
+                '    "fear": number between 0-100,\n'
+                '    "disgust": number between 0-100,\n'
+                '    "neutral": number between 0-100\n'
                 '  }\n'
                 "}\n\n"
                 f"Message: \"{user_message}\""
@@ -131,11 +138,20 @@ def analyze_view(request):
             response_data = {
                 "reaction": openai_result.get("reaction", ""),
                 "suggestions": openai_result.get("suggestions", []),
-                "metrics": openai_result.get("metrics", {
-                    "intelligence": 50,
-                    "charisma": 50,
-                    "strength": 50,
-                    "kindness": 50
+                "personality_metrics": openai_result.get("personality_metrics", {
+                    "intelligence": None,
+                    "charisma": None,
+                    "strength": None,
+                    "kindness": None
+                }),
+                "emotion_metrics": openai_result.get("emotion_metrics", {
+                    "happiness": 50,
+                    "sadness": 50,
+                    "anger": 50,
+                    "surprise": 50,
+                    "fear": 50,
+                    "disgust": 50,
+                    "neutral": 50
                 })
             }
             return JsonResponse(response_data)
