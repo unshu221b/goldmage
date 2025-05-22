@@ -312,14 +312,14 @@ BASE_CSRF_TRUSTED_ORIGINS = [
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    'https://52aichan.com',
-    'http://52aichan.com',
+    'https://www.52aichan.com',
+    'http://www.52aichan.com',
     'https://api.52aichan.com',
     'http://api.52aichan.com',
     'http://localhost:3000',
     'http://localhost:8000',
 ]
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [
