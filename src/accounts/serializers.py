@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Conversation, Message, MessageAnalysis
+from .models import CustomUser, Conversation, Message, MessageAnalysis, ConversationAnalysis
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,7 +9,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
-        fields = '__all__'
+        fields = ['id', 'title', 'created_at', 'updated_at']
         extra_kwargs = {
             'user': {'read_only': True}
         }
@@ -17,12 +17,13 @@ class ConversationSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = '__all__'
+        fields = ['id', 'sender', 'text_content', 'created_at']
+
 
 class MessageAnalysisSerializer(serializers.ModelSerializer):
     class Meta:
         model = MessageAnalysis
-        fields = '__all__' 
+        fields = '__all__'
 
 class MessageRequestSerializer(serializers.Serializer):
     text = serializers.CharField()
@@ -33,6 +34,7 @@ class AnalysisRequestSerializer(serializers.Serializer):
         child=MessageRequestSerializer()
     )
 
+# For the nested data structures
 class SuggestionSerializer(serializers.Serializer):
     id = serializers.CharField()
     suggestion = serializers.CharField()
@@ -53,8 +55,20 @@ class EmotionMetricsSerializer(serializers.Serializer):
     disgust = serializers.IntegerField()
     neutral = serializers.IntegerField()
 
-class AnalysisResponseSerializer(serializers.Serializer):
-    reaction = serializers.CharField()
+# The main ConversationAnalysis serializer
+class ConversationAnalysisSerializer(serializers.ModelSerializer):
     suggestions = SuggestionSerializer(many=True)
     personality_metrics = PersonalityMetricsSerializer()
     emotion_metrics = EmotionMetricsSerializer()
+
+    class Meta:
+        model = ConversationAnalysis
+        fields = [
+            'reaction',
+            'suggestions',
+            'personality_metrics',
+            'emotion_metrics',
+            'dominant_emotion',
+            'created_at',
+            'updated_at'
+        ]

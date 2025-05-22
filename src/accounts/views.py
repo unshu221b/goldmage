@@ -1,12 +1,14 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Conversation, Message
-from .serializers import ConversationSerializer, MessageSerializer
+from .models import Conversation, Message, ConversationAnalysis
+from .serializers import ConversationSerializer, MessageSerializer, ConversationAnalysisSerializer
 from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.db import transaction
 
 from .serializers import (
     AnalysisRequestSerializer,
@@ -15,17 +17,14 @@ from .serializers import (
 import json
 from openai import OpenAI
 
-client = OpenAI()
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
 @method_decorator(api_login_required, name='dispatch')
 class ConversationListCreateView(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
 
-
     def get_queryset(self):
-        print("User:", self.request.user)
-        print("Is authenticated:", self.request.user.is_authenticated)
         return Conversation.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -36,78 +35,126 @@ class ConversationListCreateView(viewsets.ModelViewSet):
         # Get data from request
         title = request.data.get('title')
         messages_data = request.data.get('messages', [])
+        analysis_data = request.data.get('analysis', {})
 
-        # Create conversation
-        conversation = Conversation.objects.create(
-            title=title,
-            user=request.user
-        )
+        try:
+            with transaction.atomic():
+                # Create conversation
+                conversation = Conversation.objects.create(
+                    title=title,
+                    user=request.user
+                )
 
-        # Create all messages
-        messages = []
-        for msg_data in messages_data:
-            message = Message.objects.create(
-                conversation=conversation,
-                sender=msg_data['sender'],
-                input_type='text',  # or get from msg_data
-                text_content=msg_data['text_content']
+                # Create all messages
+                messages = []
+                for msg_data in messages_data:
+                    message = Message.objects.create(
+                        conversation=conversation,
+                        sender=msg_data['sender'],
+                        input_type='text',
+                        text_content=msg_data['text_content']
+                    )
+                    messages.append(message)
+
+                # Create analysis if analysis data is provided
+                analysis = None
+                if analysis_data:
+                    analysis = ConversationAnalysis.objects.create(
+                        conversation=conversation,
+                        reaction=analysis_data.get('reaction'),
+                        suggestions=analysis_data.get('suggestions'),
+                        personality_metrics=analysis_data.get('personality_metrics'),
+                        emotion_metrics=analysis_data.get('emotion_metrics'),
+                        dominant_emotion=analysis_data.get('dominant_emotion')
+                    )
+
+                # Return the created data
+                response_data = {
+                    'conversation': ConversationSerializer(conversation).data,
+                    'messages': MessageSerializer(messages, many=True).data
+                }
+                
+                if analysis:
+                    response_data['analysis'] = ConversationAnalysisSerializer(analysis).data
+
+                return Response(response_data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
             )
-            messages.append(message)
-
-        # Return the created data
-        return Response({
-            'conversation': ConversationSerializer(conversation).data,
-            'messages': MessageSerializer(messages, many=True).data
-        }, status=status.HTTP_201_CREATED)
-    
+        
     @action(detail=True, methods=['put', 'patch'])
     def batch_update(self, request, pk=None):
         """
-        Update an existing conversation and its messages
+        Update an existing conversation, its messages, and analysis
         """
         try:
-            # Get the existing conversation
-            conversation = self.get_queryset().get(pk=pk)
-            
-            # Update conversation title if provided
-            if 'title' in request.data:
-                conversation.title = request.data['title']
-                conversation.save()
-
-            # Update messages if provided
-            if 'messages' in request.data:
-                # Optional: Delete existing messages if you want to replace them
-                # conversation.messages.all().delete()
+            with transaction.atomic():
+                # Get the existing conversation
+                conversation = self.get_queryset().get(pk=pk)
                 
-                # Update or create messages
-                updated_messages = []
-                for msg_data in request.data['messages']:
-                    if 'id' in msg_data:
-                        # Update existing message
-                        message = conversation.messages.get(id=msg_data['id'])
-                        message.text_content = msg_data['text_content']
-                        message.sender = msg_data['sender']
-                        message.save()
-                    else:
-                        # Create new message
+                # Update conversation title if provided
+                if 'title' in request.data:
+                    conversation.title = request.data['title']
+                    conversation.save()
+
+                # Update messages if provided
+                if 'messages' in request.data:
+                    # Delete existing messages
+                    conversation.messages.all().delete()
+                    
+                    # Create new messages
+                    messages = []
+                    for msg_data in request.data['messages']:
                         message = Message.objects.create(
                             conversation=conversation,
                             sender=msg_data['sender'],
                             input_type='text',
                             text_content=msg_data['text_content']
                         )
-                    updated_messages.append(message)
+                        messages.append(message)
 
-            # Return updated data
-            return Response({
-                'conversation': ConversationSerializer(conversation).data,
-                'messages': MessageSerializer(conversation.messages.all(), many=True).data
-            })
+                # Update analysis if provided
+                if 'analysis' in request.data:
+                    analysis_data = request.data['analysis']
+                    
+                    # Delete existing analysis if it exists
+                    ConversationAnalysis.objects.filter(conversation=conversation).delete()
+                    
+                    # Create new analysis
+                    analysis = ConversationAnalysis.objects.create(
+                        conversation=conversation,
+                        reaction=analysis_data.get('reaction'),
+                        suggestions=analysis_data.get('suggestions'),
+                        personality_metrics=analysis_data.get('personality_metrics'),
+                        emotion_metrics=analysis_data.get('emotion_metrics'),
+                        dominant_emotion=analysis_data.get('dominant_emotion')
+                    )
+
+                # Return updated data
+                response_data = {
+                    'conversation': ConversationSerializer(conversation).data,
+                    'messages': MessageSerializer(conversation.messages.all(), many=True).data
+                }
+
+                # Add analysis data if it exists
+                analysis = ConversationAnalysis.objects.filter(conversation=conversation).first()
+                if analysis:
+                    response_data['analysis'] = ConversationAnalysisSerializer(analysis).data
+
+                return Response(response_data)
 
         except Conversation.DoesNotExist:
             return Response(
                 {'detail': 'Conversation not found'}, 
                 status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
             )
         
 

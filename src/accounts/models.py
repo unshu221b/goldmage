@@ -73,9 +73,17 @@ class Message(models.Model):
     input_type = models.CharField(max_length=10, choices=[('text', 'Text'), ('image', 'Image')])
     text_content = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
-    openai_response = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+class ConversationAnalysis(models.Model):
+    conversation = models.OneToOneField(Conversation, on_delete=models.CASCADE, related_name='analysis')
+    reaction = models.TextField()  # The main analysis response/passage
+    suggestions = models.JSONField()  # Store the 4 suggestions as a JSON array
+    personality_metrics = models.JSONField()  # Store personality metrics
+    emotion_metrics = models.JSONField()  # Store emotion metrics
+    dominant_emotion = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 class MessageAnalysis(models.Model):
     message = models.OneToOneField(Message, on_delete=models.CASCADE, related_name='analysis')
