@@ -15,10 +15,22 @@ import time
 import os
 from openai import OpenAI
 import json
+from django.http import HttpResponse
 
 logger = logging.getLogger('goldmage')
 stripe.api_key = settings.STRIPE_SECRET_KEY
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+
+@csrf_exempt
+def cors_test(request):
+    response = HttpResponse("CORS is working!")
+    response["Access-Control-Allow-Origin"] = "https://www.52aichan.com"
+    response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    return response
+
+
 
 def monitor_cache_stats(view_name):
     """

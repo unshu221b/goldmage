@@ -6,6 +6,7 @@ from .serializers import ConversationSerializer, MessageSerializer
 from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from .serializers import (
     AnalysisRequestSerializer,
@@ -16,6 +17,7 @@ from openai import OpenAI
 
 client = OpenAI()
 
+@csrf_exempt
 @method_decorator(api_login_required, name='dispatch')
 class ConversationListCreateView(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
@@ -108,7 +110,7 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-
+@csrf_exempt
 @method_decorator(api_login_required, name='dispatch')
 class AnalysisViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
