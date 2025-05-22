@@ -215,7 +215,8 @@ class AnalysisViewSet(viewsets.ViewSet):
                 '    "fear": number between 0-100,\n'
                 '    "disgust": number between 0-100,\n'
                 '    "neutral": number between 0-100\n'
-                '  }\n'
+                '  },\n'
+                '  "dominant_emotion": "The emotion with the highest score from emotion_metrics"\n'
                 "}\n\n"
                 f"Conversation:\n{conversation_history}"
             )
@@ -264,7 +265,8 @@ class AnalysisViewSet(viewsets.ViewSet):
                     "fear": 50,
                     "disgust": 50,
                     "neutral": 50
-                })
+                }),
+                "dominant_emotion": max(openai_result.get("emotion_metrics", {}).items(), key=lambda x: x[1])[0]
             }
 
             # Validate the response data
