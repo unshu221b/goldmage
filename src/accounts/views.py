@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Conversation, Message, ConversationAnalysis
-from .serializers import ConversationSerializer, MessageSerializer, ConversationAnalysisSerializer
+from .serializers import ConversationSerializer, MessageSerializer, ConversationAnalysisSerializer, AnalysisRequestSerializer
 from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
@@ -10,10 +10,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.db import transaction
 
-from .serializers import (
-    AnalysisRequestSerializer,
-    AnalysisResponseSerializer
-)
 import json
 from openai import OpenAI
 
