@@ -8,12 +8,3 @@ healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10 
-
-[[deploy.headers]]
-source = "/api/(.*)"
-headers = [
-  { key = "Access-Control-Allow-Origin", value = "https://www.52aichan.com" },
-  { key = "Access-Control-Allow-Methods", value = "GET, POST, OPTIONS, PUT, PATCH, DELETE" },
-  { key = "Access-Control-Allow-Headers", value = "Content-Type, Authorization, X-CSRFToken" },
-  { key = "Access-Control-Allow-Credentials", value = "true" }
-]
