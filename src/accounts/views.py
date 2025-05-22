@@ -165,14 +165,20 @@ class AnalysisViewSet(viewsets.ViewSet):
 
         try:
             messages = serializer.validated_data['messages']
-            user_message = messages[-1]["text"] if messages else ""
+            
+            # Format the entire conversation history
+            conversation_history = "\n".join([
+                f"{msg['sender']}: {msg['text']}"
+                for msg in messages
+            ])
 
             # Build the prompt
             prompt = (
-                "Analyze the following chat message and generate a reaction, suggestions, and metrics. "
+                "Analyze the following conversation and generate a reaction, suggestions, and metrics. "
+                "Consider the entire conversation context, not just individual messages. "
                 "Return a JSON object with these fields:\n"
                 "{\n"
-                '  "reaction": "A brief emotional reaction to the message",\n'
+                '  "reaction": "A brief emotional reaction to the overall conversation",\n'
                 '  "suggestions": [\n'
                 '    {\n'
                 '      "id": "unique-id-1",\n'
@@ -211,17 +217,17 @@ class AnalysisViewSet(viewsets.ViewSet):
                 '    "neutral": number between 0-100\n'
                 '  }\n'
                 "}\n\n"
-                f"Message: \"{user_message}\""
+                f"Conversation:\n{conversation_history}"
             )
 
             # Call OpenAI
             response = client.chat.completions.create(
                 model="gpt-4.1",
                 messages=[
-                    {"role": "system", "content": "You are an expert communication analyst and response generator."},
+                    {"role": "system", "content": "You are an expert communication analyst and response generator. Analyze the entire conversation context to provide meaningful insights."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=512,
+                max_tokens=1024,  # Increased token limit for longer conversations
                 temperature=0.7,
             )
             ai_content = response.choices[0].message.content.strip()
@@ -262,7 +268,7 @@ class AnalysisViewSet(viewsets.ViewSet):
             }
 
             # Validate the response data
-            response_serializer = AnalysisResponseSerializer(data=response_data)
+            response_serializer = ConversationAnalysisSerializer(data=response_data)
             if not response_serializer.is_valid():
                 return Response(
                     {"error": "Invalid response format", "details": response_serializer.errors},
