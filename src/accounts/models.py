@@ -44,7 +44,10 @@ class CustomUser(AbstractBaseUser):
         choices=MEMBERSHIP_CHOICES,
         default='free'
     )
-    
+    # Credit system fields
+    credits = models.IntegerField(default=10)  # Free tier starts with 10 credits
+    last_credit_refill = models.DateTimeField(auto_now_add=True)
+  
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
         # Simplest possible answer: Yes, always
@@ -54,6 +57,37 @@ class CustomUser(AbstractBaseUser):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
+    
+    def add_credits(self, amount):
+        """Add credits to user's account"""
+        self.credits += amount
+        self.save()
+    
+    def use_credit(self):
+        """Use one credit, returns True if successful, False if no credits left"""
+        if self.credits > 0:
+            self.credits -= 1
+            self.save()
+            return True
+        return False
+    
+    def get_remaining_credits(self):
+        """Get remaining credits"""
+        return self.credits
+    
+    def initialize_free_credits(self):
+        """Initialize free credits for new users"""
+        if self.credits == 0:  # Only initialize if no credits exist
+            self.credits = 10
+            self.save()
+            return True
+        return False
+    
+    def save(self, *args, **kwargs):
+        # Initialize credits if they don't exist
+        if not hasattr(self, 'credits'):
+            self.credits = 10
+        super().save(*args, **kwargs)
 
     @property
     def is_staff(self):

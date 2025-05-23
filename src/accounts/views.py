@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from .models import Conversation, Message, ConversationAnalysis
 from .serializers import ConversationSerializer, MessageSerializer, ConversationAnalysisSerializer, AnalysisRequestSerializer
 from helpers.myclerk.auth import ClerkAuthentication
-from helpers.myclerk.decorators import api_login_required
+from helpers.myclerk.decorators import api_login_required, check_credits
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
@@ -157,6 +157,7 @@ class ConversationListCreateView(viewsets.ModelViewSet):
 @method_decorator(api_login_required, name='dispatch')
 class AnalysisViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
+    @check_credits 
     def analyze(self, request):
         # Validate request data
         serializer = AnalysisRequestSerializer(data=request.data)
@@ -277,10 +278,25 @@ class AnalysisViewSet(viewsets.ViewSet):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
-            return Response(response_serializer.validated_data)
+            # Deduct one credit after successful analysis
+            request.user.credits -= 1
+            request.user.save()
+
+            # Add remaining credits to the response
+            response_data['remaining_credits'] = request.user.credits
+
+            return Response(response_data)
 
         except Exception as e:
             return Response(
                 {"error": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @action(detail=False, methods=['get'])
+    def credits(self, request):
+        """Get remaining credits for the current user"""
+        return Response({
+            'credits': request.user.credits,
+            'membership': request.user.membership
+        })

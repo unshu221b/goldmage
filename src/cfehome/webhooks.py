@@ -73,13 +73,14 @@ def clerk_webhook(request):
                 if not last_name and external_account.get('last_name'):
                     last_name = external_account['last_name']
             
-                user_data = {
-                    "username": event_data['data'].get('username') or f"user_{clerk_user_id[-8:]}",
-                    "first_name": first_name or "",
-                    "last_name": last_name or "",
-                    "email": primary_email or "",
-                    "membership": "free"  # Default to free membership
-                }
+            user_data = {
+                "username": event_data['data'].get('username') or f"user_{clerk_user_id[-8:]}",
+                "first_name": first_name or "",
+                "last_name": last_name or "",
+                "email": primary_email or "",
+                "membership": "free",  # Default to free membership
+                "credits": 10  # Add initial free credits
+            }
             
             logger.info(f"Creating user with data: {user_data}")
             
@@ -89,7 +90,7 @@ def clerk_webhook(request):
                     defaults=user_data
                 )
                 if created:
-                    logger.info(f"Created new user from webhook: {clerk_user_id}")
+                    logger.info(f"Created new user from webhook: {clerk_user_id} with {user.credits} credits")
                 else:
                     logger.info(f"Updated existing user from webhook: {clerk_user_id}")
             except Exception as e:
@@ -179,6 +180,9 @@ def stripe_webhook(request):
             session = event.data.object
             try:
                 user = CustomUser.objects.get(clerk_user_id=session.customer)
+                # Add 300 credits for premium subscription
+                user.add_credits(300)
+                user.membership = 'premium'
                 user.save()
             except CustomUser.DoesNotExist:
                 pass
@@ -187,7 +191,10 @@ def stripe_webhook(request):
             subscription = event.data.object
             try:
                 user = CustomUser.objects.get(clerk_user_id=subscription.customer)
-                user.account_type = 'FREE'
+                user.membership = 'free'
+                # Reset to free tier credits if they have less than 10
+                if user.credits < 10:
+                    user.credits = 10
                 user.save()
             except CustomUser.DoesNotExist:
                 pass
