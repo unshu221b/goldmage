@@ -14,12 +14,12 @@ def api_login_required(view_function):
 def check_credits(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        user = request.user
         # Check if user has credits
-        if not user.use_credit():
+        if not request.user.use_credit():
             return JsonResponse({
                 'error': 'Insufficient credits',
-                'remaining_credits': user.get_remaining_credits(),
+                'remaining_credits': request.user.get_remaining_credits(),
+                'upgrade_url': '/dashboard/upgrade'
             }, status=402)  # 402 Payment Required
             
         return view_func(request, *args, **kwargs)

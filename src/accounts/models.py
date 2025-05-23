@@ -64,9 +64,9 @@ class CustomUser(AbstractBaseUser):
         self.save()
     
     def use_credit(self):
-        """Use one credit, returns True if successful, False if no credits left"""
-        if self.credits > 0:
-            self.credits -= 1
+        """Use 12 credits, returns True if successful, False if no credits left"""
+        if self.credits >= 12:  # Changed from > 0 to >= 12
+            self.credits -= 12  # Changed from -= 1 to -= 12
             self.save()
             return True
         return False
