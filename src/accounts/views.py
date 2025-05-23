@@ -9,6 +9,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
+from datetime import datetime
 
 import json
 from openai import OpenAI
@@ -317,4 +319,24 @@ class AnalysisViewSet(viewsets.ViewSet):
             'next_refill': request.user.get_daily_refill_time(),
             'is_thread_locked': request.user.is_thread_depth_locked,
             'total_usage_14d': request.user.total_usage_14d
+        })
+
+    @action(detail=False, methods=['get'])
+    def status(self, request):
+        """Get detailed credit status for the current user"""
+        user = request.user
+        
+        # Check and refill credits if it's time
+        user.check_and_refill_credits()
+        
+        # Format reset time to ISO format
+        reset_time = user.get_daily_refill_time()
+        reset_time_iso = reset_time.isoformat()
+
+        return Response({
+            'remaining_credits': user.credits,
+            'reset_time': reset_time_iso,
+            'is_out_of_credits': user.credits <= 0,
+            'plan_type': user.membership,  # 'free' or 'premium'
+            'total_credits': 200 if user.membership == 'premium' else 10
         })
