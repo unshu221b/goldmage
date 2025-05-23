@@ -82,7 +82,7 @@ class CustomUser(AbstractBaseUser):
         return refill_time
 
     def check_and_refill_credits(self):
-        """Check if it's time to refill credits (8:00 AM)"""
+        """Check if it's time to refill credits (8:00 AM) and unlock thread depth"""
         now = timezone.now()
         last_refill = self.last_credit_refill
 
@@ -91,6 +91,15 @@ class CustomUser(AbstractBaseUser):
             # Set credits based on membership
             self.credits = 200 if self.membership == 'premium' else 10
             self.last_credit_refill = now
+            
+            # If user is thread locked and it's been 7 days since lock
+            if self.is_thread_depth_locked:
+                # Check if 7 days have passed since the last refill
+                days_since_lock = (now - last_refill).days
+                if days_since_lock >= 7:
+                    self.is_thread_depth_locked = False
+                    self.total_usage_14d = 0  # Reset usage counter when unlocked
+            
             self.save()
             return True
         return False
