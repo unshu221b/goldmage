@@ -158,13 +158,26 @@ class ConversationListCreateView(viewsets.ModelViewSet):
 class AnalysisViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def analyze(self, request):
-        # Check credits first
-        if not request.user.credits >= 12:  # This is the credit check
+        # Check credits
+        if not request.user.credits > 0:
+            next_refill = request.user.get_daily_refill_time()
             return Response({
                 'error': 'Insufficient credits',
                 'remaining_credits': request.user.credits,
+                'next_refill': next_refill,
+                'is_thread_locked': request.user.is_thread_depth_locked,
                 'upgrade_url': '/dashboard/upgrade'
             }, status=402)
+
+        # Check thread depth lock
+        if request.user.is_thread_depth_locked:
+            return Response({
+                'error': 'Thread depth limit reached',
+                'message': 'You have reached the 14-day usage limit. Please wait for the cooldown period.',
+                'remaining_credits': request.user.credits,
+                'next_refill': request.user.get_daily_refill_time()
+            }, status=429)
+
         # Validate request data
         serializer = AnalysisRequestSerializer(data=request.data)
         if not serializer.is_valid():
@@ -284,12 +297,8 @@ class AnalysisViewSet(viewsets.ViewSet):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
-            # Deduct 12 credits after successful analysis
-            request.user.credits -= 12
-            request.user.save()
-
-            # Add remaining credits to the response
-            response_data['remaining_credits'] = request.user.credits
+            # Deduct one credit after successful analysis
+            request.user.use_credit()
 
             return Response(response_data)
 
@@ -301,8 +310,11 @@ class AnalysisViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def credits(self, request):
-        """Get remaining credits for the current user"""
+        """Get remaining credits and status for the current user"""
         return Response({
             'credits': request.user.credits,
-            'membership': request.user.membership
+            'membership': request.user.membership,
+            'next_refill': request.user.get_daily_refill_time(),
+            'is_thread_locked': request.user.is_thread_depth_locked,
+            'total_usage_14d': request.user.total_usage_14d
         })

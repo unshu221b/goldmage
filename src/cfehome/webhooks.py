@@ -180,9 +180,10 @@ def stripe_webhook(request):
             session = event.data.object
             try:
                 user = CustomUser.objects.get(clerk_user_id=session.customer)
-                # Add 3600 credits for premium subscription
-                user.add_credits(3600)
+                # Set premium membership and credits
                 user.membership = 'premium'
+                user.credits = 200  # Set initial premium credits
+                user.is_thread_depth_locked = False  # Remove any thread locks
                 user.save()
             except CustomUser.DoesNotExist:
                 pass
@@ -191,8 +192,9 @@ def stripe_webhook(request):
             subscription = event.data.object
             try:
                 user = CustomUser.objects.get(clerk_user_id=subscription.customer)
-                # Only change membership to free, don't modify credits
+                # Reset to free tier
                 user.membership = 'free'
+                user.credits = 10  # Reset to free tier credits
                 user.save()
             except CustomUser.DoesNotExist:
                 pass
