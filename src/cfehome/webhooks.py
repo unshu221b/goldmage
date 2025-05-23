@@ -180,8 +180,8 @@ def stripe_webhook(request):
             session = event.data.object
             try:
                 user = CustomUser.objects.get(clerk_user_id=session.customer)
-                # Add 300 credits for premium subscription
-                user.add_credits(300)
+                # Add 3600 credits for premium subscription
+                user.add_credits(3600)
                 user.membership = 'premium'
                 user.save()
             except CustomUser.DoesNotExist:
@@ -191,10 +191,8 @@ def stripe_webhook(request):
             subscription = event.data.object
             try:
                 user = CustomUser.objects.get(clerk_user_id=subscription.customer)
+                # Only change membership to free, don't modify credits
                 user.membership = 'free'
-                # Reset to free tier credits if they have less than 10
-                if user.credits < 10:
-                    user.credits = 10
                 user.save()
             except CustomUser.DoesNotExist:
                 pass
@@ -205,9 +203,9 @@ def stripe_webhook(request):
             try:
                 user = CustomUser.objects.get(clerk_user_id=subscription.customer)
                 if subscription.status == 'active':
-                    user.account_type = 'premium'
+                    user.membership = 'premium'
                 else:
-                    user.account_type = 'FREE'
+                    user.membership = 'free'
                 user.save()
             except CustomUser.DoesNotExist:
                 pass
@@ -234,7 +232,7 @@ def stripe_webhook(request):
             customer = event.data.object
             try:
                 user = CustomUser.objects.get(clerk_user_id=customer.id)
-                user.account_type = 'FREE'
+                user.membership = 'free'
                 user.save()
             except CustomUser.DoesNotExist:
                 pass

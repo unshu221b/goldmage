@@ -28,7 +28,6 @@ source /opt/venv/bin/activate
 migrate
 
 
-
 4. Update secrets (if needed)
 ```
 # For prod
@@ -39,11 +38,13 @@ kubectl delete secret django-k8s-prod-env
 5. Check logs
 kubectl logs -f deployment/django-k8s-web-deployment
 kubectl logs -f
+kubectl get secrets
+
+
 
 6. Commit and push
-git add . ; git commit -m "feat: update " ; git push
 
-kubectl get secrets
+git add . ; git commit -m "feat: update " ; git push
 
 
 console.log(window.Clerk.session.lastActiveToken)

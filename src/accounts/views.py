@@ -278,8 +278,8 @@ class AnalysisViewSet(viewsets.ViewSet):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
-            # Deduct one credit after successful analysis
-            request.user.credits -= 1
+            # Deduct 12 credits after successful analysis
+            request.user.credits -= 12
             request.user.save()
 
             # Add remaining credits to the response

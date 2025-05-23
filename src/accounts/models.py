@@ -2,7 +2,7 @@
 from django.db import models
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-
+from django.utils import timezone
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, clerk_user_id, **extra_fields):
@@ -45,8 +45,8 @@ class CustomUser(AbstractBaseUser):
         default='free'
     )
     # Credit system fields
-    credits = models.IntegerField(default=10)  # Free tier starts with 10 credits
-    last_credit_refill = models.DateTimeField(auto_now_add=True)
+    credits = models.IntegerField(default=120)  # Free tier starts with 10 credits
+    last_credit_refill = models.DateTimeField(default=timezone.now)
   
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
