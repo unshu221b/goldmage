@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from .models import Conversation, Message, ConversationAnalysis
 from .serializers import ConversationSerializer, MessageSerializer, ConversationAnalysisSerializer, AnalysisRequestSerializer
 from helpers.myclerk.auth import ClerkAuthentication
-from helpers.myclerk.decorators import api_login_required, check_credits
+from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
@@ -157,8 +157,14 @@ class ConversationListCreateView(viewsets.ModelViewSet):
 @method_decorator(api_login_required, name='dispatch')
 class AnalysisViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
-    @check_credits 
     def analyze(self, request):
+        # Check credits first
+        if not request.user.credits >= 12:  # This is the credit check
+            return Response({
+                'error': 'Insufficient credits',
+                'remaining_credits': request.user.credits,
+                'upgrade_url': '/dashboard/upgrade'
+            }, status=402)
         # Validate request data
         serializer = AnalysisRequestSerializer(data=request.data)
         if not serializer.is_valid():
