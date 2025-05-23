@@ -10,5 +10,6 @@ router.register(r'analysis', AnalysisViewSet, basename='analysis')
 
 urlpatterns = [
     # Your existing URLs
-    # path('conversations/', ConversationListCreateView.as_view(), name='conversation-list'),
+    # Add direct path for credits status
+    path('credits/status/', AnalysisViewSet.as_view({'get': 'status'}), name='credits-status'),
 ] + router.urls
