@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils import timezone
 from datetime import timedelta
-
+import uuid
 class CustomUserManager(BaseUserManager):
     def create_user(self, clerk_user_id, **extra_fields):
         if not clerk_user_id:
@@ -173,6 +173,7 @@ class CustomUser(AbstractBaseUser):
         return self.is_admin
     
 class Conversation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='conversations')
     title = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
