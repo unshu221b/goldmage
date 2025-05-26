@@ -51,8 +51,8 @@ class ConversationAnalysisSerializer(serializers.ModelSerializer):
         ]
 
 class ConversationSerializer(serializers.ModelSerializer):
-    messages = MessageSerializer(many=True, read_only=True, source='messages')
-    analysis = ConversationAnalysisSerializer(read_only=True, source='conversationanalysis')
+    messages = MessageSerializer(many=True, read_only=True)
+    analysis = ConversationAnalysisSerializer(read_only=True)
 
     class Meta:
         model = Conversation
