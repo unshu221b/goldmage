@@ -155,6 +155,22 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+    @action(detail=False, methods=['get'])
+    def history(self, request):
+        conversations = (
+            self.get_queryset()
+            .order_by('-created_at')
+            .values('id', 'title', 'created_at')
+        )
+        data = [
+            {
+                'id': str(conv['id']),
+                'title': conv['title'],
+                'date': conv['created_at'].isoformat()
+            }
+            for conv in conversations
+        ]
+        return Response(data)
 
 @method_decorator(api_login_required, name='dispatch')
 class AnalysisViewSet(viewsets.ViewSet):
