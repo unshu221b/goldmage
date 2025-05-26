@@ -160,11 +160,11 @@ class ConversationListCreateView(viewsets.ModelViewSet):
         conversations = (
             self.get_queryset()
             .order_by('-created_at')
-            .values('id', 'title', 'created_at')
+            .values('uuid', 'title', 'created_at')
         )
         data = [
             {
-                'id': str(conv['id']),
+                'id': str(conv['uuid']),
                 'title': conv['title'],
                 'date': conv['created_at'].isoformat()
             }
