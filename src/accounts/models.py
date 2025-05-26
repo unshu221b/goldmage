@@ -70,16 +70,13 @@ class CustomUser(AbstractBaseUser):
     def get_daily_refill_time(self):
         """Get next refill time (8:00 AM) with extended refresh for thread locked users"""
         now = timezone.now()
-        refill_time = now.replace(hour=8, minute=0, second=0, microsecond=0)
         
-        if now.hour >= 8:
-            refill_time += timedelta(days=1)
-            
-        # If thread locked, extend refresh time to 7 days
         if self.is_thread_depth_locked:
-            refill_time += timedelta(days=7)
-            
-        return refill_time
+            # Stage 3: 7 days
+            return now + timedelta(days=7)
+        else:
+            # Stage 1: 8 hours
+            return now + timedelta(hours=8)
 
     def check_and_refill_credits(self):
         """Check if it's time to refill credits (8:00 AM) and unlock thread depth"""

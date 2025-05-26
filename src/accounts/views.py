@@ -311,17 +311,6 @@ class AnalysisViewSet(viewsets.ViewSet):
             )
 
     @action(detail=False, methods=['get'])
-    def credits(self, request):
-        """Get remaining credits and status for the current user"""
-        return Response({
-            'credits': request.user.credits,
-            'membership': request.user.membership,
-            'next_refill': request.user.get_daily_refill_time(),
-            'is_thread_locked': request.user.is_thread_depth_locked,
-            'total_usage_14d': request.user.total_usage_14d
-        })
-
-    @action(detail=False, methods=['get'])
     def status(self, request):
         """Get detailed credit status for the current user"""
         user = request.user
