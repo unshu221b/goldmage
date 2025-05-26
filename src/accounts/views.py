@@ -11,6 +11,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from datetime import datetime
+from django.http import Http404
 
 import json
 from openai import OpenAI
@@ -24,6 +25,15 @@ class ConversationListCreateView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Conversation.objects.filter(user=self.request.user)
+
+    def get_object(self):
+        # Get the uuid from the URL
+        uuid = self.kwargs.get('pk')
+        # Try to get the conversation by uuid
+        try:
+            return self.get_queryset().get(uuid=uuid)
+        except Conversation.DoesNotExist:
+            raise Http404("No conversation found with the given UUID")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
