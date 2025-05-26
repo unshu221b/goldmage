@@ -47,7 +47,8 @@ class CustomUser(AbstractBaseUser):
     )
     # Credit system fields
     credits = models.IntegerField(default=10)  # Daily EP points
-    last_credit_refill = models.DateTimeField(default=timezone.now)
+    last_depleted_time = models.DateTimeField(null=True, blank=True)
+
     total_usage_14d = models.IntegerField(default=0)  # Track 14-day usage
     last_usage_timestamp = models.DateTimeField(null=True, blank=True)
     is_thread_depth_locked = models.BooleanField(default=False)
@@ -66,39 +67,50 @@ class CustomUser(AbstractBaseUser):
         """Add credits to user's account"""
         self.credits += amount
         self.save()
-    
-    def get_daily_refill_time(self):
-        """Get next refill time (8:00 AM) with extended refresh for thread locked users"""
-        now = timezone.now()
-        
-        if self.is_thread_depth_locked:
-            # Stage 3: 7 days
-            return now + timedelta(days=7)
-        else:
-            # Stage 1: 8 hours
-            return now + timedelta(hours=8)
 
-    def check_and_refill_credits(self):
-        """Check if it's time to refill credits (8:00 AM) and unlock thread depth"""
-        now = timezone.now()
-        last_refill = self.last_credit_refill
-
-        # If it's past 8 AM and we haven't refilled today
-        if now.hour >= 8 and (last_refill.hour < 8 or last_refill.date() < now.date()):
-            # Set credits based on membership
-            self.credits = 200 if self.membership == 'premium' else 10
-            self.last_credit_refill = now
-            
-            # If user is thread locked and it's been 7 days since lock
-            if self.is_thread_depth_locked:
-                # Check if 7 days have passed since the last refill
-                days_since_lock = (now - last_refill).days
-                if days_since_lock >= 7:
-                    self.is_thread_depth_locked = False
-                    self.total_usage_14d = 0  # Reset usage counter when unlocked
-            
+    def use_credit(self):
+        """Use one credit (EP), returns True if successful, False if no credits left"""
+        # Check and refill credits if it's time
+        self.check_and_refill_credits()
+        if self.credits > 0:
+            self.credits -= 1
+            if self.credits == 0:
+                self.last_depleted_time = timezone.now()  # Start vesting timer
+            self.update_14d_usage()
+            self.check_thread_depth_lock()
             self.save()
             return True
+        return False
+    
+    def get_daily_refill_time(self):
+        """no daily refill, change to vesting schedule"""
+        if self.credits > 0 or not self.last_depleted_time:
+            return None  # No refill scheduled, user still has credits
+        
+        if self.is_thread_depth_locked:
+            return self.last_depleted_time + timedelta(days=7)
+        else:
+            return self.last_depleted_time + timedelta(hours=8)
+
+    def check_and_refill_credits(self):
+        now = timezone.now()
+        # Only refill if user has zero credits and a depletion time is set
+        if self.credits == 0 and self.last_depleted_time:
+            if self.is_thread_depth_locked:
+                next_refill = self.last_depleted_time + timedelta(days=7)
+
+            else:
+                next_refill = self.last_depleted_time + timedelta(hours=8)
+
+            if now >= next_refill:
+                # Refill credits
+                self.credits = 200 if self.membership == 'premium' else 10
+                self.last_depleted_time = None  # Reset depletion time
+                if self.is_thread_depth_locked:
+                    self.is_thread_depth_locked = False
+                    self.total_usage_14d = 0
+                self.save()
+                return True
         return False
 
     def update_14d_usage(self):
@@ -131,19 +143,6 @@ class CustomUser(AbstractBaseUser):
             self.is_thread_depth_locked = True
             # Reset the 14-day usage counter when thread locked
             self.total_usage_14d = 0
-            self.save()
-            return True
-        return False
-
-    def use_credit(self):
-        """Use one credit (EP), returns True if successful, False if no credits left"""
-        # Check and refill credits if it's time
-        self.check_and_refill_credits()
-        
-        if self.credits > 0:
-            self.credits -= 1
-            self.update_14d_usage()
-            self.check_thread_depth_lock()
             self.save()
             return True
         return False

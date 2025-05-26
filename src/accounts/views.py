@@ -312,41 +312,28 @@ class AnalysisViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def status(self, request):
-        """Get detailed credit status for the current user"""
         user = request.user
-        
-        # Check and refill credits if it's time
         user.check_and_refill_credits()
         
-        # Format reset time to ISO format
         reset_time = user.get_daily_refill_time()
-        reset_time_iso = reset_time.isoformat()
-
-        # Calculate days until next refill
+        reset_time_iso = reset_time.isoformat() if reset_time else None
+        
         now = timezone.now()
-        days_until_refill = (reset_time - now).days
-
-        # Only track usage and limits for free users
+        days_until_refill = (reset_time - now).days if reset_time else None
+        
         is_free_user = user.membership == 'free'
         
         return Response({
-            # Basic credit info
             'remaining_credits': user.credits,
             'reset_time': reset_time_iso,
             'is_out_of_credits': user.credits <= 0,
             'plan_type': user.membership,
             'total_credits': 200 if user.membership == 'premium' else 10,
-            
-            # Usage tracking (only for free users)
             'total_usage_14d': user.total_usage_14d if is_free_user else 0,
             'is_thread_locked': user.is_thread_depth_locked if is_free_user else False,
-            
-            # Extended refresh info
             'days_until_refill': days_until_refill,
             'needs_extended_refresh': is_free_user and user.total_usage_14d >= 140,
-            'is_extended_refresh': user.is_thread_depth_locked,  # New field to show if in extended refresh
-            
-            # Additional status info
+            'is_extended_refresh': user.is_thread_depth_locked,
             'last_usage': user.last_usage_timestamp.isoformat() if user.last_usage_timestamp else None,
             'usage_limit': 140 if is_free_user else None,
             'daily_limit': 200 if user.membership == 'premium' else 10
