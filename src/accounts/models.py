@@ -173,7 +173,8 @@ class CustomUser(AbstractBaseUser):
         return self.is_admin
     
 class Conversation(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.BigAutoField(primary_key=True)  # Keep the existing ID
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # Add UUID
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='conversations')
     title = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)

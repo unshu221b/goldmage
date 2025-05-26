@@ -9,7 +9,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
-        fields = ['id', 'title', 'created_at', 'updated_at']
+        fields = ['id', 'uuid', 'title', 'created_at', 'updated_at']
         extra_kwargs = {
             'user': {'read_only': True}
         }
