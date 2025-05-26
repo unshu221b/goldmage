@@ -5,35 +5,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = '__all__'
-
-class ConversationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Conversation
-        fields = ['id', 'uuid', 'title', 'created_at', 'updated_at']
-        extra_kwargs = {
-            'user': {'read_only': True}
-        }
-
-class MessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Message
-        fields = ['id', 'sender', 'text_content', 'created_at']
-
-
-class MessageAnalysisSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MessageAnalysis
-        fields = '__all__'
-
-class MessageRequestSerializer(serializers.Serializer):
-    text = serializers.CharField()
-    sender = serializers.CharField()
-
-class AnalysisRequestSerializer(serializers.Serializer):
-    messages = serializers.ListField(
-        child=MessageRequestSerializer()
-    )
-
+    
 # For the nested data structures
 class SuggestionSerializer(serializers.Serializer):
     id = serializers.CharField()
@@ -55,6 +27,11 @@ class EmotionMetricsSerializer(serializers.Serializer):
     disgust = serializers.IntegerField()
     neutral = serializers.IntegerField()
 
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['id', 'sender', 'text_content', 'created_at']
+
 # The main ConversationAnalysis serializer
 class ConversationAnalysisSerializer(serializers.ModelSerializer):
     suggestions = SuggestionSerializer(many=True)
@@ -72,3 +49,28 @@ class ConversationAnalysisSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at'
         ]
+
+class ConversationSerializer(serializers.ModelSerializer):
+    messages = MessageSerializer(many=True, read_only=True, source='messages')
+    analysis = ConversationAnalysisSerializer(read_only=True, source='conversationanalysis')
+
+    class Meta:
+        model = Conversation
+        fields = ['id', 'uuid', 'title', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'user': {'read_only': True}
+        }
+
+class MessageAnalysisSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MessageAnalysis
+        fields = '__all__'
+
+class MessageRequestSerializer(serializers.Serializer):
+    text = serializers.CharField()
+    sender = serializers.CharField()
+
+class AnalysisRequestSerializer(serializers.Serializer):
+    messages = serializers.ListField(
+        child=MessageRequestSerializer()
+    )
