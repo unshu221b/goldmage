@@ -12,4 +12,5 @@ urlpatterns = [
     # Your existing URLs
     # Add direct path for credits status
     path('credits/status/', AnalysisViewSet.as_view({'get': 'status'}), name='credits-status'),
+    path('history/', ConversationListCreateView.as_view({'get': 'history'}), name='history'),
 ] + router.urls
