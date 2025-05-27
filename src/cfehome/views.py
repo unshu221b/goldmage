@@ -22,16 +22,6 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
-@csrf_exempt
-def cors_test(request):
-    response = HttpResponse("CORS is working!")
-    response["Access-Control-Allow-Origin"] = "https://www.52aichan.com"
-    response["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    return response
-
-
-
 def monitor_cache_stats(view_name):
     """
     Track cache hits and misses for performance monitoring
@@ -64,118 +54,7 @@ def home_view(request):
     template_name = "home.html"
 
     return render(request, template_name)
-
-
-@api_login_required
-def analyze_view(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            messages = data.get("messages", [])
-            # Combine messages into a single string for analysis
-            user_message = messages[-1]["text"] if messages else ""
-
-            # Build the prompt
-            prompt = (
-                "Analyze the following chat message and generate a reaction, suggestions, and metrics. "
-                "Return a JSON object with these fields:\n"
-                "{\n"
-                '  "reaction": "A brief emotional reaction to the message",\n'
-                '  "suggestions": [\n'
-                '    {\n'
-                '      "id": "unique-id-1",\n'
-                '      "suggestion": "first suggestion text",\n'
-                '      "style": "casual/professional/friendly/formal"\n'
-                '    },\n'
-                '    {\n'
-                '      "id": "unique-id-2",\n'
-                '      "suggestion": "second suggestion text",\n'
-                '      "style": "casual/professional/friendly/formal"\n'
-                '    },\n'
-                '    {\n'
-                '      "id": "unique-id-3",\n'
-                '      "suggestion": "third suggestion text",\n'
-                '      "style": "casual/professional/friendly/formal"\n'
-                '    },\n'
-                '    {\n'
-                '      "id": "unique-id-4",\n'
-                '      "suggestion": "fourth suggestion text",\n'
-                '      "style": "casual/professional/friendly/formal"\n'
-                '    }\n'
-                '  ],\n'
-                '  "personality_metrics": {\n'
-                '    "intelligence": number between 0-100 or null,\n'
-                '    "charisma": number between 0-100 or null,\n'
-                '    "strength": number between 0-100 or null,\n'
-                '    "kindness": number between 0-100 or null\n'
-                '  },\n'
-                '  "emotion_metrics": {\n'
-                '    "happiness": number between 0-100,\n'
-                '    "sadness": number between 0-100,\n'
-                '    "anger": number between 0-100,\n'
-                '    "surprise": number between 0-100,\n'
-                '    "fear": number between 0-100,\n'
-                '    "disgust": number between 0-100,\n'
-                '    "neutral": number between 0-100\n'
-                '  }\n'
-                "}\n\n"
-                f"Message: \"{user_message}\""
-            )
-
-            # Call OpenAI
-            response = client.chat.completions.create(
-                model="gpt-4.1",
-                messages=[
-                    {"role": "system", "content": "You are an expert communication analyst and response generator."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=512,
-                temperature=0.7,
-            )
-            ai_content = response.choices[0].message.content.strip()
-
-            # Try to parse the JSON from the AI's response
-            try:
-                openai_result = json.loads(ai_content)
-            except json.JSONDecodeError:
-                # Fallback: try to extract JSON from the response text
-                import re
-                match = re.search(r'\{.*\}', ai_content, re.DOTALL)
-                if match:
-                    openai_result = json.loads(match.group(0))
-                else:
-                    return JsonResponse({"error": "AI response was not valid JSON", "raw": ai_content}, status=500)
-
-            # Build the response structure
-            response_data = {
-                "reaction": openai_result.get("reaction", ""),
-                "suggestions": openai_result.get("suggestions", []),
-                "personality_metrics": openai_result.get("personality_metrics", {
-                    "intelligence": None,
-                    "charisma": None,
-                    "strength": None,
-                    "kindness": None
-                }),
-                "emotion_metrics": openai_result.get("emotion_metrics", {
-                    "happiness": 50,
-                    "sadness": 50,
-                    "anger": 50,
-                    "surprise": 50,
-                    "fear": 50,
-                    "disgust": 50,
-                    "neutral": 50
-                })
-            }
-            return JsonResponse(response_data)
-
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-
-    return JsonResponse({"error": "Invalid request method"}, status=400)
-
-
-
-    
+   
 @csrf_exempt
 @api_login_required
 @require_http_methods(["POST"])
@@ -187,7 +66,7 @@ def create_portal_session(request):
 
         portal_session = stripe.billing_portal.Session.create(
             customer=request.user.clerk_user_id,
-            return_url=f"{settings.FRONTEND_URL}/dashboard",
+            return_url=f"{settings.FRONTEND_URL}/52AI",
         )
         return JsonResponse({'portal_url': portal_session.url})
     except stripe.error.StripeError as e:
@@ -246,7 +125,7 @@ def create_checkout_session(request):
             }],
             mode='subscription',
             success_url=f"{settings.FRONTEND_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{settings.FRONTEND_URL}/dashboard",
+            cancel_url=f"{settings.FRONTEND_URL}/52AI",
         )
         logger.info(f"Checkout session created successfully. URL: {checkout_session.url}")
             
