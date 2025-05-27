@@ -95,14 +95,14 @@ class ConversationListCreateView(viewsets.ModelViewSet):
             )
         
     @action(detail=True, methods=['put', 'patch'])
-    def batch_update(self, request, pk=None):
+    def batch_update(self, request, uuid=None):
         """
         Update an existing conversation, its messages, and analysis
         """
         try:
             with transaction.atomic():
                 # Get the existing conversation
-                conversation = self.get_queryset().get(pk=pk)
+                conversation = self.get_queryset().get(uuid=uuid)
                 
                 # Update conversation title if provided
                 if 'title' in request.data:
