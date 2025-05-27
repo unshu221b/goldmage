@@ -58,7 +58,8 @@ class ConversationSerializer(serializers.ModelSerializer):
         model = Conversation
         fields = ['id', 'uuid', 'title', 'created_at', 'updated_at', 'messages', 'analysis']
         extra_kwargs = {
-            'user': {'read_only': True}
+            'user': {'read_only': True},
+            'uuid': {'read_only': True}  # Add this to ensure uuid is read-only
         }
 
 class MessageAnalysisSerializer(serializers.ModelSerializer):

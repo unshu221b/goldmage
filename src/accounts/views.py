@@ -22,13 +22,14 @@ client = OpenAI(api_key=settings.OPENAI_API_KEY)
 @method_decorator(api_login_required, name='dispatch')
 class ConversationListCreateView(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
+    lookup_field = 'uuid'  # Add this line to use uuid instead of id
 
     def get_queryset(self):
         return Conversation.objects.filter(user=self.request.user)
 
     def get_object(self):
         # Get the uuid from the URL
-        uuid = self.kwargs.get('pk')
+        uuid = self.kwargs.get('uuid')  # Change 'pk' to 'uuid'
         # Try to get the conversation by uuid
         try:
             return self.get_queryset().get(uuid=uuid)
