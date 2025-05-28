@@ -53,14 +53,24 @@ class ConversationAnalysisSerializer(serializers.ModelSerializer):
 class ConversationSerializer(serializers.ModelSerializer):
     messages = MessageSerializer(many=True, read_only=True)
     analysis = ConversationAnalysisSerializer(read_only=True)
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
-        fields = ['id', 'uuid', 'title', 'created_at', 'updated_at', 'messages', 'analysis']
+        fields = ['id', 'uuid', 'title', 'created_at', 'updated_at', 'messages', 'analysis', 'is_favorite']
         extra_kwargs = {
             'user': {'read_only': True},
-            'uuid': {'read_only': True}  # Add this to ensure uuid is read-only
+            'uuid': {'read_only': True}
         }
+    
+    def get_is_favorite(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return FavoriteConversation.objects.filter(
+                user=request.user,
+                conversation=obj
+            ).exists()
+        return False
 
 class MessageAnalysisSerializer(serializers.ModelSerializer):
     class Meta:

@@ -183,6 +183,11 @@ class ConversationListCreateView(viewsets.ModelViewSet):
         ]
         return Response(data)
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 @method_decorator(api_login_required, name='dispatch')
 class AnalysisViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
