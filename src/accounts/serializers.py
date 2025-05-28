@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Conversation, Message, MessageAnalysis, ConversationAnalysis
+from .models import CustomUser, Conversation, Message, MessageAnalysis, ConversationAnalysis, FavoriteConversation
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -75,3 +75,11 @@ class AnalysisRequestSerializer(serializers.Serializer):
     messages = serializers.ListField(
         child=MessageRequestSerializer()
     )
+
+class FavoriteConversationSerializer(serializers.ModelSerializer):
+    conversation = ConversationSerializer(read_only=True)
+    
+    class Meta:
+        model = FavoriteConversation
+        fields = ['id', 'conversation', 'created_at']
+        read_only_fields = ['created_at']

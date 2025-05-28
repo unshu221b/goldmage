@@ -203,3 +203,15 @@ class MessageAnalysis(models.Model):
     dominant_emotion = models.CharField(max_length=50)
     emotion_scores = models.JSONField()  # e.g., {"happiness": 15, "sadness": 35, ...}
     summary = models.TextField(blank=True, null=True)
+
+class FavoriteConversation(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='favorite_conversations')
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'conversation')  # Prevent duplicate favorites
+        ordering = ['-created_at']  # Most recent favorites first
+
+    def __str__(self):
+        return f"{self.user.username}'s favorite: {self.conversation.title}"

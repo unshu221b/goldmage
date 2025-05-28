@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Conversation, Message, ConversationAnalysis
-from .serializers import ConversationSerializer, MessageSerializer, ConversationAnalysisSerializer, AnalysisRequestSerializer
+from .models import Conversation, Message, ConversationAnalysis, FavoriteConversation
+from .serializers import ConversationSerializer, MessageSerializer, ConversationAnalysisSerializer, AnalysisRequestSerializer, FavoriteConversationSerializer
 from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
@@ -365,3 +365,44 @@ class AnalysisViewSet(viewsets.ViewSet):
             'usage_limit': 140 if is_free_user else None,
             'daily_limit': 200 if user.membership == 'premium' else 10
         })
+
+@method_decorator(api_login_required, name='dispatch')
+class FavoriteConversationViewSet(viewsets.ModelViewSet):
+    serializer_class = FavoriteConversationSerializer
+    
+    def get_queryset(self):
+        return FavoriteConversation.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        conversation_uuid = self.request.data.get('conversation_uuid')
+        try:
+            conversation = Conversation.objects.get(uuid=conversation_uuid, user=self.request.user)
+            serializer.save(user=self.request.user, conversation=conversation)
+        except Conversation.DoesNotExist:
+            raise Http404("Conversation not found")
+    
+    @action(detail=False, methods=['get'])
+    def list_favorites(self, request):
+        favorites = self.get_queryset().select_related('conversation')
+        serializer = self.get_serializer(favorites, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'])
+    def toggle_favorite(self, request):
+        conversation_uuid = request.data.get('conversation_uuid')
+        try:
+            conversation = Conversation.objects.get(uuid=conversation_uuid, user=request.user)
+            favorite, created = FavoriteConversation.objects.get_or_create(
+                user=request.user,
+                conversation=conversation
+            )
+            
+            if not created:
+                favorite.delete()
+                return Response({'status': 'removed'})
+            
+            serializer = self.get_serializer(favorite)
+            return Response(serializer.data)
+            
+        except Conversation.DoesNotExist:
+            raise Http404("Conversation not found")
