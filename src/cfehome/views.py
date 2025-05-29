@@ -66,7 +66,7 @@ def create_portal_session(request):
 
         portal_session = stripe.billing_portal.Session.create(
             customer=request.user.clerk_user_id,
-            return_url=f"{settings.FRONTEND_URL}/52AI",
+            return_url=f"{settings.FRONTEND_URL}/",
         )
         return JsonResponse({'portal_url': portal_session.url})
     except stripe.error.StripeError as e:
@@ -125,7 +125,7 @@ def create_checkout_session(request):
             }],
             mode='subscription',
             success_url=f"{settings.FRONTEND_URL}/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{settings.FRONTEND_URL}/52AI",
+            cancel_url=f"{settings.FRONTEND_URL}/",
         )
         logger.info(f"Checkout session created successfully. URL: {checkout_session.url}")
             

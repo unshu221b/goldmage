@@ -200,7 +200,6 @@ class AnalysisViewSet(viewsets.ViewSet):
                 'remaining_credits': request.user.credits,
                 'next_refill': next_refill,
                 'is_thread_locked': request.user.is_thread_depth_locked,
-                'upgrade_url': '/dashboard/upgrade'
             }, status=402)
 
         # Check thread depth lock
