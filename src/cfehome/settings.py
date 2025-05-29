@@ -412,8 +412,8 @@ LOGGING = {
 }
 
 # Login settings
-LOGIN_URL = '/login/'  # Your actual login URL
-LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_URL = '/sign-in'  # Your actual login URL
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # HSTS Settings

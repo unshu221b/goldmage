@@ -10,5 +10,5 @@ class AdminAccessMiddleware:
         if request.path.startswith('/admin/'):
             if request.user.is_authenticated and not request.user.is_superuser:
                 messages.error(request, "You don't have permission to access the admin area.")
-                return redirect('dashboard')  # or wherever you want to redirect
+                return redirect('/')  # or wherever you want to redirect
         return self.get_response(request)
