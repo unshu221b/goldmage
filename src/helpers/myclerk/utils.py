@@ -72,56 +72,65 @@ def get_clerk_user_id_from_request(request):
         return None
 
 
-def update_or_create_clerk_user(clerk_user_id):
+def update_or_create_clerk_user(clerk_user_id, request):
     if not clerk_user_id:
         logger.warning("No clerk_user_id provided")
         return None, None
-
-    sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
+        
     try:
-        clerk_user = sdk.users.get(user_id=clerk_user_id)
-        if not clerk_user:
-            logger.warning(f"No Clerk user found for ID: {clerk_user_id}")
+        # Get the token from the request
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            logger.warning("No Bearer token found in Authorization header")
             return None, None
-
-        # Log the full Clerk user data for debugging
-        logger.info(f"Clerk user data: {clerk_user.model_dump_json()}")
-
-        # Get primary email
-        primary_email_address_id = clerk_user.primary_email_address_id
-        primary_email = next(
-            (email.email_address for email in clerk_user.email_addresses if email.id == primary_email_address_id),
-            None
-        )
-
-        # Prepare user data with defaults for missing fields
-        django_user_data = {
-            "username": clerk_user.username or "",
-            "first_name": clerk_user.first_name or "",
-            "last_name": clerk_user.last_name or "",
-            "email": primary_email or "",
+            
+        token = auth_header[7:]  # Remove 'Bearer ' prefix
+        
+        # Decode the JWT token
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        
+        # Get session data from the token
+        session_id = decoded.get('sid')
+        if not session_id:
+            logger.warning("No session ID found in token")
+            return None, None
+            
+        # Get the session data from Clerk
+        sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
+        session = sdk.sessions.get(session_id)
+        
+        if not session:
+            logger.warning(f"No session found for ID: {session_id}")
+            return None, None
+            
+        # Get user data from the session
+        user_data = {
+            "username": session.user.username or f"user_{clerk_user_id[-8:]}",
+            "first_name": session.user.first_name or "",
+            "last_name": session.user.last_name or "",
+            "email": session.user.email_addresses[0].email_address if session.user.email_addresses else "",
         }
-
-        logger.info(f"Attempting to create/update user with data: {django_user_data}")
-
+        
+        logger.info(f"Attempting to create/update user with data: {user_data}")
+        
         try:
             user_obj, created = User.objects.update_or_create(
                 clerk_user_id=clerk_user_id,
-                defaults=django_user_data
+                defaults=user_data
             )
-
+            
             if created:
                 logger.info(f"Created new user with ID: {user_obj.id}")
             else:
                 logger.info(f"Updated existing user with ID: {user_obj.id}")
-
+                
             return user_obj, created
-
+            
         except Exception as e:
             logger.error(f"Database error while creating/updating user: {str(e)}", exc_info=True)
             return None, None
-
+            
     except Exception as e:
-        logger.error(f"Error fetching Clerk user data: {str(e)}", exc_info=True)
+        logger.error(f"Error processing user data: {str(e)}", exc_info=True)
         return None, None
     

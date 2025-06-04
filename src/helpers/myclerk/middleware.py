@@ -28,7 +28,7 @@ def django_user_session_via_clerk(request):
         logger.debug("No Clerk user ID found in request")
         return None
     logger.info(f"Found Clerk user ID: {clerk_user_id}")
-    django_user, created = update_or_create_clerk_user(clerk_user_id)
+    django_user, created = update_or_create_clerk_user(clerk_user_id, request)
     if created:
         logger.info(f"Created new Django user for Clerk ID: {clerk_user_id}")
     elif django_user:
