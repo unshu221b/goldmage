@@ -1,6 +1,5 @@
 # from django.conf import settings
 from django.db import models
-from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils import timezone
 from datetime import timedelta
@@ -183,9 +182,17 @@ class Conversation(models.Model):
 class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     sender = models.CharField(max_length=50)  # "user" or "assistant"
-    input_type = models.CharField(max_length=10, choices=[('text', 'Text'), ('image', 'Image')])
+    input_type = models.CharField(
+        max_length=10,
+        choices=[
+            ('text', 'Text'),
+            ('image', 'Image'),
+            ('builder', 'Builder'),  # <-- Add this
+        ]
+    )
     text_content = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
+    builder_data = models.JSONField(blank=True, null=True)  # <-- Add this
     created_at = models.DateTimeField(auto_now_add=True)
 
 class ConversationAnalysis(models.Model):

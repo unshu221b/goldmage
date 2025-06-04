@@ -60,8 +60,10 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                     message = Message.objects.create(
                         conversation=conversation,
                         sender=msg_data['sender'],
-                        input_type='text',
-                        text_content=msg_data['text_content']
+                        input_type=msg_data.get('input_type', 'text'),
+                        text_content=msg_data.get('text_content', ''),
+                        image=msg_data.get('image'),
+                        builder_data=msg_data.get('builder_data')  # This will be None for normal messages
                     )
                     messages.append(message)
 
