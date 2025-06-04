@@ -79,14 +79,26 @@ def update_or_create_clerk_user(clerk_user_id):
         
     sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
     try:
-        # Get raw user data instead of using the model
-        response = sdk.users.get_raw(user_id=clerk_user_id)
-        if not response:
+        # Get user data and convert to dict
+        clerk_user = sdk.users.get(user_id=clerk_user_id)
+        if not clerk_user:
             logger.warning(f"No Clerk user found for ID: {clerk_user_id}")
             return None, None
             
-        # Parse the raw response
-        user_data = json.loads(response)
+        # Convert to dict and handle any serialization issues
+        try:
+            user_data = json.loads(clerk_user.model_dump_json())
+        except Exception as e:
+            logger.error(f"Error serializing Clerk user data: {str(e)}")
+            # Fallback to manual extraction
+            user_data = {
+                'username': getattr(clerk_user, 'username', None),
+                'first_name': getattr(clerk_user, 'first_name', None),
+                'last_name': getattr(clerk_user, 'last_name', None),
+                'email_addresses': getattr(clerk_user, 'email_addresses', []),
+                'primary_email_address_id': getattr(clerk_user, 'primary_email_address_id', None)
+            }
+        
         logger.info(f"Clerk user data: {user_data}")
         
         # Get primary email
@@ -94,8 +106,11 @@ def update_or_create_clerk_user(clerk_user_id):
         if user_data.get('email_addresses'):
             primary_email_id = user_data.get('primary_email_address_id')
             for email in user_data['email_addresses']:
-                if email.get('id') == primary_email_id:
+                if isinstance(email, dict) and email.get('id') == primary_email_id:
                     primary_email = email.get('email_address')
+                    break
+                elif hasattr(email, 'id') and email.id == primary_email_id:
+                    primary_email = email.email_address
                     break
         
         # Prepare user data with defaults for missing fields
