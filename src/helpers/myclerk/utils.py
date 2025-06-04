@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 
 import warnings
 import logging
+import jwt
 
 # Suppress all warnings from a specific package
 warnings.filterwarnings("ignore", module="clerk_backend_api")
@@ -25,12 +26,16 @@ def get_clerk_user_id_from_request(request):
         logger.info("Attempting to authenticate request with Clerk")
         logger.info(f"Using CLERK_AUTH_PARTIES: {CLERK_AUTH_PARTIES}")
         
-        # Log the token for debugging (remove in production)
+        # Get the token from Authorization header
         auth_header = request.headers.get('Authorization', '')
-        if auth_header.startswith('Bearer '):
-            token = auth_header[7:]
-            logger.info(f"Received token: {token[:20]}...")
+        if not auth_header.startswith('Bearer '):
+            logger.warning("No Bearer token found in Authorization header")
+            return None
+            
+        token = auth_header[7:]  # Remove 'Bearer ' prefix
+        logger.info(f"Received token: {token[:20]}...")
         
+        # Verify the token
         request_state = sdk.authenticate_request(
             request,
             AuthenticateRequestOptions(
@@ -40,27 +45,28 @@ def get_clerk_user_id_from_request(request):
         
         if not request_state.is_signed_in:
             logger.warning("User is not signed in according to Clerk")
-            logger.warning(f"Request state: {request_state}")
             return None
             
-        # Get the session ID from the request state
-        session_id = request_state.session_id
-        if not session_id:
-            logger.warning("No session ID found in request state")
+        # Extract user ID from the token
+        # The token is a JWT and we can see from the logs that it contains 'sub' claim
+        # which is the user ID
+        try:
+            # The token is already verified by authenticate_request
+            # We can safely decode it to get the user ID
+            decoded = jwt.decode(token, options={"verify_signature": False})
+            clerk_user_id = decoded.get('sub')
+            
+            if clerk_user_id:
+                logger.debug(f"Successfully extracted Clerk user ID: {clerk_user_id}")
+                return clerk_user_id
+            else:
+                logger.warning("No 'sub' claim found in token")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error decoding JWT token: {str(e)}", exc_info=True)
             return None
             
-        # Get the user ID from the session
-        session = sdk.sessions.get(session_id)
-        if not session:
-            logger.warning(f"No session found for ID: {session_id}")
-            return None
-            
-        clerk_user_id = session.user_id
-        if clerk_user_id:
-            logger.debug(f"Successfully extracted Clerk user ID: {clerk_user_id}")
-        else:
-            logger.warning("No user ID found in session")
-        return clerk_user_id
     except Exception as e:
         logger.error(f"Error authenticating request with Clerk: {str(e)}", exc_info=True)
         return None
