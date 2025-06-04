@@ -89,26 +89,12 @@ def update_or_create_clerk_user(clerk_user_id, request):
         # Decode the JWT token
         decoded = jwt.decode(token, options={"verify_signature": False})
         
-        # Get session data from the token
-        session_id = decoded.get('sid')
-        if not session_id:
-            logger.warning("No session ID found in token")
-            return None, None
-            
-        # Get the session data from Clerk
-        sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
-        session = sdk.sessions.get(session_id)
-        
-        if not session:
-            logger.warning(f"No session found for ID: {session_id}")
-            return None, None
-            
-        # Get user data from the session
+        # Get user data from the token
         user_data = {
-            "username": session.user.username or f"user_{clerk_user_id[-8:]}",
-            "first_name": session.user.first_name or "",
-            "last_name": session.user.last_name or "",
-            "email": session.user.email_addresses[0].email_address if session.user.email_addresses else "",
+            "username": decoded.get('username') or f"user_{clerk_user_id[-8:]}",
+            "first_name": decoded.get('first_name') or "",
+            "last_name": decoded.get('last_name') or "",
+            "email": decoded.get('email') or "",
         }
         
         logger.info(f"Attempting to create/update user with data: {user_data}")
@@ -133,4 +119,3 @@ def update_or_create_clerk_user(clerk_user_id, request):
     except Exception as e:
         logger.error(f"Error processing user data: {str(e)}", exc_info=True)
         return None, None
-    
