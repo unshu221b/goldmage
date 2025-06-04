@@ -43,14 +43,23 @@ def get_clerk_user_id_from_request(request):
             logger.warning(f"Request state: {request_state}")
             return None
             
-        payload = request_state.payload
-        logger.info(f"Clerk payload: {payload}")
-        
-        clerk_user_id = payload.get('sub')
+        # Get the session ID from the request state
+        session_id = request_state.session_id
+        if not session_id:
+            logger.warning("No session ID found in request state")
+            return None
+            
+        # Get the user ID from the session
+        session = sdk.sessions.get(session_id)
+        if not session:
+            logger.warning(f"No session found for ID: {session_id}")
+            return None
+            
+        clerk_user_id = session.user_id
         if clerk_user_id:
             logger.debug(f"Successfully extracted Clerk user ID: {clerk_user_id}")
         else:
-            logger.warning("No 'sub' field found in Clerk payload")
+            logger.warning("No user ID found in session")
         return clerk_user_id
     except Exception as e:
         logger.error(f"Error authenticating request with Clerk: {str(e)}", exc_info=True)
