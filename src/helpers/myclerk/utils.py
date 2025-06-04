@@ -76,70 +76,51 @@ def update_or_create_clerk_user(clerk_user_id):
     if not clerk_user_id:
         logger.warning("No clerk_user_id provided")
         return None, None
-        
+
     sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
     try:
-        # Get user data and convert to dict
         clerk_user = sdk.users.get(user_id=clerk_user_id)
         if not clerk_user:
             logger.warning(f"No Clerk user found for ID: {clerk_user_id}")
             return None, None
-            
-        # Convert to dict and handle any serialization issues
-        try:
-            user_data = json.loads(clerk_user.model_dump_json())
-        except Exception as e:
-            logger.error(f"Error serializing Clerk user data: {str(e)}")
-            # Fallback to manual extraction
-            user_data = {
-                'username': getattr(clerk_user, 'username', None),
-                'first_name': getattr(clerk_user, 'first_name', None),
-                'last_name': getattr(clerk_user, 'last_name', None),
-                'email_addresses': getattr(clerk_user, 'email_addresses', []),
-                'primary_email_address_id': getattr(clerk_user, 'primary_email_address_id', None)
-            }
-        
-        logger.info(f"Clerk user data: {user_data}")
-        
+
+        # Log the full Clerk user data for debugging
+        logger.info(f"Clerk user data: {clerk_user.model_dump_json()}")
+
         # Get primary email
-        primary_email = None
-        if user_data.get('email_addresses'):
-            primary_email_id = user_data.get('primary_email_address_id')
-            for email in user_data['email_addresses']:
-                if isinstance(email, dict) and email.get('id') == primary_email_id:
-                    primary_email = email.get('email_address')
-                    break
-                elif hasattr(email, 'id') and email.id == primary_email_id:
-                    primary_email = email.email_address
-                    break
-        
+        primary_email_address_id = clerk_user.primary_email_address_id
+        primary_email = next(
+            (email.email_address for email in clerk_user.email_addresses if email.id == primary_email_address_id),
+            None
+        )
+
         # Prepare user data with defaults for missing fields
         django_user_data = {
-            "username": user_data.get('username') or f"user_{clerk_user_id[-8:]}",
-            "first_name": user_data.get('first_name') or "",
-            "last_name": user_data.get('last_name') or "",
+            "username": clerk_user.username or "",
+            "first_name": clerk_user.first_name or "",
+            "last_name": clerk_user.last_name or "",
             "email": primary_email or "",
         }
-        
+
         logger.info(f"Attempting to create/update user with data: {django_user_data}")
-        
+
         try:
             user_obj, created = User.objects.update_or_create(
                 clerk_user_id=clerk_user_id,
                 defaults=django_user_data
             )
-            
+
             if created:
                 logger.info(f"Created new user with ID: {user_obj.id}")
             else:
                 logger.info(f"Updated existing user with ID: {user_obj.id}")
-                
+
             return user_obj, created
-            
+
         except Exception as e:
             logger.error(f"Database error while creating/updating user: {str(e)}", exc_info=True)
             return None, None
-            
+
     except Exception as e:
         logger.error(f"Error fetching Clerk user data: {str(e)}", exc_info=True)
         return None, None
