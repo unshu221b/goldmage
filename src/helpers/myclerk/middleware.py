@@ -41,18 +41,37 @@ def django_user_session_via_clerk(request):
 class ClerkAuthMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
+        # List of paths that don't need authentication
+        self.exempt_paths = [
+            '/webhook/',
+            '/webhook/clerk/',
+            '/health/',
+            '/__reload__/',
+            '/static/',
+            '/media/',
+        ]
 
     def __call__(self, request):
-        logger.info(f"Processing request to: {request.path}")
-        logger.info(f"Request method: {request.method}")
-        logger.info(f"Request origin: {request.headers.get('origin', 'No origin')}")
-        logger.info(f"Request host: {request.get_host()}")
-        logger.info(f"Request scheme: {request.scheme}")
-        
-        user = django_user_session_via_clerk(request)
-        if user:
-            request.user = user
-            logger.debug(f"Set user in request: {user.clerk_user_id}")
-        else:
-            logger.warning(f"No user found for request to: {request.path}")
+        # Skip authentication for exempt paths
+        if any(request.path.startswith(path) for path in self.exempt_paths):
+            return self.get_response(request)
+
+        try:
+            logger.info(f"Processing request to: {request.path}")
+            logger.info(f"Request method: {request.method}")
+            logger.info(f"Request origin: {request.headers.get('origin', 'No origin')}")
+            logger.info(f"Request host: {request.get_host()}")
+            logger.info(f"Request scheme: {request.scheme}")
+            
+            user = django_user_session_via_clerk(request)
+            if user:
+                request.user = user
+                logger.debug(f"Set user in request: {user.clerk_user_id}")
+            else:
+                logger.warning(f"No user found for request to: {request.path}")
+                # Don't set request.user to None, let Django handle it
+        except Exception as e:
+            logger.error(f"Error in ClerkAuthMiddleware: {str(e)}", exc_info=True)
+            # Don't block the request, let it continue without authentication
+            
         return self.get_response(request)
