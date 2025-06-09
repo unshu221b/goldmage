@@ -170,17 +170,18 @@ class AnalysisViewSet(viewsets.ViewSet):
             return Response({'error': 'Conversation not found'}, status=404)
 
         try:
-            # Format the conversation history
-            messages = conversation.messages.all()
+            # Get messages to analyze
+            messages_to_analyze = request.data.get('messages', [])
+            
+            # Format the messages for analysis
             conversation_history = "\n".join([
-                f"{msg.sender}: {msg.text_content}"
-                for msg in messages
+                f"{msg['sender']}: {msg['text']}"
+                for msg in messages_to_analyze
             ])
 
             prompt = (
                 "Analyze the following conversation and generate a detailed emotional analysis. "
-                "Consider each message and the overall conversation context. "
-                "Return a JSON object with these fields:\n"
+                "Return a JSON object with EXACTLY these fields:\n"
                 "{\n"
                 '  "emotions": [\n'  # Array of emotions for each message
                 '    {\n'
@@ -188,16 +189,15 @@ class AnalysisViewSet(viewsets.ViewSet):
                 '      "intensity": number between 0-100,\n'
                 '      "secondary": ["Secondary emotion 1", "Secondary emotion 2"]\n'
                 '    }\n'
-                '    // Generate one object for each message in the conversation\n'
                 '  ],\n'
                 '  "patterns": [\n'  # Array of patterns for each message
-                '    // Generate one pattern for each message\n'
+                '    "Pattern description for each message"\n'
                 '  ],\n'
                 '  "risks": [\n'  # Array of risks for each message
-                '    // Generate one risk level for each message\n'
+                '    "Risk level and description for each message"\n'
                 '  ],\n'
                 '  "communication": [\n'  # Array of communication styles for each message
-                '    // Generate one style for each message\n'
+                '    "Communication style for each message"\n'
                 '  ],\n'
                 '  "overallPattern": "Overall conversation pattern",\n'
                 '  "riskLevel": "High/Medium/Low",\n'
@@ -211,7 +211,7 @@ class AnalysisViewSet(viewsets.ViewSet):
             response = client.chat.completions.create(
                 model="gpt-4.1",
                 messages=[
-                    {"role": "system", "content": "You are an expert communication analyst and response generator. Analyze the entire conversation context to provide meaningful insights."},
+                    {"role": "system", "content": "You are an expert communication analyst. Provide analysis in the exact JSON format requested. Each array should have the same length as the number of messages."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=1024,
@@ -221,6 +221,28 @@ class AnalysisViewSet(viewsets.ViewSet):
             # Parse OpenAI response
             try:
                 analysis_data = json.loads(response.choices[0].message.content)
+                
+                # Validate response structure
+                required_fields = ['emotions', 'patterns', 'risks', 'communication', 
+                                 'overallPattern', 'riskLevel', 'confidence', 'prediction']
+                
+                for field in required_fields:
+                    if field not in analysis_data:
+                        raise ValueError(f"Missing required field: {field}")
+                
+                # Validate array lengths match message count
+                message_count = len(messages_to_analyze)
+                for field in ['emotions', 'patterns', 'risks', 'communication']:
+                    if len(analysis_data[field]) != message_count:
+                        raise ValueError(f"Array length mismatch for {field}")
+                
+                # Validate emotion structure
+                for emotion in analysis_data['emotions']:
+                    if not all(k in emotion for k in ['primary', 'intensity', 'secondary']):
+                        raise ValueError("Invalid emotion structure")
+                    if not isinstance(emotion['secondary'], list):
+                        raise ValueError("Secondary emotions must be a list")
+
             except json.JSONDecodeError:
                 import re
                 match = re.search(r'\{.*\}', response.choices[0].message.content, re.DOTALL)
@@ -232,22 +254,14 @@ class AnalysisViewSet(viewsets.ViewSet):
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR
                     )
 
-            # Create analysis message
-            message = Message.objects.create(
-                conversation=conversation,
-                sender='system',
-                type='analysis',
-                text_content='Analysis Results',
-                content=analysis_data  # Store the entire analysis in content
-            )
-
             # Deduct credit
             request.user.use_credit()
 
-            # Return the analysis message
-            return Response(MessageSerializer(message).data)
+            # Return the analysis data directly
+            return Response(analysis_data)
 
         except Exception as e:
+            print(f"Error in analyze: {str(e)}")  # Add this for debugging
             return Response(
                 {'error': str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
