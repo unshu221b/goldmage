@@ -111,37 +111,36 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                     conversation.title = request.data['title']
                     conversation.save()
 
-                # Update messages if provided
                 if 'messages' in request.data:
-                    # Delete existing messages
-                    conversation.messages.all().delete()
-                    
-                    # Create new messages
-                    messages = []
+                    # Optionally: don't delete all messages, just add new ones
                     for msg_data in request.data['messages']:
-                        message = Message.objects.create(
+                        Message.objects.create(
                             conversation=conversation,
-                            sender=msg_data['sender'],
-                            input_type='text',
-                            text_content=msg_data['text_content']
+                            sender=msg_data.get('sender'),
+                            input_type=msg_data.get('input_type', 'text'),
+                            text_content=msg_data.get('text_content', ''),
+                            builder_data=msg_data.get('builder_data'),
+                            type=msg_data.get('type'),
+                            isEmotionAnalysis=msg_data.get('isEmotionAnalysis', False),
+                            content=msg_data.get('content'),
+                            builder_message_id=msg_data.get('builder_message_id'),
                         )
-                        messages.append(message)
 
-                # Update analysis if provided
                 if 'analysis' in request.data:
                     analysis_data = request.data['analysis']
-                    
                     # Delete existing analysis if it exists
                     ConversationAnalysis.objects.filter(conversation=conversation).delete()
-                    
-                    # Create new analysis
-                    analysis = ConversationAnalysis.objects.create(
+                    # Create new analysis with new fields
+                    ConversationAnalysis.objects.create(
                         conversation=conversation,
-                        reaction=analysis_data.get('reaction'),
-                        suggestions=analysis_data.get('suggestions'),
-                        personality_metrics=analysis_data.get('personality_metrics'),
-                        emotion_metrics=analysis_data.get('emotion_metrics'),
-                        dominant_emotion=analysis_data.get('dominant_emotion')
+                        emotions=analysis_data.get('emotions', []),
+                        patterns=analysis_data.get('patterns', []),
+                        risks=analysis_data.get('risks', []),
+                        communication=analysis_data.get('communication', []),
+                        overallPattern=analysis_data.get('overallPattern', ''),
+                        riskLevel=analysis_data.get('riskLevel', ''),
+                        confidence=analysis_data.get('confidence', 0),
+                        prediction=analysis_data.get('prediction', ''),
                     )
 
                 # Return updated data
