@@ -44,7 +44,6 @@ class ConversationListCreateView(viewsets.ModelViewSet):
         # Get data from request
         title = request.data.get('title')
         messages_data = request.data.get('messages', [])
-        analysis_data = request.data.get('analysis', {})
 
         try:
             with transaction.atomic():
@@ -79,9 +78,7 @@ class ConversationListCreateView(viewsets.ModelViewSet):
         
     @action(detail=True, methods=['put', 'patch'])
     def batch_update(self, request, uuid=None):
-        """
-        Update an existing conversation, its messages, and analysis
-        """
+
         try:
             with transaction.atomic():
                 # Get the existing conversation
@@ -102,27 +99,8 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                             text_content=msg_data.get('text_content', ''),
                             builder_data=msg_data.get('builder_data'),
                             type=msg_data.get('type'),
-                            isEmotionAnalysis=msg_data.get('isEmotionAnalysis', False),
-                            content=msg_data.get('content'),
-                            builder_message_id=msg_data.get('builder_message_id'),
+                            analysis_data=msg_data.get('analysis_data'),
                         )
-
-                if 'analysis' in request.data:
-                    analysis_data = request.data['analysis']
-                    # Delete existing analysis if it exists
-                    ConversationAnalysis.objects.filter(conversation=conversation).delete()
-                    # Create new analysis with new fields
-                    ConversationAnalysis.objects.create(
-                        conversation=conversation,
-                        emotions=analysis_data.get('emotions', []),
-                        patterns=analysis_data.get('patterns', []),
-                        risks=analysis_data.get('risks', []),
-                        communication=analysis_data.get('communication', []),
-                        overallPattern=analysis_data.get('overallPattern', ''),
-                        riskLevel=analysis_data.get('riskLevel', ''),
-                        confidence=analysis_data.get('confidence', 0),
-                        prediction=analysis_data.get('prediction', ''),
-                    )
 
                 # Return the updated conversation with all its related data
                 serializer = self.get_serializer(conversation)

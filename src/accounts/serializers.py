@@ -5,42 +5,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = '__all__'
-    
-# For the nested data structures
-class SuggestionSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    suggestion = serializers.CharField()
-    style = serializers.CharField()
-
-class PersonalityMetricsSerializer(serializers.Serializer):
-    intelligence = serializers.IntegerField(allow_null=True)
-    charisma = serializers.IntegerField(allow_null=True)
-    strength = serializers.IntegerField(allow_null=True)
-    kindness = serializers.IntegerField(allow_null=True)
-
-class EmotionMetricsSerializer(serializers.Serializer):
-    happiness = serializers.IntegerField()
-    sadness = serializers.IntegerField()
-    anger = serializers.IntegerField()
-    surprise = serializers.IntegerField()
-    fear = serializers.IntegerField()
-    disgust = serializers.IntegerField()
-    neutral = serializers.IntegerField()
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = [
-            'id', 
-            'sender', 
-            'input_type', 
-            'text_content', 
-            'image', 
-            'builder_data', 
+            'id',
+            'sender',
+            'input_type',
+            'text_content',
+            'image',
+            'builder_data',
             'type',
-            'isEmotionAnalysis',
-            'content',
-            'builder_message_id',
+            'analysis_data',
             'created_at'
         ]
 

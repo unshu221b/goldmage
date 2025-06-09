@@ -181,33 +181,33 @@ class Conversation(models.Model):
     
 class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
-    sender = models.CharField(max_length=50)  # "user" or "assistant"
+    sender = models.CharField(max_length=50)  # "user", "assistant", "system"
     input_type = models.CharField(
         max_length=10,
         choices=[
             ('text', 'Text'),
             ('image', 'Image'),
-            ('builder', 'Builder'),
         ]
     )
     text_content = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
     builder_data = models.JSONField(blank=True, null=True)
+    analysis_data = models.JSONField(blank=True, null=True)  # For analysis data
     type = models.CharField(
         max_length=20,
-        blank=True,
-        null=True,
         choices=[
             ('user', 'User'),
-            ('ai', 'AI'),
-            ('architect', 'Architect'),
+            ('assistant', 'Assistant'),
+            ('builder', 'Builder'),
+            ('analysis', 'Analysis'),
+            ('system', 'System'),
             ('loading', 'Loading'),
         ]
-    )  # <-- Add this for AI/architect/loading types
-    isEmotionAnalysis = models.BooleanField(default=False)  # <-- Add this
-    content = models.TextField(blank=True, null=True)  # <-- For "detailed-analysis" or other content
-    builder_message_id = models.CharField(max_length=100, blank=True, null=True)  # <-- Reference to builder message
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['created_at']  # Always get messages in order
 
 class ConversationAnalysis(models.Model):
     conversation = models.OneToOneField(Conversation, on_delete=models.CASCADE, related_name='analysis')
