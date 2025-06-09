@@ -124,18 +124,9 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                         prediction=analysis_data.get('prediction', ''),
                     )
 
-                # Return updated data
-                response_data = {
-                    'conversation': ConversationSerializer(conversation).data,
-                    'messages': MessageSerializer(conversation.messages.all(), many=True).data
-                }
-
-                # Add analysis data if it exists
-                analysis = ConversationAnalysis.objects.filter(conversation=conversation).first()
-                if analysis:
-                    response_data['analysis'] = ConversationAnalysisSerializer(analysis).data
-
-                return Response(response_data)
+                # Return the updated conversation with all its related data
+                serializer = self.get_serializer(conversation)
+                return Response(serializer.data)
 
         except Conversation.DoesNotExist:
             return Response(

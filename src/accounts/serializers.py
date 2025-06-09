@@ -30,7 +30,19 @@ class EmotionMetricsSerializer(serializers.Serializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'input_type', 'text_content', 'image', 'builder_data', 'created_at']
+        fields = [
+            'id', 
+            'sender', 
+            'input_type', 
+            'text_content', 
+            'image', 
+            'builder_data', 
+            'type',
+            'isEmotionAnalysis',
+            'content',
+            'builder_message_id',
+            'created_at'
+        ]
 
 # The main ConversationAnalysis serializer
 class ConversationAnalysisSerializer(serializers.ModelSerializer):
