@@ -227,51 +227,32 @@ class AnalysisViewSet(viewsets.ViewSet):
                 for msg in messages
             ])
 
-            # Build the prompt
             prompt = (
-                "Analyze the following conversation and generate a reaction, suggestions, and metrics. "
-                "Consider the entire conversation context, not just individual messages. "
+                "Analyze the following conversation and generate a detailed emotional analysis. "
+                "Consider each message and the overall conversation context. "
                 "Return a JSON object with these fields:\n"
                 "{\n"
-                '  "reaction": "A brief emotional reaction to the overall conversation",\n'
-                '  "suggestions": [\n'
+                '  "emotions": [\n'  # Array of emotions for each message
                 '    {\n'
-                '      "id": "unique-id-1",\n'
-                '      "suggestion": "first suggestion text",\n'
-                '      "style": "casual/professional/friendly/formal"\n'
-                '    },\n'
-                '    {\n'
-                '      "id": "unique-id-2",\n'
-                '      "suggestion": "second suggestion text",\n'
-                '      "style": "casual/professional/friendly/formal"\n'
-                '    },\n'
-                '    {\n'
-                '      "id": "unique-id-3",\n'
-                '      "suggestion": "third suggestion text",\n'
-                '      "style": "casual/professional/friendly/formal"\n'
-                '    },\n'
-                '    {\n'
-                '      "id": "unique-id-4",\n'
-                '      "suggestion": "fourth suggestion text",\n'
-                '      "style": "casual/professional/friendly/formal"\n'
+                '      "primary": "Main emotion for this message",\n'
+                '      "intensity": number between 0-100,\n'
+                '      "secondary": ["Secondary emotion 1", "Secondary emotion 2"]\n'
                 '    }\n'
+                '    // Generate one object for each message in the conversation\n'
                 '  ],\n'
-                '  "personality_metrics": {\n'
-                '    "intelligence": number between 0-100 or null,\n'
-                '    "charisma": number between 0-100 or null,\n'
-                '    "strength": number between 0-100 or null,\n'
-                '    "kindness": number between 0-100 or null\n'
-                '  },\n'
-                '  "emotion_metrics": {\n'
-                '    "happiness": number between 0-100,\n'
-                '    "sadness": number between 0-100,\n'
-                '    "anger": number between 0-100,\n'
-                '    "surprise": number between 0-100,\n'
-                '    "fear": number between 0-100,\n'
-                '    "disgust": number between 0-100,\n'
-                '    "neutral": number between 0-100\n'
-                '  },\n'
-                '  "dominant_emotion": "The emotion with the highest score from emotion_metrics"\n'
+                '  "patterns": [\n'  # Array of patterns for each message
+                '    // Generate one pattern for each message\n'
+                '  ],\n'
+                '  "risks": [\n'  # Array of risks for each message
+                '    // Generate one risk level for each message\n'
+                '  ],\n'
+                '  "communication": [\n'  # Array of communication styles for each message
+                '    // Generate one style for each message\n'
+                '  ],\n'
+                '  "overallPattern": "Overall conversation pattern",\n'
+                '  "riskLevel": "High/Medium/Low",\n'
+                '  "confidence": number between 0-100,\n'
+                '  "prediction": "Prediction about conversation outcome"\n'
                 "}\n\n"
                 f"Conversation:\n{conversation_history}"
             )
@@ -304,24 +285,14 @@ class AnalysisViewSet(viewsets.ViewSet):
 
             # Validate and serialize the response
             response_data = {
-                "reaction": openai_result.get("reaction", ""),
-                "suggestions": openai_result.get("suggestions", []),
-                "personality_metrics": openai_result.get("personality_metrics", {
-                    "intelligence": None,
-                    "charisma": None,
-                    "strength": None,
-                    "kindness": None
-                }),
-                "emotion_metrics": openai_result.get("emotion_metrics", {
-                    "happiness": 50,
-                    "sadness": 50,
-                    "anger": 50,
-                    "surprise": 50,
-                    "fear": 50,
-                    "disgust": 50,
-                    "neutral": 50
-                }),
-                "dominant_emotion": max(openai_result.get("emotion_metrics", {}).items(), key=lambda x: x[1])[0]
+                "emotions": openai_result.get("emotions", []),
+                "patterns": openai_result.get("patterns", []),
+                "risks": openai_result.get("risks", []),
+                "communication": openai_result.get("communication", []),
+                "overallPattern": openai_result.get("overallPattern", ""),
+                "riskLevel": openai_result.get("riskLevel", "Medium"),
+                "confidence": openai_result.get("confidence", 50),
+                "prediction": openai_result.get("prediction", "")
             }
 
             # Validate the response data

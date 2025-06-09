@@ -34,18 +34,27 @@ class MessageSerializer(serializers.ModelSerializer):
 
 # The main ConversationAnalysis serializer
 class ConversationAnalysisSerializer(serializers.ModelSerializer):
-    suggestions = SuggestionSerializer(many=True)
-    personality_metrics = PersonalityMetricsSerializer()
-    emotion_metrics = EmotionMetricsSerializer()
+    # Remove old fields/serializers and add new ones
+    emotions = serializers.ListField()
+    patterns = serializers.ListField()
+    risks = serializers.ListField()
+    communication = serializers.ListField()
+    overallPattern = serializers.CharField()
+    riskLevel = serializers.CharField()
+    confidence = serializers.IntegerField()
+    prediction = serializers.CharField()
 
     class Meta:
         model = ConversationAnalysis
         fields = [
-            'reaction',
-            'suggestions',
-            'personality_metrics',
-            'emotion_metrics',
-            'dominant_emotion',
+            'emotions',
+            'patterns',
+            'risks',
+            'communication',
+            'overallPattern',
+            'riskLevel',
+            'confidence',
+            'prediction',
             'created_at',
             'updated_at'
         ]
