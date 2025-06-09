@@ -48,46 +48,27 @@ class ConversationListCreateView(viewsets.ModelViewSet):
 
         try:
             with transaction.atomic():
-                # Create conversation
                 conversation = Conversation.objects.create(
                     title=title,
                     user=request.user
                 )
 
-                # Create all messages
                 messages = []
                 for msg_data in messages_data:
                     message = Message.objects.create(
                         conversation=conversation,
-                        sender=msg_data['sender'],
+                        sender=msg_data.get('sender'),
                         input_type=msg_data.get('input_type', 'text'),
                         text_content=msg_data.get('text_content', ''),
                         image=msg_data.get('image'),
-                        builder_data=msg_data.get('builder_data')  # This will be None for normal messages
+                        builder_data=msg_data.get('builder_data'),
                     )
                     messages.append(message)
 
-                # Create analysis if analysis data is provided
-                analysis = None
-                if analysis_data:
-                    analysis = ConversationAnalysis.objects.create(
-                        conversation=conversation,
-                        reaction=analysis_data.get('reaction'),
-                        suggestions=analysis_data.get('suggestions'),
-                        personality_metrics=analysis_data.get('personality_metrics'),
-                        emotion_metrics=analysis_data.get('emotion_metrics'),
-                        dominant_emotion=analysis_data.get('dominant_emotion')
-                    )
-
-                # Return the created data
                 response_data = {
                     'conversation': ConversationSerializer(conversation).data,
                     'messages': MessageSerializer(messages, many=True).data
                 }
-                
-                if analysis:
-                    response_data['analysis'] = ConversationAnalysisSerializer(analysis).data
-
                 return Response(response_data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
