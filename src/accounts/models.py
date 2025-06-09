@@ -187,21 +187,38 @@ class Message(models.Model):
         choices=[
             ('text', 'Text'),
             ('image', 'Image'),
-            ('builder', 'Builder'),  # <-- Add this
+            ('builder', 'Builder'),
         ]
     )
     text_content = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
-    builder_data = models.JSONField(blank=True, null=True)  # <-- Add this
+    builder_data = models.JSONField(blank=True, null=True)
+    type = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        choices=[
+            ('user', 'User'),
+            ('ai', 'AI'),
+            ('architect', 'Architect'),
+            ('loading', 'Loading'),
+        ]
+    )  # <-- Add this for AI/architect/loading types
+    isEmotionAnalysis = models.BooleanField(default=False)  # <-- Add this
+    content = models.TextField(blank=True, null=True)  # <-- For "detailed-analysis" or other content
+    builder_message_id = models.CharField(max_length=100, blank=True, null=True)  # <-- Reference to builder message
     created_at = models.DateTimeField(auto_now_add=True)
 
 class ConversationAnalysis(models.Model):
     conversation = models.OneToOneField(Conversation, on_delete=models.CASCADE, related_name='analysis')
-    reaction = models.TextField()  # The main analysis response/passage
-    suggestions = models.JSONField()  # Store the 4 suggestions as a JSON array
-    personality_metrics = models.JSONField()  # Store personality metrics
-    emotion_metrics = models.JSONField()  # Store emotion metrics
-    dominant_emotion = models.CharField(max_length=50)
+    emotions = models.JSONField(default=list)  # List of per-message emotion dicts
+    patterns = models.JSONField(default=list)  # List of per-message patterns
+    risks = models.JSONField(default=list)     # List of per-message risks
+    communication = models.JSONField(default=list)  # List of per-message communication styles
+    overallPattern = models.CharField(max_length=255)
+    riskLevel = models.CharField(max_length=50)
+    confidence = models.IntegerField()
+    prediction = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
