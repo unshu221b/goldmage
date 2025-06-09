@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Conversation, Message, ConversationAnalysis, FavoriteConversation
-from .serializers import ConversationSerializer, MessageSerializer, ConversationAnalysisSerializer, AnalysisRequestSerializer, FavoriteConversationSerializer
+from .models import Conversation, Message, FavoriteConversation
+from .serializers import ConversationSerializer, MessageSerializer, FavoriteConversationSerializer
 from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
@@ -162,17 +162,18 @@ class AnalysisViewSet(viewsets.ViewSet):
                 'next_refill': request.user.get_daily_refill_time()
             }, status=429)
 
-        # Validate request data
-        serializer = AnalysisRequestSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Get conversation
+        conversation_id = request.data.get('conversation_id')
+        try:
+            conversation = Conversation.objects.get(uuid=conversation_id, user=request.user)
+        except Conversation.DoesNotExist:
+            return Response({'error': 'Conversation not found'}, status=404)
 
         try:
-            messages = serializer.validated_data['messages']
-            
-            # Format the entire conversation history
+            # Format the conversation history
+            messages = conversation.messages.all()
             conversation_history = "\n".join([
-                f"{msg['sender']}: {msg['text']}"
+                f"{msg.sender}: {msg.text_content}"
                 for msg in messages
             ])
 
@@ -213,53 +214,42 @@ class AnalysisViewSet(viewsets.ViewSet):
                     {"role": "system", "content": "You are an expert communication analyst and response generator. Analyze the entire conversation context to provide meaningful insights."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=1024,  # Increased token limit for longer conversations
+                max_tokens=1024,
                 temperature=0.7,
             )
-            ai_content = response.choices[0].message.content.strip()
-
+            
             # Parse OpenAI response
             try:
-                openai_result = json.loads(ai_content)
+                analysis_data = json.loads(response.choices[0].message.content)
             except json.JSONDecodeError:
                 import re
-                match = re.search(r'\{.*\}', ai_content, re.DOTALL)
+                match = re.search(r'\{.*\}', response.choices[0].message.content, re.DOTALL)
                 if match:
-                    openai_result = json.loads(match.group(0))
+                    analysis_data = json.loads(match.group(0))
                 else:
                     return Response(
-                        {"error": "AI response was not valid JSON", "raw": ai_content}, 
+                        {"error": "AI response was not valid JSON", "raw": response.choices[0].message.content}, 
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR
                     )
 
-            # Validate and serialize the response
-            response_data = {
-                "emotions": openai_result.get("emotions", []),
-                "patterns": openai_result.get("patterns", []),
-                "risks": openai_result.get("risks", []),
-                "communication": openai_result.get("communication", []),
-                "overallPattern": openai_result.get("overallPattern", ""),
-                "riskLevel": openai_result.get("riskLevel", "Medium"),
-                "confidence": openai_result.get("confidence", 50),
-                "prediction": openai_result.get("prediction", "")
-            }
+            # Create analysis message
+            message = Message.objects.create(
+                conversation=conversation,
+                sender='system',
+                type='analysis',
+                text_content='Analysis Results',
+                content=analysis_data  # Store the entire analysis in content
+            )
 
-            # Validate the response data
-            response_serializer = ConversationAnalysisSerializer(data=response_data)
-            if not response_serializer.is_valid():
-                return Response(
-                    {"error": "Invalid response format", "details": response_serializer.errors},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-
-            # Deduct one credit after successful analysis
+            # Deduct credit
             request.user.use_credit()
 
-            return Response(response_data)
+            # Return the analysis message
+            return Response(MessageSerializer(message).data)
 
         except Exception as e:
             return Response(
-                {"error": str(e)}, 
+                {'error': str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

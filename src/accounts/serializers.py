@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Conversation, Message, MessageAnalysis, ConversationAnalysis, FavoriteConversation
+from .models import CustomUser, Conversation, Message, FavoriteConversation
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,36 +21,8 @@ class MessageSerializer(serializers.ModelSerializer):
             'created_at'
         ]
 
-# The main ConversationAnalysis serializer
-class ConversationAnalysisSerializer(serializers.ModelSerializer):
-    # Remove old fields/serializers and add new ones
-    emotions = serializers.ListField()
-    patterns = serializers.ListField()
-    risks = serializers.ListField()
-    communication = serializers.ListField()
-    overallPattern = serializers.CharField()
-    riskLevel = serializers.CharField()
-    confidence = serializers.IntegerField()
-    prediction = serializers.CharField()
-
-    class Meta:
-        model = ConversationAnalysis
-        fields = [
-            'emotions',
-            'patterns',
-            'risks',
-            'communication',
-            'overallPattern',
-            'riskLevel',
-            'confidence',
-            'prediction',
-            'created_at',
-            'updated_at'
-        ]
-
 class ConversationSerializer(serializers.ModelSerializer):
     messages = MessageSerializer(many=True, read_only=True)
-    analysis = ConversationAnalysisSerializer(read_only=True)
     is_favorite = serializers.SerializerMethodField()
 
     class Meta:
@@ -70,19 +42,6 @@ class ConversationSerializer(serializers.ModelSerializer):
             ).exists()
         return False
 
-class MessageAnalysisSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MessageAnalysis
-        fields = '__all__'
-
-class MessageRequestSerializer(serializers.Serializer):
-    text = serializers.CharField()
-    sender = serializers.CharField()
-
-class AnalysisRequestSerializer(serializers.Serializer):
-    messages = serializers.ListField(
-        child=MessageRequestSerializer()
-    )
 
 class FavoriteConversationSerializer(serializers.ModelSerializer):
     conversation = ConversationSerializer(read_only=True)

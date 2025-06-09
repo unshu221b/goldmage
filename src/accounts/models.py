@@ -209,25 +209,6 @@ class Message(models.Model):
     class Meta:
         ordering = ['created_at']  # Always get messages in order
 
-class ConversationAnalysis(models.Model):
-    conversation = models.OneToOneField(Conversation, on_delete=models.CASCADE, related_name='analysis')
-    emotions = models.JSONField(default=list)  # List of per-message emotion dicts
-    patterns = models.JSONField(default=list)  # List of per-message patterns
-    risks = models.JSONField(default=list)     # List of per-message risks
-    communication = models.JSONField(default=list)  # List of per-message communication styles
-    overallPattern = models.CharField(max_length=255)
-    riskLevel = models.CharField(max_length=50)
-    confidence = models.IntegerField()
-    prediction = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-class MessageAnalysis(models.Model):
-    message = models.OneToOneField(Message, on_delete=models.CASCADE, related_name='analysis')
-    dominant_emotion = models.CharField(max_length=50)
-    emotion_scores = models.JSONField()  # e.g., {"happiness": 15, "sadness": 35, ...}
-    summary = models.TextField(blank=True, null=True)
-
 class FavoriteConversation(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='favorite_conversations')
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='favorited_by')
