@@ -175,7 +175,7 @@ class AnalysisViewSet(viewsets.ViewSet):
             
             # Format the messages for analysis
             conversation_history = "\n".join([
-                f"{msg['sender']}: {msg['text']}"
+                f"{msg['sender']}: {msg['builder_data']['draft'][0]['text']}"
                 for msg in messages_to_analyze
             ])
 
