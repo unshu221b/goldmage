@@ -58,6 +58,7 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                         conversation=conversation,
                         sender=msg_data.get('sender'),
                         input_type=msg_data.get('input_type', 'text'),
+                        type=msg_data.get('type'),
                         text_content=msg_data.get('text_content', ''),
                         image=msg_data.get('image'),
                         builder_data=msg_data.get('builder_data'),
