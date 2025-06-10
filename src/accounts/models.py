@@ -196,8 +196,6 @@ class Message(models.Model):
     type = models.CharField(
         max_length=20,
         choices=[
-            ('user', 'User'),
-            ('assistant', 'Assistant'),
             ('builder', 'Builder'),
             ('analysis', 'Analysis'),
             ('system', 'System'),
