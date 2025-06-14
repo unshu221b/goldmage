@@ -387,7 +387,7 @@ class ChatViewSet(viewsets.ViewSet):
                 ]
                 
                 for msg in conversation_history:
-                    role = "user" if msg.sender == "user" else "ai"
+                    role = "user" if msg.sender == "user" else "assistant"
                     messages.append({
                         "role": role,
                         "content": msg.text_content
