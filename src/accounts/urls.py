@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from .views import ConversationListCreateView, AnalysisViewSet, FavoriteConversationViewSet
+from .views import ConversationListCreateView, AnalysisViewSet, FavoriteConversationViewSet, ChatViewSet
 
 
 # Create a router
@@ -8,6 +8,7 @@ router = DefaultRouter()
 router.register(r'conversations', ConversationListCreateView, basename='conversation')
 router.register(r'analysis', AnalysisViewSet, basename='analysis')
 router.register(r'favorites', FavoriteConversationViewSet, basename='favorite')
+router.register(r'chat', ChatViewSet, basename='chat')
 
 urlpatterns = [
     # Your existing URLs

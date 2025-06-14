@@ -337,3 +337,92 @@ class FavoriteConversationViewSet(viewsets.ModelViewSet):
             
         except Conversation.DoesNotExist:
             raise Http404("Conversation not found")
+
+@method_decorator(api_login_required, name='dispatch')
+class ChatViewSet(viewsets.ViewSet):
+    @action(detail=False, methods=['post'])
+    def send_message(self, request):
+        # Check credits
+        if not request.user.credits > 0:
+            next_refill = request.user.get_daily_refill_time()
+            return Response({
+                'error': 'Insufficient credits',
+                'remaining_credits': request.user.credits,
+                'next_refill': next_refill,
+                'is_thread_locked': request.user.is_thread_depth_locked,
+            }, status=402)
+
+        # Get or create conversation
+        conversation_uuid = request.data.get('conversation_uuid')
+        message_content = request.data.get('message')
+        
+        try:
+            with transaction.atomic():
+                if conversation_uuid:
+                    conversation = Conversation.objects.get(uuid=conversation_uuid, user=request.user)
+                else:
+                    # Create new conversation with initial title
+                    conversation = Conversation.objects.create(
+                        user=request.user,
+                        title=message_content[:50] + "..." if len(message_content) > 50 else message_content
+                    )
+
+                # Create user message
+                user_message = Message.objects.create(
+                    conversation=conversation,
+                    sender='user',
+                    input_type='text',
+                    text_content=message_content,
+                    type='chat'
+                )
+
+                # Get conversation history for context
+                conversation_history = Message.objects.filter(
+                    conversation=conversation
+                ).order_by('created_at')
+
+                # Format conversation history for AI
+                messages = [
+                    {"role": "system", "content": "You are a helpful AI assistant."},
+                ]
+                
+                for msg in conversation_history:
+                    role = "user" if msg.sender == "user" else "ai"
+                    messages.append({
+                        "role": role,
+                        "content": msg.text_content
+                    })
+
+                # Call OpenAI
+                response = client.chat.completions.create(
+                    model="gpt-4",
+                    messages=messages,
+                    max_tokens=1024,
+                    temperature=0.7,
+                )
+
+                # Create AI response message
+                ai_response = response.choices[0].message.content
+                ai_message = Message.objects.create(
+                    conversation=conversation,
+                    sender='ai',
+                    input_type='text',
+                    text_content=ai_response,
+                    type='chat'
+                )
+
+                # Deduct credit
+                request.user.use_credit()
+
+                return Response({
+                    'conversation_uuid': conversation.uuid,
+                    'messages': [
+                        MessageSerializer(user_message).data,
+                        MessageSerializer(ai_message).data
+                    ]
+                })
+
+        except Conversation.DoesNotExist:
+            return Response({'error': 'Conversation not found'}, status=404)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
