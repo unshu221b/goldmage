@@ -3,12 +3,11 @@ from django.conf import settings
 import io
 from PIL import Image
 
-def get_crop_hints(image_file, aspect_ratio=1.0):
+def get_crop_hints(image_file):
     client = vision.ImageAnnotatorClient()
     content = image_file.read()
     image = vision.Image(content=content)
-    crop_hints_params = vision.CropHintsParams(aspect_ratios=[aspect_ratio])
-    image_context = vision.ImageContext(crop_hints_params=crop_hints_params)
+    image_context = vision.ImageContext()  # No crop_hints_params
     response = client.crop_hints(image=image, image_context=image_context)
     # Get the first crop hint
     if response.crop_hints_annotation.crop_hints:
