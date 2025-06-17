@@ -61,17 +61,12 @@ def extract_text_blocks_from_image(image_file):
     return blocks
 
 # Usage in your view:
-def analyze_image_with_crop(request):
-    image_file = request.FILES['image']
-    # Step 1: Get crop hints
+def analyze_image_with_crop(image_file):
     bounding_box = get_crop_hints(image_file)
     if bounding_box:
-        # Step 2: Crop the image
         cropped_image = crop_image(image_file, bounding_box)
-        # Step 3: Extract text blocks from cropped image
         blocks = extract_text_blocks_from_image(cropped_image)
     else:
-        # Fallback: use original image
         image_file.seek(0)
         blocks = extract_text_blocks_from_image(image_file)
     return blocks
