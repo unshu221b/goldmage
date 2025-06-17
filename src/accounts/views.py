@@ -15,7 +15,7 @@ from django.http import Http404
 
 import json
 from openai import OpenAI
-from helpers.vision.ocr import extract_text_blocks_from_image
+from helpers.vision.ocr import analyze_image_with_crop, extract_text_blocks_from_image
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -316,7 +316,7 @@ class AnalysisViewSet(viewsets.ViewSet):
             return Response({'error': 'No image provided'}, status=400)
 
         try:
-            blocks = extract_text_blocks_from_image(image_file)
+            blocks = analyze_image_with_crop(image_file)
             # Optionally, save each block as a separate Message, or return them for moderation/analysis
 
             # Deduct credit
