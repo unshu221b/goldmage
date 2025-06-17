@@ -15,6 +15,7 @@ from django.http import Http404
 
 import json
 from openai import OpenAI
+from helpers.vision.ocr import extract_text_blocks_from_image
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -296,6 +297,34 @@ class AnalysisViewSet(viewsets.ViewSet):
             'usage_limit': 140 if is_free_user else None,
             'daily_limit': 200 if user.membership == 'premium' else 10
         })
+
+    @action(detail=False, methods=['post'])
+    def analyze_image(self, request):
+        # Check credits
+        if not request.user.credits > 0:
+            next_refill = request.user.get_daily_refill_time()
+            return Response({
+                'error': 'Insufficient credits',
+                'remaining_credits': request.user.credits,
+                'next_refill': next_refill,
+                'is_thread_locked': request.user.is_thread_depth_locked,
+            }, status=402)
+
+        # Get image from request
+        image_file = request.FILES.get('image')
+        if not image_file:
+            return Response({'error': 'No image provided'}, status=400)
+
+        try:
+            blocks = extract_text_blocks_from_image(image_file)
+            # Optionally, save each block as a separate Message, or return them for moderation/analysis
+
+            # Deduct credit
+            request.user.use_credit()
+
+            return Response({'blocks': blocks})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
 
 @method_decorator(api_login_required, name='dispatch')
 class FavoriteConversationViewSet(viewsets.ModelViewSet):

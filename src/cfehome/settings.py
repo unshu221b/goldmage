@@ -6,6 +6,12 @@ from decouple import config, Csv
 import logging
 from datetime import timedelta
 
+if os.environ.get("GOOGLE_CREDENTIALS_JSON"):
+    creds_path = "/tmp/gcloud-credentials.json"
+    with open(creds_path, "w") as f:
+        f.write(os.environ["GOOGLE_CREDENTIALS_JSON"])
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = creds_path
+
 BASE_URL = config("BASE_URL", default='http://127.0.0.1:8000')
 # default backend
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
