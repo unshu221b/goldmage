@@ -277,7 +277,7 @@ class AnalysisViewSet(viewsets.ViewSet):
             request.user.use_credit()
             mixpanel_client.track_api_event(
                 user_id=request.user.clerk_user_id,
-                event_name="builder deepfeel",
+                event_name="analyze deepfeel",
                 properties={
                     "conversation_id": request.data.get("conversation_id"),
                     "messages_count": len(request.data.get("messages", [])),
