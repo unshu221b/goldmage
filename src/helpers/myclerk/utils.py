@@ -107,6 +107,15 @@ def update_or_create_clerk_user(clerk_user_id, request):
             
             if created:
                 logger.info(f"Created new user with ID: {user_obj.id}")
+                from helpers._mixpanel.client import mixpanel_client
+                mixpanel_client.track_user_signup(
+                    clerk_user_id,
+                    {
+                        "user_email": user_obj.email,
+                        "ip_address": request.META.get("REMOTE_ADDR"),
+                        "user_agent": request.META.get("HTTP_USER_AGENT"),
+                    }
+                )
             else:
                 logger.info(f"Updated existing user with ID: {user_obj.id}")
                 

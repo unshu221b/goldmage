@@ -28,32 +28,13 @@ def django_user_session_via_clerk(request):
         logger.debug("No Clerk user ID found in request")
         return None
     logger.info(f"Found Clerk user ID: {clerk_user_id}")
-    
     django_user, created = update_or_create_clerk_user(clerk_user_id, request)
-    
-    # Track signup/login events with Mixpanel
-    try:
-        from helpers._mixpanel.client import mixpanel_client
-        
-        if created:
-            logger.info(f"Created new Django user for Clerk ID: {clerk_user_id}")
-            # Track signup event
-            mixpanel_client.track_user_signup(clerk_user_id, {
-                'signup_method': 'clerk',
-                'user_email': getattr(django_user, 'email', ''),
-            })
-        elif django_user:
-            logger.info(f"Found existing Django user for Clerk ID: {clerk_user_id}")
-            # Track login event
-            mixpanel_client.track_user_login(clerk_user_id, {
-                'login_method': 'clerk',
-                'user_email': getattr(django_user, 'email', ''),
-            })
-        else:
-            logger.warning(f"Failed to create/find Django user for Clerk ID: {clerk_user_id}")
-    except Exception as e:
-        logger.error(f"Error tracking user event: {e}")
-    
+    if created:
+        logger.info(f"Created new Django user for Clerk ID: {clerk_user_id}")
+    elif django_user:
+        logger.info(f"Found existing Django user for Clerk ID: {clerk_user_id}")
+    else:
+        logger.warning(f"Failed to create/find Django user for Clerk ID: {clerk_user_id}")
     return django_user
 
 
