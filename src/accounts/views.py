@@ -59,7 +59,7 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                 # Track new thread creation in Mixpanel
                 mixpanel_client.track_api_event(
                     user_id=request.user.clerk_user_id,
-                    event_name="New Thread Created",
+                    event_name="new thread",
                     properties={
                         "conversation_id": str(conversation.uuid),
                         "title": conversation.title,
@@ -279,7 +279,6 @@ class AnalysisViewSet(viewsets.ViewSet):
                 user_id=request.user.clerk_user_id,
                 event_name="builder deepfeel",
                 properties={
-                    "analysis_type": "builder",
                     "conversation_id": request.data.get("conversation_id"),
                     "messages_count": len(request.data.get("messages", [])),
                     "user_credits_before": request.user.credits + 1,
@@ -351,19 +350,18 @@ class AnalysisViewSet(viewsets.ViewSet):
             # Deduct credit
             request.user.use_credit()
 
-            # Mixpanel test event
-            logger.info("DEBUG: About to send Mixpanel event: Test Analyze Image")
             mixpanel_client.track_api_event(
                 user_id=str(request.user.clerk_user_id),
-                event_name="Test Analyze Image",
+                event_name="image deepfeel",
                 properties={
                     "user_email": request.user.email,
                     "ip_address": request.META.get("REMOTE_ADDR"),
                     "user_agent": request.META.get("HTTP_USER_AGENT"),
-                    "test_property": "test_value"
+                    "image_size": request.FILES.get("image").size if request.FILES.get("image") else None,
+                    "user_credits_before": request.user.credits + 1,
+                    "conversation_id": request.data.get("conversation_id"),
                 }
             )
-            logger.info("DEBUG: Mixpanel event sent!")
 
             return Response({'blocks': blocks})
         except Exception as e:
@@ -489,9 +487,8 @@ class ChatViewSet(viewsets.ViewSet):
 
                 mixpanel_client.track_api_event(
                     user_id=request.user.clerk_user_id,
-                    event_name="Message Sent",
+                    event_name="chat",
                     properties={
-                        "message_type": "chat",
                         "conversation_uuid": request.data.get("conversation_uuid"),
                         "message_length": len(request.data.get("message", "")),
                         "is_new_conversation": not request.data.get("conversation_uuid"),
