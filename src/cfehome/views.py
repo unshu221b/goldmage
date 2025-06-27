@@ -154,9 +154,9 @@ def create_checkout_session(request):
         return JsonResponse({'error': str(e)}, status=400)
 
 def send_error_email(request, error_code, error_message, stack_trace=None):
-    subject = f'Goldmage Error {error_code}'
+    subject = f'52AICHAN Error {error_code}'
     message = f"""
-An error occurred on Goldmage:
+An error occurred on 52AICHAN:
 
 Error Code: {error_code}
 Error Message: {error_message}

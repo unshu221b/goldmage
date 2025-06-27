@@ -13,6 +13,7 @@ from django.utils import timezone
 from datetime import datetime
 from django.http import Http404
 
+from cfehome.views import send_error_email
 import json
 from openai import OpenAI
 from helpers.vision.ocr import analyze_image_with_crop, extract_text_blocks_from_image
@@ -291,7 +292,8 @@ class AnalysisViewSet(viewsets.ViewSet):
             return Response(analysis_data)
 
         except Exception as e:
-            print(f"Error in analyze: {str(e)}")  # Add this for debugging
+            logger.error(f"Error in analyze: {str(e)}")
+            send_error_email(request, "ANALYSIS_ERROR", str(e))
             return Response(
                 {'error': str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -366,6 +368,7 @@ class AnalysisViewSet(viewsets.ViewSet):
             return Response({'blocks': blocks})
         except Exception as e:
             logger.error(f"Error in analyze_image: {e}")
+            send_error_email(request, "IMAGE_ANALYSIS_ERROR", str(e))
             return Response({'error': str(e)}, status=500)
 
 @method_decorator(api_login_required, name='dispatch')
@@ -509,4 +512,5 @@ class ChatViewSet(viewsets.ViewSet):
         except Conversation.DoesNotExist:
             return Response({'error': 'Conversation not found'}, status=404)
         except Exception as e:
+            send_error_email(request, "CHAT_ERROR", str(e))
             return Response({'error': str(e)}, status=500)
