@@ -16,6 +16,7 @@ from django.http import Http404
 import json
 from openai import OpenAI
 from helpers.vision.ocr import analyze_image_with_crop, extract_text_blocks_from_image
+from helpers._mixpanel.decorators import track_api_event
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -144,6 +145,12 @@ class ConversationListCreateView(viewsets.ModelViewSet):
 @method_decorator(api_login_required, name='dispatch')
 class AnalysisViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
+    @track_api_event('Analysis Requested', lambda request, response, *args, **kwargs: {
+        'analysis_type': 'builder',
+        'conversation_id': request.data.get('conversation_id'),
+        'messages_count': len(request.data.get('messages', [])),
+        'user_credits_before': request.user.credits + 1,  # +1 because credit was already deducted
+    })
     def analyze(self, request):
         # Check credits
         if not request.user.credits > 0:
@@ -299,6 +306,11 @@ class AnalysisViewSet(viewsets.ViewSet):
         })
 
     @action(detail=False, methods=['post'])
+    @track_api_event('Analysis Requested', lambda request, response, *args, **kwargs: {
+        'analysis_type': 'image',
+        'image_size': request.FILES.get('image').size if request.FILES.get('image') else None,
+        'user_credits_before': request.user.credits + 1,  # +1 because credit was already deducted
+    })
     def analyze_image(self, request):
         # Check credits
         if not request.user.credits > 0:
@@ -370,6 +382,13 @@ class FavoriteConversationViewSet(viewsets.ModelViewSet):
 @method_decorator(api_login_required, name='dispatch')
 class ChatViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
+    @track_api_event('Message Sent', lambda request, response, *args, **kwargs: {
+        'message_type': 'chat',
+        'conversation_uuid': request.data.get('conversation_uuid'),
+        'message_length': len(request.data.get('message', '')),
+        'is_new_conversation': not request.data.get('conversation_uuid'),
+        'user_credits_before': request.user.credits + 1,  # +1 because credit was already deducted
+    })
     def send_message(self, request):
         # Check credits
         if not request.user.credits > 0:

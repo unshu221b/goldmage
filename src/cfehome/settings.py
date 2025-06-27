@@ -103,6 +103,11 @@ CLERK_AUTH_PARTIES = [
 
 FRONTEND_URL=config("FRONTEND_URL")
 
+# Mixpanel Configuration
+MIXPANEL_TOKEN = config("MIXPANEL_TOKEN", default="")
+MIXPANEL_SECRET = config("MIXPANEL_SECRET", default="")
+MIXPANEL_ENABLED = config("MIXPANEL_ENABLED", default=True, cast=bool)
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
