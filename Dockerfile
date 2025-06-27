@@ -35,6 +35,9 @@ REDIS_HOST=redis\n\
 REDIS_PORT=6379\n\
 REDIS_PASSWORD=\n\
 OPENAI_API_KEY=dummy\n\
+MIXPANEL_TOKEN=dummy\n\
+MIXPANEL_SECRET=dummy\n\
+MIXPANEL_ENABLED=True\n\
 ENVIRONMENT=development" > .env
 
 COPY ./requirements.txt /tmp/requirements.txt
