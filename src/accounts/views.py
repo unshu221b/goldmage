@@ -16,7 +16,7 @@ from django.http import Http404
 import json
 from openai import OpenAI
 from helpers.vision.ocr import analyze_image_with_crop, extract_text_blocks_from_image
-from helpers._mixpanel.decorators import track_api_event
+from helpers._mixpanel.client import mixpanel_client
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -52,6 +52,20 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                 conversation = Conversation.objects.create(
                     title=title,
                     user=request.user
+                )
+
+                # Track new thread creation in Mixpanel
+                mixpanel_client.track_api_event(
+                    user_id=request.user.clerk_user_id,
+                    event_name="New Thread Created",
+                    properties={
+                        "conversation_id": str(conversation.uuid),
+                        "title": conversation.title,
+                        "messages_count": len(messages_data),
+                        "user_email": request.user.email,
+                        "ip_address": request.META.get("REMOTE_ADDR"),
+                        "user_agent": request.META.get("HTTP_USER_AGENT"),
+                    }
                 )
 
                 messages = []
@@ -145,12 +159,6 @@ class ConversationListCreateView(viewsets.ModelViewSet):
 @method_decorator(api_login_required, name='dispatch')
 class AnalysisViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
-    @track_api_event('Analysis Requested', lambda request, response, *args, **kwargs: {
-        'analysis_type': 'builder',
-        'conversation_id': request.data.get('conversation_id'),
-        'messages_count': len(request.data.get('messages', [])),
-        'user_credits_before': request.user.credits + 1,  # +1 because credit was already deducted
-    })
     def analyze(self, request):
         # Check credits
         if not request.user.credits > 0:
@@ -265,7 +273,19 @@ class AnalysisViewSet(viewsets.ViewSet):
 
             # Deduct credit
             request.user.use_credit()
-
+            mixpanel_client.track_api_event(
+                user_id=request.user.clerk_user_id,
+                event_name="builder deepfeel",
+                properties={
+                    "analysis_type": "builder",
+                    "conversation_id": request.data.get("conversation_id"),
+                    "messages_count": len(request.data.get("messages", [])),
+                    "user_credits_before": request.user.credits + 1,
+                    "user_email": request.user.email,
+                    "ip_address": request.META.get("REMOTE_ADDR"),
+                    "user_agent": request.META.get("HTTP_USER_AGENT"),
+                }
+            )
             # Return the analysis data directly
             return Response(analysis_data)
 
@@ -306,11 +326,6 @@ class AnalysisViewSet(viewsets.ViewSet):
         })
 
     @action(detail=False, methods=['post'])
-    @track_api_event('Analysis Requested', lambda request, response, *args, **kwargs: {
-        'analysis_type': 'image',
-        'image_size': request.FILES.get('image').size if request.FILES.get('image') else None,
-        'user_credits_before': request.user.credits + 1,  # +1 because credit was already deducted
-    })
     def analyze_image(self, request):
         # Check credits
         if not request.user.credits > 0:
@@ -333,6 +348,19 @@ class AnalysisViewSet(viewsets.ViewSet):
 
             # Deduct credit
             request.user.use_credit()
+
+            mixpanel_client.track_api_event(
+                user_id=request.user.clerk_user_id,
+                event_name="image deepfeel",
+                properties={
+                    "analysis_type": "image",
+                    "image_size": request.FILES.get("image").size if request.FILES.get("image") else None,
+                    "user_credits_before": request.user.credits + 1,
+                    "user_email": request.user.email,
+                    "ip_address": request.META.get("REMOTE_ADDR"),
+                    "user_agent": request.META.get("HTTP_USER_AGENT"),
+                }
+            )
 
             return Response({'blocks': blocks})
         except Exception as e:
@@ -382,13 +410,6 @@ class FavoriteConversationViewSet(viewsets.ModelViewSet):
 @method_decorator(api_login_required, name='dispatch')
 class ChatViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
-    @track_api_event('Message Sent', lambda request, response, *args, **kwargs: {
-        'message_type': 'chat',
-        'conversation_uuid': request.data.get('conversation_uuid'),
-        'message_length': len(request.data.get('message', '')),
-        'is_new_conversation': not request.data.get('conversation_uuid'),
-        'user_credits_before': request.user.credits + 1,  # +1 because credit was already deducted
-    })
     def send_message(self, request):
         # Check credits
         if not request.user.credits > 0:
@@ -462,6 +483,20 @@ class ChatViewSet(viewsets.ViewSet):
                 # Deduct credit
                 request.user.use_credit()
 
+                mixpanel_client.track_api_event(
+                    user_id=request.user.clerk_user_id,
+                    event_name="Message Sent",
+                    properties={
+                        "message_type": "chat",
+                        "conversation_uuid": request.data.get("conversation_uuid"),
+                        "message_length": len(request.data.get("message", "")),
+                        "is_new_conversation": not request.data.get("conversation_uuid"),
+                        "user_credits_before": request.user.credits + 1,
+                        "user_email": request.user.email,
+                        "ip_address": request.META.get("REMOTE_ADDR"),
+                        "user_agent": request.META.get("HTTP_USER_AGENT"),
+                    }
+                )
                 return Response({
                     'conversation_uuid': conversation.uuid,
                     'messages': [

@@ -8,7 +8,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import cache_control
-from helpers._mixpanel.decorators import track_api_event
+from helpers._mixpanel.client import mixpanel_client
 
 import logging
 import stripe
@@ -77,10 +77,6 @@ def create_portal_session(request):
 @csrf_exempt
 @api_login_required
 @require_http_methods(["POST"])
-@track_api_event('Checkout Session Created', lambda request, response, *args, **kwargs: {
-    'period': json.loads(request.body).get('period') if hasattr(request, 'body') else None,
-    'user_email': getattr(request.user, 'email', ''),
-})
 def create_checkout_session(request):
     try:
         # Log authentication details
@@ -133,7 +129,19 @@ def create_checkout_session(request):
             cancel_url=f"{settings.FRONTEND_URL}/",
         )
         logger.info(f"Checkout session created successfully. URL: {checkout_session.url}")
-            
+
+        mixpanel_client.track_api_event(
+            user_id=request.user.clerk_user_id,
+            event_name="Checkout Session Created",
+            properties={
+                "checkout_url": checkout_session.url,
+                "period": period,
+                "user_email": request.user.email,
+                "ip_address": request.META.get("REMOTE_ADDR"),
+                "user_agent": request.META.get("HTTP_USER_AGENT"),
+            }
+        )       
+             
         return JsonResponse({
             'checkout_url': checkout_session.url
         })
