@@ -17,8 +17,10 @@ import json
 from openai import OpenAI
 from helpers.vision.ocr import analyze_image_with_crop, extract_text_blocks_from_image
 from helpers._mixpanel.client import mixpanel_client
+import logging
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
+logger = logging.getLogger('goldmage')
 
 
 @method_decorator(api_login_required, name='dispatch')
@@ -327,6 +329,8 @@ class AnalysisViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def analyze_image(self, request):
+        logger.info("DEBUG: Entered analyze_image view")  # Debug log
+
         # Check credits
         if not request.user.credits > 0:
             next_refill = request.user.get_daily_refill_time()
@@ -344,26 +348,26 @@ class AnalysisViewSet(viewsets.ViewSet):
 
         try:
             blocks = analyze_image_with_crop(image_file)
-            # Optionally, save each block as a separate Message, or return them for moderation/analysis
-
             # Deduct credit
             request.user.use_credit()
 
+            # Mixpanel test event
+            logger.info("DEBUG: About to send Mixpanel event: Test Analyze Image")
             mixpanel_client.track_api_event(
-                user_id=request.user.clerk_user_id,
-                event_name="image deepfeel",
+                user_id=str(request.user.clerk_user_id),
+                event_name="Test Analyze Image",
                 properties={
-                    "analysis_type": "image",
-                    "image_size": request.FILES.get("image").size if request.FILES.get("image") else None,
-                    "user_credits_before": request.user.credits + 1,
                     "user_email": request.user.email,
                     "ip_address": request.META.get("REMOTE_ADDR"),
                     "user_agent": request.META.get("HTTP_USER_AGENT"),
+                    "test_property": "test_value"
                 }
             )
+            logger.info("DEBUG: Mixpanel event sent!")
 
             return Response({'blocks': blocks})
         except Exception as e:
+            logger.error(f"Error in analyze_image: {e}")
             return Response({'error': str(e)}, status=500)
 
 @method_decorator(api_login_required, name='dispatch')
