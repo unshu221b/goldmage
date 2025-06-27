@@ -91,10 +91,8 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                 return Response(response_data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            return Response(
-                {'error': str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            send_error_email(request, "BATCH_OPERATION_ERROR", str(e))  # Add this
+            return Response({'error': str(e)}, status=400)
         
     @action(detail=True, methods=['put', 'patch'])
     def batch_update(self, request, uuid=None):
@@ -132,10 +130,8 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
-            return Response(
-                {'error': str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            send_error_email(request, "BATCH_OPERATION_ERROR", str(e))  # Add this
+            return Response({'error': str(e)}, status=400)
         
     @action(detail=False, methods=['get'])
     def history(self, request):

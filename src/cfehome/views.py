@@ -71,6 +71,7 @@ def create_portal_session(request):
         )
         return JsonResponse({'portal_url': portal_session.url})
     except stripe.error.StripeError as e:
+        send_error_email(request, "PORTAL_SESSION_ERROR", str(e))
         return JsonResponse({'error': str(e)}, status=400)
 
 
@@ -151,6 +152,7 @@ def create_checkout_session(request):
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
         logger.error(f"Unexpected error in create_checkout_session: {str(e)}", exc_info=True)
+        send_error_email(request, "CHECKOUT_SESSION_ERROR", str(e))
         return JsonResponse({'error': str(e)}, status=400)
 
 def send_error_email(request, error_code, error_message, stack_trace=None):
