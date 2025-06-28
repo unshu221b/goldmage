@@ -183,7 +183,7 @@ class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     sender = models.CharField(max_length=50)  # "user", "assistant", "system"
     input_type = models.CharField(
-        max_length=10,
+        max_length=15,
         choices=[
             ('text', 'Text'),
             ('image_upload', 'Image Upload'),

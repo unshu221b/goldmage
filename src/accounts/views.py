@@ -272,18 +272,35 @@ class AnalysisViewSet(viewsets.ViewSet):
 
             # Deduct credit
             request.user.use_credit()
+            
+            # Only track if input_type is "text"
+            input_type = request.data.get("input_type")
+            if input_type == "text":
+                mixpanel_client.track_api_event(
+                    user_id=request.user.clerk_user_id,
+                    event_name="text_builder_used",
+                    properties={
+                        "conversation_id": request.data.get("conversation_id"),
+                        "messages_count": len(request.data.get("messages", [])),
+                        "user_credits_before": request.user.credits + 1,
+                        "user_email": request.user.email,
+                        "ip_address": request.META.get("REMOTE_ADDR"),
+                        "user_agent": request.META.get("HTTP_USER_AGENT"),
+                    }
+                )
+
             mixpanel_client.track_api_event(
-                user_id=request.user.clerk_user_id,
-                event_name="analyze deepfeel",
-                properties={
-                    "conversation_id": request.data.get("conversation_id"),
-                    "messages_count": len(request.data.get("messages", [])),
-                    "user_credits_before": request.user.credits + 1,
-                    "user_email": request.user.email,
-                    "ip_address": request.META.get("REMOTE_ADDR"),
-                    "user_agent": request.META.get("HTTP_USER_AGENT"),
-                }
-            )
+                    user_id=request.user.clerk_user_id,
+                    event_name="deepfeel_hit",
+                    properties={
+                        "conversation_id": request.data.get("conversation_id"),
+                        "messages_count": len(request.data.get("messages", [])),
+                        "user_credits_before": request.user.credits + 1,
+                        "user_email": request.user.email,
+                        "ip_address": request.META.get("REMOTE_ADDR"),
+                        "user_agent": request.META.get("HTTP_USER_AGENT"),
+                    }
+                )
             # Return the analysis data directly
             return Response(analysis_data)
 
@@ -350,7 +367,7 @@ class AnalysisViewSet(viewsets.ViewSet):
 
             mixpanel_client.track_api_event(
                 user_id=str(request.user.clerk_user_id),
-                event_name="image deepfeel",
+                event_name="image_upload",
                 properties={
                     "user_email": request.user.email,
                     "ip_address": request.META.get("REMOTE_ADDR"),
