@@ -186,7 +186,7 @@ class Message(models.Model):
         max_length=10,
         choices=[
             ('text', 'Text'),
-            ('image', 'Image'),
+            ('image_upload', 'Image Upload'),
         ]
     )
     text_content = models.TextField(blank=True, null=True)
