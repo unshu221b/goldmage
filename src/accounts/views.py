@@ -582,7 +582,7 @@ class ChatViewSet(viewsets.ViewSet):
 
 Help the user name patterns in their relationship with {person_name}
 Reflect on whether those patterns are healthy, manipulative, or confusing
-Offer framing questions — but do not tell them what to feel or do
+Offer framing questions but do not tell them what to feel or do
 
 **PERSON LIBRARY - {person_name.upper()}**
 
