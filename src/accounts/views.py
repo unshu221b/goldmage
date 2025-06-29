@@ -427,6 +427,100 @@ class FavoriteConversationViewSet(viewsets.ModelViewSet):
 
 @method_decorator(api_login_required, name='dispatch')
 class ChatViewSet(viewsets.ViewSet):
+    def _extract_person_name(self, conversation_title):
+        """Extract person name from conversation title or return default"""
+        # Simple extraction - could be enhanced with NLP
+        if conversation_title and len(conversation_title) > 0:
+            # Remove common suffixes and clean up
+            title = conversation_title.replace("...", "").strip()
+            if title:
+                return title
+        return "this person"
+
+    def _build_person_library(self, user, person_name):
+        """Build a comprehensive library of emotional patterns for a specific person"""
+        # Get all conversations that might be about this person
+        all_conversations = Conversation.objects.filter(user=user)
+        
+        person_library = {
+            'emotional_triggers': [],
+            'communication_patterns': [],
+            'risk_indicators': [],
+            'behavioral_trends': [],
+            'relationship_dynamics': [],
+            'significant_events': []
+        }
+        
+        # Collect analysis data from all conversations
+        for conversation in all_conversations:
+            messages_with_analysis = Message.objects.filter(
+                conversation=conversation,
+                analysis_data__isnull=False
+            ).exclude(analysis_data={})
+            
+            for message in messages_with_analysis:
+                if message.analysis_data and isinstance(message.analysis_data, dict):
+                    # Extract emotions
+                    if 'emotions' in message.analysis_data:
+                        for emotion in message.analysis_data['emotions']:
+                            person_library['emotional_triggers'].append({
+                                'emotion': emotion.get('primary', 'Unknown'),
+                                'intensity': emotion.get('intensity', 0),
+                                'secondary': emotion.get('secondary', []),
+                                'context': message.text_content[:100] + "..." if message.text_content else "No context",
+                                'date': message.created_at.isoformat()
+                            })
+                    
+                    # Extract patterns
+                    if 'patterns' in message.analysis_data:
+                        for pattern in message.analysis_data['patterns']:
+                            person_library['communication_patterns'].append({
+                                'pattern': pattern,
+                                'context': message.text_content[:100] + "..." if message.text_content else "No context",
+                                'date': message.created_at.isoformat()
+                            })
+                    
+                    # Extract risks
+                    if 'risks' in message.analysis_data:
+                        for risk in message.analysis_data['risks']:
+                            person_library['risk_indicators'].append({
+                                'risk': risk,
+                                'context': message.text_content[:100] + "..." if message.text_content else "No context",
+                                'date': message.created_at.isoformat()
+                            })
+                    
+                    # Extract communication styles
+                    if 'communication' in message.analysis_data:
+                        for style in message.analysis_data['communication']:
+                            person_library['behavioral_trends'].append({
+                                'style': style,
+                                'context': message.text_content[:100] + "..." if message.text_content else "No context",
+                                'date': message.created_at.isoformat()
+                            })
+                    
+                    # Extract overall patterns
+                    if 'overallPattern' in message.analysis_data:
+                        person_library['relationship_dynamics'].append({
+                            'pattern': message.analysis_data['overallPattern'],
+                            'risk_level': message.analysis_data.get('riskLevel', 'Unknown'),
+                            'confidence': message.analysis_data.get('confidence', 0),
+                            'prediction': message.analysis_data.get('prediction', ''),
+                            'date': message.created_at.isoformat()
+                        })
+        
+        return person_library
+
+    def _get_latest_analysis(self, conversation):
+        """Get the most recent analysis data for the current conversation"""
+        latest_analysis = Message.objects.filter(
+            conversation=conversation,
+            analysis_data__isnull=False
+        ).exclude(analysis_data={}).order_by('-created_at').first()
+        
+        if latest_analysis and latest_analysis.analysis_data:
+            return latest_analysis.analysis_data
+        return None
+
     @action(detail=False, methods=['post'])
     def send_message(self, request):
         # Check credits
@@ -463,14 +557,61 @@ class ChatViewSet(viewsets.ViewSet):
                     type='chat'
                 )
 
+                # Extract person name from conversation title
+                person_name = self._extract_person_name(conversation.title)
+                
+                # Build comprehensive person library
+                person_library = self._build_person_library(request.user, person_name)
+                
+                # Get latest analysis data for this conversation
+                latest_analysis = self._get_latest_analysis(conversation)
+
                 # Get conversation history for context
                 conversation_history = Message.objects.filter(
                     conversation=conversation
                 ).order_by('created_at')
 
                 # Format conversation history for AI
+                conversation_text = "\n".join([
+                    f"{msg.sender}: {msg.text_content}"
+                    for msg in conversation_history
+                ])
+
+                # Create the bond analyst system prompt with person library
+                system_prompt = f"""You are a bond analyst assigned to help understand {person_name}. You have access to a comprehensive library of their emotional patterns and behaviors. Your job is to:
+
+Help the user name patterns in their relationship with {person_name}
+Reflect on whether those patterns are healthy, manipulative, or confusing
+Offer framing questions — but do not tell them what to feel or do
+
+**PERSON LIBRARY - {person_name.upper()}**
+
+**Emotional Triggers (Last 10):**
+{chr(10).join([f"- {trigger['emotion']} (intensity: {trigger['intensity']}) - {trigger['date'][:10]}" for trigger in person_library['emotional_triggers'][-10:]]) if person_library['emotional_triggers'] else "No emotional data yet"}
+
+**Communication Patterns (Last 5):**
+{chr(10).join([f"- {pattern['pattern']} - {pattern['date'][:10]}" for pattern in person_library['communication_patterns'][-5:]]) if person_library['communication_patterns'] else "No patterns detected yet"}
+
+**Risk Indicators (Last 5):**
+{chr(10).join([f"- {risk['risk']} - {risk['date'][:10]}" for risk in person_library['risk_indicators'][-5:]]) if person_library['risk_indicators'] else "No risks identified yet"}
+
+**Behavioral Trends (Last 5):**
+{chr(10).join([f"- {trend['style']} - {trend['date'][:10]}" for trend in person_library['behavioral_trends'][-5:]]) if person_library['behavioral_trends'] else "No behavioral data yet"}
+
+**Relationship Dynamics (Last 3):**
+{chr(10).join([f"- {dynamic['pattern']} (Risk: {dynamic['risk_level']}, Confidence: {dynamic['confidence']}%) - {dynamic['date'][:10]}" for dynamic in person_library['relationship_dynamics'][-3:]]) if person_library['relationship_dynamics'] else "No relationship dynamics analyzed yet"}
+
+**LATEST ANALYSIS (Current Conversation):**
+{f"Overall Pattern: {latest_analysis.get('overallPattern', 'Still analyzing...')}\nRisk Level: {latest_analysis.get('riskLevel', 'Unknown')}\nConfidence: {latest_analysis.get('confidence', 0)}%\nPrediction: {latest_analysis.get('prediction', 'Still gathering data...')}" if latest_analysis else "No analysis data for this conversation yet"}
+
+**CONVERSATION HISTORY:**
+{conversation_text if conversation_text else "No previous messages"}
+
+Remember: You're analyzing {person_name}'s patterns and helping the user understand their relationship dynamics. Don't tell them what to feel or do - help them see patterns and ask thoughtful questions."""
+
+                # Format messages for OpenAI
                 messages = [
-                    {"role": "system", "content": "You are a helpful AI assistant."},
+                    {"role": "system", "content": system_prompt},
                 ]
                 
                 for msg in conversation_history:
@@ -512,6 +653,8 @@ class ChatViewSet(viewsets.ViewSet):
                         "user_email": request.user.email,
                         "ip_address": request.META.get("REMOTE_ADDR"),
                         "user_agent": request.META.get("HTTP_USER_AGENT"),
+                        "person_library_size": sum(len(v) for v in person_library.values()),
+                        "has_latest_analysis": bool(latest_analysis),
                     }
                 )
                 return Response({
