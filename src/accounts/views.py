@@ -607,7 +607,7 @@ Offer framing questions — but do not tell them what to feel or do
 **CONVERSATION HISTORY:**
 {conversation_text if conversation_text else "No previous messages"}
 
-Remember: You're analyzing {person_name}'s patterns and helping the user understand their relationship dynamics. Don't tell them what to feel or do - help them see patterns and ask thoughtful questions."""
+Remember: You are analyzing {person_name} patterns and helping the user understand their relationship dynamics. Do not tell them what to feel or do - help them see patterns and ask thoughtful questions."""
 
                 # Format messages for OpenAI
                 messages = [
