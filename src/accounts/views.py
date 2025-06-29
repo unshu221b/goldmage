@@ -220,7 +220,19 @@ class AnalysisViewSet(viewsets.ViewSet):
                 '  "confidence": number between 0-100,\n'
                 '  "prediction": "Prediction about conversation outcome"\n'
                 "}\n\n"
-                "IMPORTANT: The number of items in each array (emotions, patterns, risks, communication) MUST match the number of lines in the conversation below, even if a line is not a typical message. If you cannot analyze a line, return a default/empty object for that line.\n"
+                "CRITICAL REQUIREMENTS:\n"
+                "1. The number of items in each array (emotions, patterns, risks, communication) MUST match the number of lines in the conversation below EXACTLY.\n"
+                "2. Process EVERY SINGLE LINE, including timestamps, duplicates, and system messages.\n"
+                "3. For timestamps or system messages, return:\n"
+                "   - emotions: {\"primary\": \"Neutral\", \"intensity\": 0, \"secondary\": []}\n"
+                "   - patterns: \"Timestamp or system message, not emotionally charged\"\n"
+                "   - risks: \"Low; no communicative content\"\n"
+                "   - communication: \"Non-communicative\"\n"
+                "4. For duplicate messages, analyze each occurrence separately.\n"
+                "5. DO NOT skip, filter, or combine any messages.\n"
+                "6. If you receive 12 messages, return exactly 12 items in each array.\n"
+                "7. If you receive 15 messages, return exactly 15 items in each array.\n"
+                "8. The array lengths must match the input message count PERFECTLY.\n\n"
                 f"Conversation:\n{conversation_history}"
             )
 
