@@ -195,35 +195,15 @@ def stripe_webhook(request):
         if event.type == 'checkout.session.completed':
             session = event.data.object
             
-            # Check if this is a credit purchase
+            # Handle credit purchases
             if session.metadata.get('purchase_type') == 'credit_purchase':
                 try:
-                    purchase = CreditPurchase.objects.get(stripe_session_id=session.id)
-                    if purchase.status == 'pending':
-                        # Mark purchase as completed and add credits
-                        if purchase.mark_completed():
-                            logger.info(f"Credit purchase completed: {purchase.id} - {purchase.credits_purchased} credits added to user {purchase.user.clerk_user_id}")
-                            
-                            # Track the successful purchase
-                            from helpers._mixpanel.client import mixpanel_client
-                            mixpanel_client.track_api_event(
-                                user_id=purchase.user.clerk_user_id,
-                                event_name="credit_purchase_completed",
-                                properties={
-                                    "purchase_id": purchase.id,
-                                    "product_name": purchase.product.name,
-                                    "credits_purchased": purchase.credits_purchased,
-                                    "amount_paid": float(purchase.amount_paid),
-                                    "user_email": purchase.user.email,
-                                    "user_credits_after": purchase.user.credits,
-                                }
-                            )
-                        else:
-                            logger.warning(f"Credit purchase {purchase.id} was already processed")
-                except CreditPurchase.DoesNotExist:
-                    logger.error(f"Credit purchase not found for session: {session.id}")
+                    user = CustomUser.objects.get(id=session.metadata['user_id'])
+                    credits_to_add = int(session.metadata['credits'])
+                    user.add_credits(credits_to_add)
+                    logger.info(f"Added {credits_to_add} credits to user {user.id}")
                 except Exception as e:
-                    logger.error(f"Error processing credit purchase: {str(e)}", exc_info=True)
+                    logger.error(f"Error adding credits: {str(e)}")
             
             # Handle subscription purchases (existing code)
             else:
@@ -291,5 +271,5 @@ def stripe_webhook(request):
         return HttpResponse(status=200)
     
     except Exception as e:
-        logger.error(f"Webhook error: {str(e)}", exc_info=True)
+        logger.error(f"Webhook error: {str(e)}")
         return HttpResponse(status=400)
