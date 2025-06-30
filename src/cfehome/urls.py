@@ -1,4 +1,3 @@
-
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include, re_path
@@ -22,6 +21,11 @@ urlpatterns = [
     path('api/create-customer-portal-session/', views.create_portal_session, name='create-portal-session'),
     path('api/create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
     path('api/user/summary/', user_summary, name='user-summary'),
+    
+    # Credit purchase endpoints
+    path('api/credit-products/', views.get_credit_products, name='get-credit-products'),
+    path('api/create-credit-purchase-session/', views.create_credit_purchase_session, name='create-credit-purchase-session'),
+    path('api/credit-purchase-history/', views.get_credit_purchase_history, name='get-credit-purchase-history'),
 ]
 
 if settings.DEBUG:

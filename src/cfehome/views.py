@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, csrf_
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import cache_control
 from helpers._mixpanel.client import mixpanel_client
+from accounts.models import CustomUser, CreditProduct, CreditPurchase
 
 import logging
 import stripe
@@ -177,4 +178,138 @@ Stack Trace:
         [settings.ADMIN_EMAIL],
         fail_silently=True,
     )
+
+@csrf_exempt
+@api_login_required
+@require_http_methods(["GET"])
+def get_credit_products(request):
+    """Get available credit products"""
+    try:
+        products = CreditProduct.objects.filter(is_active=True)
+        data = []
+        for product in products:
+            data.append({
+                'id': product.id,
+                'name': product.name,
+                'description': product.description,
+                'credits': product.credits,
+                'price_usd': float(product.price_usd),
+                'stripe_price_id': product.stripe_price_id,
+            })
+        return JsonResponse({'products': data})
+    except Exception as e:
+        logger.error(f"Error getting credit products: {str(e)}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+@api_login_required
+@require_http_methods(["POST"])
+def create_credit_purchase_session(request):
+    """Create a Stripe checkout session for credit purchase"""
+    try:
+        # Log authentication details
+        logger.info("=== Credit Purchase Session Creation Started ===")
+        logger.info(f"User authenticated: {request.user.is_authenticated}")
+        logger.info(f"User ID: {getattr(request.user, 'id', 'No ID')}")
+        logger.info(f"User email: {getattr(request.user, 'email', 'No email')}")
+        logger.info(f"User clerk_user_id: {getattr(request.user, 'clerk_user_id', 'No clerk ID')}")
+        
+        # Log the raw request body
+        logger.info(f"Raw request body: {request.body}")
+
+        data = json.loads(request.body)
+        product_id = data.get('product_id')
+        logger.info(f"Requested product ID: {product_id}")
+
+        if not product_id:
+            logger.error("Product ID is required")
+            return JsonResponse({'error': 'Product ID is required'}, status=400)
+
+        try:
+            product = CreditProduct.objects.get(id=product_id, is_active=True)
+        except CreditProduct.DoesNotExist:
+            logger.error(f"Product not found: {product_id}")
+            return JsonResponse({'error': 'Product not found'}, status=404)
+
+        # Create Stripe checkout session
+        logger.info("Creating Stripe checkout session for credit purchase...")
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=request.user.email,
+            client_reference_id=str(request.user.id),
+            metadata={
+                'user_id': str(request.user.id),
+                'product_id': str(product.id),
+                'purchase_type': 'credit_purchase'
+            },
+            line_items=[{
+                'price': product.stripe_price_id,
+                'quantity': 1,
+            }],
+            mode='payment',  # One-time payment
+            success_url=f"{settings.FRONTEND_URL}/credits/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{settings.FRONTEND_URL}/credits/cancel",
+        )
+        logger.info(f"Credit purchase checkout session created successfully. URL: {checkout_session.url}")
+
+        # Create purchase record
+        purchase = CreditPurchase.objects.create(
+            user=request.user,
+            product=product,
+            stripe_session_id=checkout_session.id,
+            amount_paid=product.price_usd,
+            credits_purchased=product.credits,
+            status='pending'
+        )
+
+        # Track the event
+        mixpanel_client.track_api_event(
+            user_id=request.user.clerk_user_id,
+            event_name="credit_purchase_session_created",
+            properties={
+                "product_id": product.id,
+                "product_name": product.name,
+                "credits": product.credits,
+                "price_usd": float(product.price_usd),
+                "checkout_url": checkout_session.url,
+                "user_email": request.user.email,
+                "ip_address": request.META.get("REMOTE_ADDR"),
+                "user_agent": request.META.get("HTTP_USER_AGENT"),
+            }
+        )
+
+        return JsonResponse({
+            'checkout_url': checkout_session.url,
+            'purchase_id': purchase.id
+        })
+
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error: {str(e)}")
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        logger.error(f"Unexpected error in create_credit_purchase_session: {str(e)}", exc_info=True)
+        send_error_email(request, "CREDIT_PURCHASE_SESSION_ERROR", str(e))
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+@api_login_required
+@require_http_methods(["GET"])
+def get_credit_purchase_history(request):
+    """Get user's credit purchase history"""
+    try:
+        purchases = CreditPurchase.objects.filter(user=request.user).select_related('product')
+        data = []
+        for purchase in purchases:
+            data.append({
+                'id': purchase.id,
+                'product_name': purchase.product.name,
+                'credits_purchased': purchase.credits_purchased,
+                'amount_paid': float(purchase.amount_paid),
+                'status': purchase.status,
+                'created_at': purchase.created_at.isoformat(),
+                'completed_at': purchase.completed_at.isoformat() if purchase.completed_at else None,
+            })
+        return JsonResponse({'purchases': data})
+    except Exception as e:
+        logger.error(f"Error getting credit purchase history: {str(e)}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
 

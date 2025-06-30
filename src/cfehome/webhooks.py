@@ -3,7 +3,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from accounts.models import CustomUser
+from accounts.models import CustomUser, CreditPurchase
 import json
 import hmac
 import hashlib
@@ -194,15 +194,48 @@ def stripe_webhook(request):
     try:
         if event.type == 'checkout.session.completed':
             session = event.data.object
-            try:
-                user = CustomUser.objects.get(clerk_user_id=session.customer)
-                # Set premium membership and credits
-                user.membership = 'premium'
-                user.credits = 200  # Set initial premium credits
-                user.is_thread_depth_locked = False  # Remove any thread locks
-                user.save()
-            except CustomUser.DoesNotExist:
-                pass
+            
+            # Check if this is a credit purchase
+            if session.metadata.get('purchase_type') == 'credit_purchase':
+                try:
+                    purchase = CreditPurchase.objects.get(stripe_session_id=session.id)
+                    if purchase.status == 'pending':
+                        # Mark purchase as completed and add credits
+                        if purchase.mark_completed():
+                            logger.info(f"Credit purchase completed: {purchase.id} - {purchase.credits_purchased} credits added to user {purchase.user.clerk_user_id}")
+                            
+                            # Track the successful purchase
+                            from helpers._mixpanel.client import mixpanel_client
+                            mixpanel_client.track_api_event(
+                                user_id=purchase.user.clerk_user_id,
+                                event_name="credit_purchase_completed",
+                                properties={
+                                    "purchase_id": purchase.id,
+                                    "product_name": purchase.product.name,
+                                    "credits_purchased": purchase.credits_purchased,
+                                    "amount_paid": float(purchase.amount_paid),
+                                    "user_email": purchase.user.email,
+                                    "user_credits_after": purchase.user.credits,
+                                }
+                            )
+                        else:
+                            logger.warning(f"Credit purchase {purchase.id} was already processed")
+                except CreditPurchase.DoesNotExist:
+                    logger.error(f"Credit purchase not found for session: {session.id}")
+                except Exception as e:
+                    logger.error(f"Error processing credit purchase: {str(e)}", exc_info=True)
+            
+            # Handle subscription purchases (existing code)
+            else:
+                try:
+                    user = CustomUser.objects.get(clerk_user_id=session.customer)
+                    # Set premium membership and credits
+                    user.membership = 'premium'
+                    user.credits = 200  # Set initial premium credits
+                    user.is_thread_depth_locked = False  # Remove any thread locks
+                    user.save()
+                except CustomUser.DoesNotExist:
+                    pass
 
         elif event.type == 'customer.subscription.deleted':
             subscription = event.data.object
