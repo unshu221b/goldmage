@@ -163,6 +163,59 @@ def create_checkout_session(request):
         send_error_email(request, "CHECKOUT_SESSION_ERROR", str(e))
         return JsonResponse({'error': str(e)}, status=400)
 
+@csrf_exempt
+@api_login_required
+@require_http_methods(["POST"])
+def create_credit_purchase_session(request):
+    """Create a Stripe checkout session for credit purchase"""
+    try:
+        data = json.loads(request.body)
+        product_id = data.get('product_id')  # 'small', 'medium', 'large'
+        
+        # Simple mapping - no database needed!
+        products = {
+            'small': {'credits': 50, 'price_id': settings.STRIPE_CREDIT_SMALL_PRICE_ID, 'price': 3.00},
+            'medium': {'credits': 200, 'price_id': settings.STRIPE_CREDIT_MEDIUM_PRICE_ID, 'price': 10.00},
+            'large': {'credits': 1200, 'price_id': settings.STRIPE_CREDIT_LARGE_PRICE_ID, 'price': 50.00},
+        }
+        
+        if product_id not in products:
+            return JsonResponse({'error': 'Invalid product'}, status=400)
+            
+        product = products[product_id]
+                # Prefer authenticated user's email, fallback to frontend-provided email
+        customer_email = getattr(request.user, "email", None) or data.get("email")
+        if not customer_email:
+            logger.error("No email found for checkout session.")
+            return JsonResponse({'error': 'No email provided'}, status=400)
+
+        logger.info(f"Using customer_email: {customer_email}")
+
+        # Create Stripe checkout session
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=customer_email,
+            metadata={
+                'user_id': str(request.user.id),
+                'product_id': product_id,
+                'credits': product['credits'],
+                'purchase_type': 'credit_purchase'
+            },
+            line_items=[{
+                'price': product['price_id'],
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f"{settings.FRONTEND_URL}/credits/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{settings.FRONTEND_URL}/credits/cancel",
+        )
+
+        return JsonResponse({'checkout_url': checkout_session.url})
+
+    except Exception as e:
+        logger.error(f"Error creating credit purchase session: {str(e)}")
+        send_error_email(request, "CREDIT_PURCHASE_SESSION_ERROR", str(e))
+        return JsonResponse({'error': str(e)}, status=500)
+
 def send_error_email(request, error_code, error_message, stack_trace=None):
     subject = f'52AICHAN Error {error_code}'
     message = f"""
@@ -185,71 +238,3 @@ Stack Trace:
         [settings.ADMIN_EMAIL],
         fail_silently=True,
     )
-
-@csrf_exempt
-@api_login_required
-@require_http_methods(["GET"])
-def get_credit_products(request):
-    """Get available credit products"""
-    try:
-        products = CreditProduct.objects.filter(is_active=True)
-        data = []
-        for product in products:
-            data.append({
-                'id': product.id,
-                'name': product.name,
-                'description': product.description,
-                'credits': product.credits,
-                'price_usd': float(product.price_usd),
-                'stripe_price_id': product.stripe_price_id,
-            })
-        return JsonResponse({'products': data})
-    except Exception as e:
-        logger.error(f"Error getting credit products: {str(e)}", exc_info=True)
-        return JsonResponse({'error': str(e)}, status=500)
-
-@csrf_exempt
-@api_login_required
-@require_http_methods(["POST"])
-def create_credit_purchase_session(request):
-    """Create a Stripe checkout session for credit purchase"""
-    try:
-        data = json.loads(request.body)
-        product_id = data.get('product_id')  # 'small', 'medium', 'large'
-        
-        # Simple mapping - no database needed!
-        products = {
-            'small': {'credits': 50, 'price_id': settings.STRIPE_CREDIT_SMALL_PRICE_ID, 'price': 3.00},
-            'medium': {'credits': 200, 'price_id': settings.STRIPE_CREDIT_MEDIUM_PRICE_ID, 'price': 10.00},
-            'large': {'credits': 1200, 'price_id': settings.STRIPE_CREDIT_LARGE_PRICE_ID, 'price': 50.00},
-        }
-        
-        if product_id not in products:
-            return JsonResponse({'error': 'Invalid product'}, status=400)
-            
-        product = products[product_id]
-        
-        # Create Stripe checkout session
-        checkout_session = stripe.checkout.Session.create(
-            customer_email=request.user.email,
-            metadata={
-                'user_id': str(request.user.id),
-                'product_id': product_id,
-                'credits': product['credits'],
-                'purchase_type': 'credit_purchase'
-            },
-            line_items=[{
-                'price': product['price_id'],
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=f"{settings.FRONTEND_URL}/credits/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{settings.FRONTEND_URL}/credits/cancel",
-        )
-
-        return JsonResponse({'checkout_url': checkout_session.url})
-
-    except Exception as e:
-        logger.error(f"Error creating credit purchase session: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
-
