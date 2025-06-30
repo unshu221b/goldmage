@@ -62,17 +62,26 @@ def home_view(request):
 @require_http_methods(["POST"])
 def create_portal_session(request):
     try:
-        for header, value in request.headers.items():
-            logger.info(f"{header}: {value}")
-
-
+        logger.info(f"Creating portal session for user: {request.user.clerk_user_id}")
+           
+        # Check if customer exists
+        try:
+            customer = stripe.Customer.retrieve(request.user.clerk_user_id)
+            logger.info(f"Found existing customer: {customer.id}")
+        except stripe.error.InvalidRequestError:
+            logger.info("Customer not found, creating new one...")
+            customer = stripe.Customer.create(
+                id=request.user.clerk_user_id,  # Use Clerk ID as Stripe ID
+                email=request.user.email
+            )
+           
         portal_session = stripe.billing_portal.Session.create(
             customer=request.user.clerk_user_id,
             return_url=f"{settings.FRONTEND_URL}/",
         )
         return JsonResponse({'portal_url': portal_session.url})
-    except stripe.error.StripeError as e:
-        send_error_email(request, "PORTAL_SESSION_ERROR", str(e))
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
         return JsonResponse({'error': str(e)}, status=400)
 
 
