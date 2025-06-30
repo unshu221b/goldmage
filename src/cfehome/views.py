@@ -206,7 +206,7 @@ def create_credit_purchase_session(request):
             }],
             mode='payment',
             success_url=f"{settings.FRONTEND_URL}/credits/success?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{settings.FRONTEND_URL}/credits/cancel",
+            cancel_url=f"{settings.FRONTEND_URL}/",
         )
 
         return JsonResponse({'checkout_url': checkout_session.url})
