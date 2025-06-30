@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, csrf_
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import cache_control
 from helpers._mixpanel.client import mixpanel_client
-from accounts.models import CustomUser, CreditProduct, CreditPurchase
+from accounts.models import CustomUser
 
 import logging
 import stripe

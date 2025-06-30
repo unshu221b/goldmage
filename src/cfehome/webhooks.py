@@ -3,7 +3,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from accounts.models import CustomUser, CreditPurchase
+from accounts.models import CustomUser
 import json
 import hmac
 import hashlib
@@ -195,15 +195,28 @@ def stripe_webhook(request):
         if event.type == 'checkout.session.completed':
             session = event.data.object
             
-            # Handle credit purchases
+            # Check if this is a credit purchase (one-time payment)
             if session.metadata.get('purchase_type') == 'credit_purchase':
                 try:
                     user = CustomUser.objects.get(id=session.metadata['user_id'])
                     credits_to_add = int(session.metadata['credits'])
                     user.add_credits(credits_to_add)
-                    logger.info(f"Added {credits_to_add} credits to user {user.id}")
+                    logger.info(f"✅ Added {credits_to_add} credits to user {user.id} (now has {user.credits} credits)")
+                    
+                    # Track the successful purchase
+                    from helpers._mixpanel.client import mixpanel_client
+                    mixpanel_client.track_api_event(
+                        user_id=user.clerk_user_id,
+                        event_name="credit_purchase_completed",
+                        properties={
+                            "credits_purchased": credits_to_add,
+                            "amount_paid": session.amount_total / 100,  # Convert from cents
+                            "user_email": user.email,
+                            "user_credits_after": user.credits,
+                        }
+                    )
                 except Exception as e:
-                    logger.error(f"Error adding credits: {str(e)}")
+                    logger.error(f"❌ Error adding credits: {str(e)}", exc_info=True)
             
             # Handle subscription purchases (existing code)
             else:
@@ -214,8 +227,9 @@ def stripe_webhook(request):
                     user.credits = 200  # Set initial premium credits
                     user.is_thread_depth_locked = False  # Remove any thread locks
                     user.save()
+                    logger.info(f"✅ Premium subscription activated for user {user.id}")
                 except CustomUser.DoesNotExist:
-                    pass
+                    logger.warning(f"User not found for subscription: {session.customer}")
 
         elif event.type == 'customer.subscription.deleted':
             subscription = event.data.object
@@ -271,5 +285,5 @@ def stripe_webhook(request):
         return HttpResponse(status=200)
     
     except Exception as e:
-        logger.error(f"Webhook error: {str(e)}")
+        logger.error(f"Webhook error: {str(e)}", exc_info=True)
         return HttpResponse(status=400)

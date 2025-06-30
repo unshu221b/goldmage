@@ -25,7 +25,6 @@ urlpatterns = [
     # Credit purchase endpoints
     path('api/credit-products/', views.get_credit_products, name='get-credit-products'),
     path('api/create-credit-purchase-session/', views.create_credit_purchase_session, name='create-credit-purchase-session'),
-    path('api/credit-purchase-history/', views.get_credit_purchase_history, name='get-credit-purchase-history'),
 ]
 
 if settings.DEBUG:
