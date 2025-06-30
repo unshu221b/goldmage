@@ -49,114 +49,16 @@ def verify_clerk_webhook(request, webhook_secret):
 @require_POST
 def clerk_webhook(request):
     logger.info("Received Clerk webhook request")
-    
-    # Get the webhook secret from settings
     webhook_secret = settings.CLERK_WEBHOOK_SIGNING_SECRET
-    
-    # Verify the webhook
     if not verify_clerk_webhook(request, webhook_secret):
         logger.error("Invalid webhook signature")
         return HttpResponse(status=400)
-    
     try:
-        # Parse the payload
         event_data = json.loads(request.body)
-        
-        logger.info(f"Processing Clerk webhook event: {event_data.get('type')}")
+        event_type = event_data.get('type')
+        logger.info(f"Processing Clerk webhook event: {event_type}")
         logger.info(f"Event data: {event_data.get('data')}")
-        
-        # Handle different event types
-        if event_data.get('type') == 'user.created':
-            # Create user in Django database
-            clerk_user_id = event_data['data']['id']
-            
-            # Get primary email from email_addresses array
-            primary_email = None
-            if event_data['data'].get('email_addresses'):
-                for email in event_data['data']['email_addresses']:
-                    if email['id'] == event_data['data'].get('primary_email_address_id'):
-                        primary_email = email['email_address']
-                        break
-            
-            # Get name from external accounts if available
-            first_name = event_data['data'].get('first_name')
-            last_name = event_data['data'].get('last_name')
-            
-            if event_data['data'].get('external_accounts'):
-                external_account = event_data['data']['external_accounts'][0]
-                if not first_name and external_account.get('first_name'):
-                    first_name = external_account['first_name']
-                if not last_name and external_account.get('last_name'):
-                    last_name = external_account['last_name']
-            
-            user_data = {
-                "username": event_data['data'].get('username') or f"user_{clerk_user_id[-8:]}",
-                "first_name": first_name or "",
-                "last_name": last_name or "",
-                "email": primary_email or "",
-                "membership": "FREE",  # Default to free membership
-                "credits": 10  # Add initial free credits
-            }
-            
-            logger.info(f"Creating user with data: {user_data}")
-            
-            try:
-                user, created = CustomUser.objects.update_or_create(
-                    clerk_user_id=clerk_user_id,
-                    defaults=user_data
-                )
-                if created:
-                    logger.info(f"Created new user from webhook: {clerk_user_id} with {user.credits} credits")
-                else:
-                    logger.info(f"Updated existing user from webhook: {clerk_user_id}")
-            except Exception as e:
-                logger.error(f"Error creating/updating user: {str(e)}", exc_info=True)
-                return HttpResponse(status=500)
-                
-        elif event_data.get('type') == 'user.updated':
-            # Update user in Django database
-            clerk_user_id = event_data['data']['id']
-            
-            # Get primary email from email_addresses array
-            primary_email = None
-            if event_data['data'].get('email_addresses'):
-                for email in event_data['data']['email_addresses']:
-                    if email['id'] == event_data['data'].get('primary_email_address_id'):
-                        primary_email = email['email_address']
-                        break
-            
-            # Get name from external accounts if available
-            first_name = event_data['data'].get('first_name')
-            last_name = event_data['data'].get('last_name')
-            
-            if event_data['data'].get('external_accounts'):
-                external_account = event_data['data']['external_accounts'][0]
-                if not first_name and external_account.get('first_name'):
-                    first_name = external_account['first_name']
-                if not last_name and external_account.get('last_name'):
-                    last_name = external_account['last_name']
-            
-            user_data = {
-                "username": event_data['data'].get('username') or f"user_{clerk_user_id[-8:]}",
-                "first_name": first_name or "",
-                "last_name": last_name or "",
-                "email": primary_email or "",
-            }
-            
-            logger.info(f"Updating user with data: {user_data}")
-            
-            try:
-                user, created = CustomUser.objects.update_or_create(
-                    clerk_user_id=clerk_user_id,
-                    defaults=user_data
-                )
-                logger.info(f"Updated user from webhook: {clerk_user_id}")
-            except Exception as e:
-                logger.error(f"Error updating user: {str(e)}", exc_info=True)
-                return HttpResponse(status=500)
-            
-        elif event_data.get('type') == 'user.deleted':
-            # Handle user deletion if needed
+        if event_type == 'user.deleted':
             clerk_user_id = event_data['data']['id']
             try:
                 user = CustomUser.objects.get(clerk_user_id=clerk_user_id)
@@ -167,9 +69,11 @@ def clerk_webhook(request):
             except Exception as e:
                 logger.error(f"Error deleting user: {str(e)}", exc_info=True)
                 return HttpResponse(status=500)
-        
+        elif event_type == 'user.passwordChanged':
+            clerk_user_id = event_data['data']['id']
+            logger.info(f"User password changed: {clerk_user_id}")
+            # Optionally: force logout, notify, or audit here
         return HttpResponse(status=200)
-        
     except Exception as e:
         logger.error(f"Clerk webhook error: {str(e)}", exc_info=True)
         return HttpResponse(status=400)
