@@ -94,7 +94,7 @@ def clerk_webhook(request):
                 "first_name": first_name or "",
                 "last_name": last_name or "",
                 "email": primary_email or "",
-                "membership": "free",  # Default to free membership
+                "membership": "FREE",  # Default to free membership
                 "credits": 10  # Add initial free credits
             }
             
@@ -223,7 +223,7 @@ def stripe_webhook(request):
                 try:
                     user = CustomUser.objects.get(clerk_user_id=session.customer)
                     # Set premium membership and credits
-                    user.membership = 'premium'
+                    user.membership = 'PREMIUM'
                     user.credits = 200  # Set initial premium credits
                     user.is_thread_depth_locked = False  # Remove any thread locks
                     user.save()
@@ -236,7 +236,7 @@ def stripe_webhook(request):
             try:
                 user = CustomUser.objects.get(clerk_user_id=subscription.customer)
                 # Reset to free tier
-                user.membership = 'free'
+                user.membership = 'FREE'
                 user.credits = 10  # Reset to free tier credits
                 user.save()
             except CustomUser.DoesNotExist:
@@ -248,9 +248,9 @@ def stripe_webhook(request):
             try:
                 user = CustomUser.objects.get(clerk_user_id=subscription.customer)
                 if subscription.status == 'active':
-                    user.membership = 'premium'
+                    user.membership = 'PREMIUM'
                 else:
-                    user.membership = 'free'
+                    user.membership = 'FREE'
                 user.save()
             except CustomUser.DoesNotExist:
                 pass
@@ -277,7 +277,7 @@ def stripe_webhook(request):
             customer = event.data.object
             try:
                 user = CustomUser.objects.get(clerk_user_id=customer.id)
-                user.membership = 'free'
+                user.membership = 'FREE'
                 user.save()
             except CustomUser.DoesNotExist:
                 pass
