@@ -111,12 +111,19 @@ def create_checkout_session(request):
         if not price_id:
             logger.error(f"Invalid period requested: {period}")
             return JsonResponse({'error': 'Invalid period'}, status=400)
+        
+        # Prefer authenticated user's email, fallback to frontend-provided email
+        customer_email = getattr(request.user, "email", None) or data.get("email")
+        if not customer_email:
+            logger.error("No email found for checkout session.")
+            return JsonResponse({'error': 'No email provided'}, status=400)
 
+        logger.info(f"Using customer_email: {customer_email}")
         # Create Stripe checkout session with the correct price
         logger.info("Creating Stripe checkout session...")
         checkout_session = stripe.checkout.Session.create(
             # customer=request.user.clerk_user_id,
-            customer_email=request.user.email,
+            customer_email=customer_email,
             client_reference_id=str(request.user.id),
             metadata={
                 'user_id': str(request.user.id),
@@ -138,7 +145,7 @@ def create_checkout_session(request):
             properties={
                 "checkout_url": checkout_session.url,
                 "period": period,
-                "user_email": request.user.email,
+                "user_email": customer_email,
                 "ip_address": request.META.get("REMOTE_ADDR"),
                 "user_agent": request.META.get("HTTP_USER_AGENT"),
             }
