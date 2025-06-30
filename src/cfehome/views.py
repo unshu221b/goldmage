@@ -219,16 +219,16 @@ def create_credit_purchase_session(request):
 def send_error_email(request, error_code, error_message, stack_trace=None):
     subject = f'52AICHAN Error {error_code}'
     message = f"""
-An error occurred on 52AICHAN:
+        An error occurred on 52AICHAN:
 
-Error Code: {error_code}
-Error Message: {error_message}
-Path: {request.path}
-Method: {request.method}
-User: {request.user}
+        Error Code: {error_code}
+        Error Message: {error_message}
+        Path: {request.path}
+        Method: {request.method}
+        User: {request.user}
 
-Stack Trace:
-{stack_trace if stack_trace else 'No stack trace available'}
+        Stack Trace:
+        {stack_trace if stack_trace else 'No stack trace available'}
     """
     
     send_mail(
