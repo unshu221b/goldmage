@@ -20,11 +20,8 @@ urlpatterns = [
     path('webhook/clerk/', webhooks.clerk_webhook, name='clerk-webhook'),
     path('api/create-customer-portal-session/', views.create_portal_session, name='create-portal-session'),
     path('api/create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
-    path('api/user/summary/', user_summary, name='user-summary'),
-    
-    # Credit purchase endpoints
-    path('api/credit-products/', views.get_credit_products, name='get-credit-products'),
     path('api/create-credit-purchase-session/', views.create_credit_purchase_session, name='create-credit-purchase-session'),
+    path('api/user/summary/', user_summary, name='user-summary'),
 ]
 
 if settings.DEBUG:
