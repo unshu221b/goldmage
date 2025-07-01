@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore", module="clerk_backend_api")
 warnings.filterwarnings("ignore", module="pydantic")
 
 CLERK_SECRET_KEY = settings.CLERK_SECRET_KEY
-CLERK_AUTH_PARTIES = settings.CLERK_AUTH_PARTIES
+CLERK_AUTH_PARTIES = [party.strip().rstrip(';') for party in settings.CLERK_AUTH_PARTIES]
 
 User = get_user_model()
 logger = logging.getLogger('goldmage')
