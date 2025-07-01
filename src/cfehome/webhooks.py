@@ -14,7 +14,7 @@ from helpers.myclerk.utils import update_or_create_clerk_user
 
 import logging
 logger = logging.getLogger('goldmage')
-from svix.webhooks import Webhook, WebhookVerificationError
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
