@@ -98,8 +98,6 @@ CLERK_AUTH_PARTIES = [
     'https://52aichan.com',
     'https://www.52aichan.com',
     'https://api.52aichan.com',
-    'http://localhost:3000',
-    'http://localhost:8000',
 ]
 
 FRONTEND_URL=config("FRONTEND_URL")
