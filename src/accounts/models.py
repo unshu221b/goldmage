@@ -4,6 +4,7 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils import timezone
 from datetime import timedelta
 import uuid
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, clerk_user_id, **extra_fields):
         if not clerk_user_id:
@@ -13,8 +14,6 @@ class CustomUserManager(BaseUserManager):
         user.is_active = True
         user.save()
         return user
-
-    
 
 class CustomUser(AbstractBaseUser):
     # user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -36,13 +35,13 @@ class CustomUser(AbstractBaseUser):
     objects = CustomUserManager()
 
     MEMBERSHIP_CHOICES = [
-        ('free', 'Free'),
-        ('premium', 'Premium'),
+        ('FREE', 'Free'),
+        ('PREMIUM', 'Premium'),
     ]
     membership = models.CharField(
         max_length=10,
         choices=MEMBERSHIP_CHOICES,
-        default='free'
+        default='FREE'
     )
     # Credit system fields
     credits = models.IntegerField(default=10)  # Daily EP points
@@ -165,11 +164,6 @@ class CustomUser(AbstractBaseUser):
             self.credits = 10
         super().save(*args, **kwargs)
 
-    @property
-    def is_authenticated(self):
-        """Always return True for authenticated users"""
-        return True
-    
     @property
     def is_staff(self):
         "Is the user a member of staff?"

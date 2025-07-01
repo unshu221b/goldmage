@@ -1,8 +1,6 @@
 import json
-import httpx
 from clerk_backend_api import Clerk
-from clerk_backend_api.security import authenticate_request
-from clerk_backend_api.security.types import AuthenticateRequestOptions
+from clerk_backend_api.jwks_helpers import AuthenticateRequestOptions
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -16,13 +14,13 @@ warnings.filterwarnings("ignore", module="clerk_backend_api")
 warnings.filterwarnings("ignore", module="pydantic")
 
 CLERK_SECRET_KEY = settings.CLERK_SECRET_KEY
-CLERK_AUTH_PARTIES = [party.strip().rstrip(';') for party in settings.CLERK_AUTH_PARTIES]
+CLERK_AUTH_PARTIES = settings.CLERK_AUTH_PARTIES
 
 User = get_user_model()
 logger = logging.getLogger('goldmage')
 
 
-def get_clerk_user_id_from_request(request: httpx.Request):
+def get_clerk_user_id_from_request(request):
     sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
     try:
         
@@ -33,25 +31,18 @@ def get_clerk_user_id_from_request(request: httpx.Request):
             return None
             
         token = auth_header[7:]  # Remove 'Bearer ' prefix
+        logger.info(f"Received token: {token[:20]}...")
         
-        # Decode the JWT without verifying signature, just for logging
-        try:
-            decoded = jwt.decode(token, options={"verify_signature": False})
-            logger.info(f"JWT aud: {decoded.get('aud')!r}")
-        except Exception as e:
-            logger.warning(f"Could not decode JWT for logging: {e}")
-            decoded = {}
-            
-        logger.info(f"Authorized parties: {CLERK_AUTH_PARTIES!r}")
+        # Verify the token
         request_state = sdk.authenticate_request(
             request,
             AuthenticateRequestOptions(
-                audience='https://api.52aichan.com',
                 authorized_parties=CLERK_AUTH_PARTIES
             )
         )
+        
         if not request_state.is_signed_in:
-            logger.warning(f"User is not signed in according to Clerk. Reason: {getattr(request_state, 'reason', 'No reason provided')}")
+            logger.warning("User is not signed in according to Clerk")
             return None
             
         # Extract user ID from the token
