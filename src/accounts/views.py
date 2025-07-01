@@ -30,6 +30,15 @@ class ConversationListCreateView(viewsets.ModelViewSet):
     lookup_field = 'uuid'  # Add this line to use uuid instead of id
 
     def get_queryset(self):
+        # Add debugging
+        print(f"=== DEBUG INFO ===")
+        print(f"User: {self.request.user}")
+        print(f"User type: {type(self.request.user)}")
+        print(f"User ID: {getattr(self.request.user, 'id', 'NO ID')}")
+        print(f"User clerk_user_id: {getattr(self.request.user, 'clerk_user_id', 'NO CLERK ID')}")
+        print(f"Is authenticated: {getattr(self.request.user, 'is_authenticated', 'NO PROPERTY')}")
+        print(f"Is active: {getattr(self.request.user, 'is_active', 'NO PROPERTY')}")
+        print(f"==================")
         return Conversation.objects.filter(user=self.request.user)
 
     def get_object(self):
