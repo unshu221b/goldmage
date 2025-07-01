@@ -1,4 +1,5 @@
 import json
+import httpx
 from clerk_backend_api import Clerk
 from clerk_backend_api.security import authenticate_request
 from clerk_backend_api.security.types import AuthenticateRequestOptions
@@ -24,8 +25,6 @@ logger = logging.getLogger('goldmage')
 def get_clerk_user_id_from_request(request):
     sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
     try:
-        logger.info("Attempting to authenticate request with Clerk")
-        logger.info(f"Using CLERK_AUTH_PARTIES: {CLERK_AUTH_PARTIES}")
         
         # Get the token from Authorization header
         auth_header = request.headers.get('Authorization', '')
@@ -36,14 +35,11 @@ def get_clerk_user_id_from_request(request):
         token = auth_header[7:]  # Remove 'Bearer ' prefix
         logger.info(f"Received token: {token[:20]}...")
 
-        options = AuthenticateRequestOptions(
-            authorized_parties=CLERK_AUTH_PARTIES
-        )
-
-        # Verify the token
-        request_state = authenticate_request(
+        request_state = sdk.authenticate_request(
             request,
-            options
+            AuthenticateRequestOptions(
+                authorized_parties=CLERK_AUTH_PARTIES
+            )
         )
         
         if not request_state.is_signed_in:
