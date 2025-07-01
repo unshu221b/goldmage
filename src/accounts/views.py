@@ -342,14 +342,14 @@ class AnalysisViewSet(viewsets.ViewSet):
         now = timezone.now()
         days_until_refill = (reset_time - now).days if reset_time else None
         
-        is_free_user = user.membership == 'free'
+        is_free_user = user.membership == 'FREE'
         
         return Response({
             'remaining_credits': user.credits,
             'reset_time': reset_time_iso,
             'is_out_of_credits': user.credits <= 0,
             'plan_type': user.membership,
-            'total_credits': 200 if user.membership == 'premium' else 10,
+            'total_credits': 200 if user.membership == 'PREMIUM' else 10,
             'total_usage_14d': user.total_usage_14d if is_free_user else 0,
             'is_thread_locked': user.is_thread_depth_locked if is_free_user else False,
             'days_until_refill': days_until_refill,
@@ -357,7 +357,7 @@ class AnalysisViewSet(viewsets.ViewSet):
             'is_extended_refresh': user.is_thread_depth_locked,
             'last_usage': user.last_usage_timestamp.isoformat() if user.last_usage_timestamp else None,
             'usage_limit': 140 if is_free_user else None,
-            'daily_limit': 200 if user.membership == 'premium' else 10
+            'daily_limit': 200 if user.membership == 'PREMIUM' else 10
         })
 
     @action(detail=False, methods=['post'])

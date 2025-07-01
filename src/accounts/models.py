@@ -166,6 +166,11 @@ class CustomUser(AbstractBaseUser):
         super().save(*args, **kwargs)
 
     @property
+    def is_authenticated(self):
+        """Always return True for authenticated users"""
+        return True
+    
+    @property
     def is_staff(self):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
