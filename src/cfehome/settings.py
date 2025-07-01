@@ -137,7 +137,7 @@ INTERNAL_IPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'helpers.myclerk.auth.ClerkAuthentication',
+        # 'helpers.myclerk.auth.ClerkAuthentication',
     ),
 }
 
