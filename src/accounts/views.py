@@ -11,7 +11,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from datetime import datetime
-from django.http import Http404
+from django.http import Http404, JsonResponse
 
 from cfehome.views import send_error_email
 import json
@@ -24,21 +24,24 @@ client = OpenAI(api_key=settings.OPENAI_API_KEY)
 logger = logging.getLogger('goldmage')
 
 
-@method_decorator(api_login_required, name='dispatch')
 class ConversationListCreateView(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
-    lookup_field = 'uuid'  # Add this line to use uuid instead of id
+    lookup_field = 'uuid'
+
+    def dispatch(self, request, *args, **kwargs):
+        # Add authentication check here
+        print(f"=== DISPATCH DEBUG ===")
+        print(f"User: {request.user}")
+        print(f"User type: {type(request.user)}")
+        print(f"Is authenticated: {getattr(request.user, 'is_authenticated', 'NO PROPERTY')}")
+        print(f"=====================")
+        
+        if not request.user.is_authenticated:
+            return JsonResponse({"detail": "Auth required"}, status=401)
+        
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        # Add debugging
-        print(f"=== DEBUG INFO ===")
-        print(f"User: {self.request.user}")
-        print(f"User type: {type(self.request.user)}")
-        print(f"User ID: {getattr(self.request.user, 'id', 'NO ID')}")
-        print(f"User clerk_user_id: {getattr(self.request.user, 'clerk_user_id', 'NO CLERK ID')}")
-        print(f"Is authenticated: {getattr(self.request.user, 'is_authenticated', 'NO PROPERTY')}")
-        print(f"Is active: {getattr(self.request.user, 'is_active', 'NO PROPERTY')}")
-        print(f"==================")
         return Conversation.objects.filter(user=self.request.user)
 
     def get_object(self):
@@ -164,7 +167,6 @@ class ConversationListCreateView(viewsets.ModelViewSet):
         context['request'] = self.request
         return context
 
-@method_decorator(api_login_required, name='dispatch')
 class AnalysisViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def analyze(self, request):
@@ -412,7 +414,6 @@ class AnalysisViewSet(viewsets.ViewSet):
             send_error_email(request, "IMAGE_ANALYSIS_ERROR", str(e))
             return Response({'error': str(e)}, status=500)
 
-@method_decorator(api_login_required, name='dispatch')
 class FavoriteConversationViewSet(viewsets.ModelViewSet):
     serializer_class = FavoriteConversationSerializer
     
@@ -453,7 +454,6 @@ class FavoriteConversationViewSet(viewsets.ModelViewSet):
         except Conversation.DoesNotExist:
             raise Http404("Conversation not found")
 
-@method_decorator(api_login_required, name='dispatch')
 class ChatViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def send_message(self, request):
