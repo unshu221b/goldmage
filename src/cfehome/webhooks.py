@@ -18,47 +18,47 @@ from svix.webhooks import Webhook, WebhookVerificationError
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
-def verify_clerk_webhook(request, webhook_secret):
-    wh = Webhook(webhook_secret)
-    try:
-        wh.verify(request.body, request.headers)
-        return True
-    except WebhookVerificationError as e:
-        print(f"Svix verification failed: {e}")
-        return False
+# def verify_clerk_webhook(request, webhook_secret):
+#     wh = Webhook(webhook_secret)
+#     try:
+#         wh.verify(request.body, request.headers)
+#         return True
+#     except WebhookVerificationError as e:
+#         print(f"Svix verification failed: {e}")
+#         return False
 
-@csrf_exempt
-@require_POST
-def clerk_webhook(request):
-    logger.info("Received Clerk webhook request")
-    webhook_secret = settings.CLERK_WEBHOOK_SIGNING_SECRET
-    if not verify_clerk_webhook(request, webhook_secret):
-        logger.error("Invalid webhook signature")
-        return HttpResponse(status=400)
-    try:
-        event_data = json.loads(request.body)
-        event_type = event_data.get('type')
-        logger.info(f"Processing Clerk webhook event: {event_type}")
-        logger.info(f"Event data: {event_data.get('data')}")
-        if event_type == 'user.deleted':
-            clerk_user_id = event_data['data']['id']
-            try:
-                user = CustomUser.objects.get(clerk_user_id=clerk_user_id)
-                user.delete()
-                logger.info(f"Deleted user from webhook: {clerk_user_id}")
-            except CustomUser.DoesNotExist:
-                logger.info(f"User already deleted: {clerk_user_id}")
-            except Exception as e:
-                logger.error(f"Error deleting user: {str(e)}", exc_info=True)
-                return HttpResponse(status=500)
-        elif event_type == 'user.passwordChanged':
-            clerk_user_id = event_data['data']['id']
-            logger.info(f"User password changed: {clerk_user_id}")
-            # Optionally: force logout, notify, or audit here
-        return HttpResponse(status=200)
-    except Exception as e:
-        logger.error(f"Clerk webhook error: {str(e)}", exc_info=True)
-        return HttpResponse(status=400)
+# @csrf_exempt
+# @require_POST
+# def clerk_webhook(request):
+#     logger.info("Received Clerk webhook request")
+#     webhook_secret = settings.CLERK_WEBHOOK_SIGNING_SECRET
+#     if not verify_clerk_webhook(request, webhook_secret):
+#         logger.error("Invalid webhook signature")
+#         return HttpResponse(status=400)
+#     try:
+#         event_data = json.loads(request.body)
+#         event_type = event_data.get('type')
+#         logger.info(f"Processing Clerk webhook event: {event_type}")
+#         logger.info(f"Event data: {event_data.get('data')}")
+#         if event_type == 'user.deleted':
+#             clerk_user_id = event_data['data']['id']
+#             try:
+#                 user = CustomUser.objects.get(clerk_user_id=clerk_user_id)
+#                 user.delete()
+#                 logger.info(f"Deleted user from webhook: {clerk_user_id}")
+#             except CustomUser.DoesNotExist:
+#                 logger.info(f"User already deleted: {clerk_user_id}")
+#             except Exception as e:
+#                 logger.error(f"Error deleting user: {str(e)}", exc_info=True)
+#                 return HttpResponse(status=500)
+#         elif event_type == 'user.passwordChanged':
+#             clerk_user_id = event_data['data']['id']
+#             logger.info(f"User password changed: {clerk_user_id}")
+#             # Optionally: force logout, notify, or audit here
+#         return HttpResponse(status=200)
+#     except Exception as e:
+#         logger.error(f"Clerk webhook error: {str(e)}", exc_info=True)
+#         return HttpResponse(status=400)
 
 @csrf_exempt
 @require_POST

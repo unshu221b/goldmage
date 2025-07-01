@@ -121,18 +121,11 @@ def create_checkout_session(request):
             logger.error(f"Invalid period requested: {period}")
             return JsonResponse({'error': 'Invalid period'}, status=400)
         
-        # Prefer authenticated user's email, fallback to frontend-provided email
-        customer_email = getattr(request.user, "email", None) or data.get("email")
-        if not customer_email:
-            logger.error("No email found for checkout session.")
-            return JsonResponse({'error': 'No email provided'}, status=400)
-
-        logger.info(f"Using customer_email: {customer_email}")
         # Create Stripe checkout session with the correct price
         logger.info("Creating Stripe checkout session...")
         checkout_session = stripe.checkout.Session.create(
             # customer=request.user.clerk_user_id,
-            customer_email=customer_email,
+            customer_email=request.user.email,
             client_reference_id=str(request.user.id),
             metadata={
                 'user_id': str(request.user.id),
@@ -154,7 +147,7 @@ def create_checkout_session(request):
             properties={
                 "checkout_url": checkout_session.url,
                 "period": period,
-                "user_email": customer_email,
+                "user_email": request.user.email,
                 "ip_address": request.META.get("REMOTE_ADDR"),
                 "user_agent": request.META.get("HTTP_USER_AGENT"),
             }
@@ -192,17 +185,11 @@ def create_credit_purchase_session(request):
             return JsonResponse({'error': 'Invalid product'}, status=400)
             
         product = products[product_id]
-                # Prefer authenticated user's email, fallback to frontend-provided email
-        customer_email = getattr(request.user, "email", None) or data.get("email")
-        if not customer_email:
-            logger.error("No email found for checkout session.")
-            return JsonResponse({'error': 'No email provided'}, status=400)
 
-        logger.info(f"Using customer_email: {customer_email}")
 
         # Create Stripe checkout session
         checkout_session = stripe.checkout.Session.create(
-            customer_email=customer_email,
+            customer_email=request.user.email,
             metadata={
                 'user_id': str(request.user.id),
                 'product_id': product_id,
@@ -218,6 +205,20 @@ def create_credit_purchase_session(request):
             cancel_url=f"{settings.FRONTEND_URL}/",
         )
 
+        mixpanel_client.track_api_event(
+            user_id=request.user.clerk_user_id,
+            event_name="Credit Purchase Session Created",
+            properties={
+                "checkout_url": checkout_session.url,
+                "product_id": product_id,
+                "credits": product['credits'],
+                "price": product['price'],
+                "user_email": request.user.email,
+                "ip_address": request.META.get("REMOTE_ADDR"),
+                "user_agent": request.META.get("HTTP_USER_AGENT"),
+            }
+        )
+          
         return JsonResponse({'checkout_url': checkout_session.url})
 
     except Exception as e:

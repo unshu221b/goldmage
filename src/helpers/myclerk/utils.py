@@ -1,6 +1,5 @@
 import json
 from clerk_backend_api import Clerk
-from clerk_backend_api.jwks_helpers import AuthenticateRequestOptions
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -36,12 +35,7 @@ def get_clerk_user_id_from_request(request):
         logger.info(f"Received token: {token[:20]}...")
         
         # Verify the token
-        request_state = sdk.authenticate_request(
-            request,
-            AuthenticateRequestOptions(
-                authorized_parties=CLERK_AUTH_PARTIES
-            )
-        )
+        request_state = sdk.authenticate_request(request, authorized_parties=CLERK_AUTH_PARTIES)
         
         if not request_state.is_signed_in:
             logger.warning("User is not signed in according to Clerk")

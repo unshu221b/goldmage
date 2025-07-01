@@ -17,7 +17,7 @@ urlpatterns = [
     # API endpoints
     path('api/accounts/', include('accounts.urls')),
     path('webhook/', webhooks.stripe_webhook, name='stripe-webhook'),
-    path('webhook/clerk/', webhooks.clerk_webhook, name='clerk-webhook'),
+    # path('webhook/clerk/', webhooks.clerk_webhook, name='clerk-webhook'),
     path('api/create-customer-portal-session/', views.create_portal_session, name='create-portal-session'),
     path('api/create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
     path('api/create-credit-purchase-session/', views.create_credit_purchase_session, name='create-credit-purchase-session'),
