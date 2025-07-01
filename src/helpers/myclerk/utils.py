@@ -46,6 +46,7 @@ def get_clerk_user_id_from_request(request: httpx.Request):
         request_state = sdk.authenticate_request(
             request,
             AuthenticateRequestOptions(
+                audience='https://api.52aichan.com',
                 authorized_parties=CLERK_AUTH_PARTIES
             )
         )
