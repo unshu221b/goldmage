@@ -22,7 +22,7 @@ User = get_user_model()
 logger = logging.getLogger('goldmage')
 
 
-def get_clerk_user_id_from_request(request):
+def get_clerk_user_id_from_request(request: httpx.Request):
     sdk = Clerk(bearer_auth=CLERK_SECRET_KEY)
     try:
         
