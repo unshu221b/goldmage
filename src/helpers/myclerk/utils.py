@@ -41,9 +41,8 @@ def get_clerk_user_id_from_request(request: httpx.Request):
                 authorized_parties=CLERK_AUTH_PARTIES
             )
         )
-        
         if not request_state.is_signed_in:
-            logger.warning("User is not signed in according to Clerk")
+            logger.warning(f"User is not signed in according to Clerk. Reason: {getattr(request_state, 'reason', 'No reason provided')}")
             return None
             
         # Extract user ID from the token
