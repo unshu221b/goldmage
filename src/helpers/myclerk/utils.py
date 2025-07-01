@@ -34,11 +34,12 @@ def get_clerk_user_id_from_request(request: httpx.Request):
             
         token = auth_header[7:]  # Remove 'Bearer ' prefix
         logger.info(f"Received token: {token[:20]}...")
-
+        logger.info(f"JWT aud: {decoded.get('aud')!r}")
+        logger.info(f"Authorized parties: {CLERK_AUTH_PARTIES!r}")
         request_state = sdk.authenticate_request(
             request,
             AuthenticateRequestOptions(
-                authorized_parties=['https://api.52aichan.com']
+                authorized_parties=CLERK_AUTH_PARTIES
             )
         )
         if not request_state.is_signed_in:
