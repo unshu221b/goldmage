@@ -33,8 +33,15 @@ def get_clerk_user_id_from_request(request: httpx.Request):
             return None
             
         token = auth_header[7:]  # Remove 'Bearer ' prefix
-        logger.info(f"Received token: {token[:20]}...")
-        logger.info(f"JWT aud: {decoded.get('aud')!r}")
+        
+        # Decode the JWT without verifying signature, just for logging
+        try:
+            decoded = jwt.decode(token, options={"verify_signature": False})
+            logger.info(f"JWT aud: {decoded.get('aud')!r}")
+        except Exception as e:
+            logger.warning(f"Could not decode JWT for logging: {e}")
+            decoded = {}
+            
         logger.info(f"Authorized parties: {CLERK_AUTH_PARTIES!r}")
         request_state = sdk.authenticate_request(
             request,
