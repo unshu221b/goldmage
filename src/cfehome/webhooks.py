@@ -14,36 +14,18 @@ from helpers.myclerk.utils import update_or_create_clerk_user
 
 import logging
 logger = logging.getLogger('goldmage')
+from svix.webhooks import Webhook, WebhookVerificationError
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def verify_clerk_webhook(request, webhook_secret):
-    """Verify Clerk webhook signature using HMAC"""
-    signature = request.headers.get('svix-signature')
-    timestamp = request.headers.get('svix-timestamp')
-    webhook_id = request.headers.get('svix-id')
-    
-    if not all([signature, timestamp, webhook_id]):
+    wh = Webhook(webhook_secret)
+    try:
+        wh.verify(request.body, request.headers)
+        return True
+    except WebhookVerificationError as e:
+        print(f"Svix verification failed: {e}")
         return False
-        
-    # Verify timestamp is within 5 minutes
-    current_time = int(time.time())
-    timestamp_int = int(timestamp)
-    if abs(current_time - timestamp_int) > 300:  # 5 minutes
-        return False
-        
-    # Create the signature string
-    signature_string = f"{webhook_id}.{timestamp}.{request.body.decode('utf-8')}"
-    
-    # Create HMAC
-    expected_signature = hmac.new(
-        webhook_secret.encode('utf-8'),
-        signature_string.encode('utf-8'),
-        hashlib.sha256
-    ).hexdigest()
-    
-    # Compare signatures
-    return hmac.compare_digest(signature, expected_signature)
 
 @csrf_exempt
 @require_POST
