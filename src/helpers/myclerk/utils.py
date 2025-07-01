@@ -35,7 +35,7 @@ def get_clerk_user_id_from_request(request):
         logger.info(f"Received token: {token[:20]}...")
         
         # Verify the token
-        request_state = sdk.authenticate_request(request, authorized_parties=CLERK_AUTH_PARTIES)
+        request_state = sdk.authenticate_request(request)
         
         if not request_state.is_signed_in:
             logger.warning("User is not signed in according to Clerk")
