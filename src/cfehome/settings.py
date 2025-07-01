@@ -1,5 +1,3 @@
-
-
 from pathlib import Path
 import os
 from decouple import config, Csv
@@ -145,13 +143,13 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "helpers.myclerk.middleware.ClerkAuthMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "cfehome.middleware.AdminAccessMiddleware",
-    "helpers.myclerk.middleware.ClerkAuthMiddleware",
 ]
 
 ROOT_URLCONF = "cfehome.urls"
