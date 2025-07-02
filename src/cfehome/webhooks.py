@@ -85,8 +85,10 @@ def stripe_webhook(request):
             if session.metadata.get('purchase_type') == 'credit_purchase':
                 try:
                     user = CustomUser.objects.get(id=session.metadata['user_id'])
+                    user.stripe_customer_id = session.customer
                     credits_to_add = int(session.metadata['credits'])
                     user.add_credits(credits_to_add)
+                    user.save()
                     logger.info(f"✅ Added {credits_to_add} credits to user {user.id} (now has {user.credits} credits)")
                     
                     # Track the successful purchase
@@ -108,9 +110,10 @@ def stripe_webhook(request):
             else:
                 try:
                     user = CustomUser.objects.get(clerk_user_id=session.customer)
+                    user.stripe_customer_id = session.customer
                     # Set premium membership and credits
                     user.membership = 'PREMIUM'
-                    user.credits = 200  # Set initial premium credits
+                    user.credits = 500  # Set initial premium credits
                     user.is_thread_depth_locked = False  # Remove any thread locks
                     user.save()
                     logger.info(f"✅ Premium subscription activated for user {user.id}")
@@ -167,6 +170,30 @@ def stripe_webhook(request):
                 user.save()
             except CustomUser.DoesNotExist:
                 pass
+
+        elif event.type == 'invoice.paid':
+            invoice = event.data.object
+            # Get the Stripe customer ID
+            customer_id = invoice['customer']
+            # Optionally, get the subscription ID
+            subscription_id = invoice.get('subscription')
+            # Get the user's email (if you store it in Stripe customer metadata)
+            email = invoice['customer_email'] if 'customer_email' in invoice else None
+
+            # Find the user in your DB
+            try:
+                if email:
+                    user = CustomUser.objects.get(email=email)
+                else:
+                    # If you store Stripe customer ID on your user model, use that
+                    user = CustomUser.objects.get(stripe_customer_id=customer_id)
+                # Top up credits for premium renewal
+                user.credits = 500  # or 500, or whatever your monthly premium amount is
+                user.membership = 'PREMIUM'
+                user.save()
+                # Optionally, log or track the renewal
+            except CustomUser.DoesNotExist:
+                pass  # Optionally, handle user not found
 
         return HttpResponse(status=200)
     

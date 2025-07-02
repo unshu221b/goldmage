@@ -18,7 +18,7 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractBaseUser):
     # user = models.OneToOneField(User, on_delete=models.CASCADE)
     clerk_user_id = models.CharField(max_length=255, unique=True, db_index=True)
-
+    stripe_customer_id = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     username = models.CharField(max_length=150, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
     first_name = models.CharField(max_length=150, blank=True)
@@ -98,11 +98,11 @@ class CustomUser(AbstractBaseUser):
                 next_refill = self.last_depleted_time + timedelta(days=7)
 
             else:
-                next_refill = self.last_depleted_time + timedelta(hours=8)
+                next_refill = self.last_depleted_time + timedelta(hours=12)
 
             if now >= next_refill:
                 # Refill credits
-                self.credits = 200 if self.membership == 'premium' else 10
+                self.credits = 10
                 self.last_depleted_time = None  # Reset depletion time
                 if self.is_thread_depth_locked:
                     self.is_thread_depth_locked = False
@@ -113,7 +113,7 @@ class CustomUser(AbstractBaseUser):
 
     def update_14d_usage(self):
         """Update 14-day usage tracking (only for free users)"""
-        if self.membership == 'premium':
+        if self.membership == 'PREMIUM':
             return  # Premium users don't track usage
 
         now = timezone.now()
@@ -132,12 +132,12 @@ class CustomUser(AbstractBaseUser):
 
     def check_thread_depth_lock(self):
         """Check if user should be thread depth locked (only for free users)"""
-        if self.membership == 'premium':
+        if self.membership == 'PREMIUM':
             self.is_thread_depth_locked = False
             self.save()
             return False
 
-        if self.total_usage_14d >= 140:
+        if self.total_usage_14d >= 50:
             self.is_thread_depth_locked = True
             # Reset the 14-day usage counter when thread locked
             self.total_usage_14d = 0
