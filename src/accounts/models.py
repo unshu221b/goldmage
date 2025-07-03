@@ -66,7 +66,7 @@ class CustomUser(AbstractBaseUser):
         self.credits += amount
         self.save()
 
-    def use_credit(self):
+    def use_credit(self, event_type="Message", cost=1, kind="Monthly Credits", model_name=None):
         """Use one credit (EP), returns True if successful, False if no credits left"""
         # Check and refill credits if it's time
         self.check_and_refill_credits()
@@ -77,6 +77,13 @@ class CustomUser(AbstractBaseUser):
             self.update_14d_usage()
             self.check_thread_depth_lock()
             self.save()
+            CreditUsageHistory.objects.create(
+                user=self,
+                event_type=event_type,
+                cost=cost,
+                kind=kind,
+                model=model_name
+            )
             return True
         return False
     
@@ -217,4 +224,15 @@ class FavoriteConversation(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s favorite: {self.conversation.title}"
+
+class CreditUsageHistory(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='credit_usages')
+    event_type = models.CharField(max_length=50)  # e.g., "Message"
+    cost = models.DecimalField(max_digits=6, decimal_places=2)  # e.g., 0.23
+    date = models.DateTimeField(auto_now_add=True)
+    kind = models.CharField(max_length=50, default="Monthly Credits")  # or "Pay-as-you-go", etc.
+    model = models.CharField(max_length=50, blank=True, null=True)  # e.g., "v0-1.5-md"
+
+    class Meta:
+        ordering = ['-date']
 

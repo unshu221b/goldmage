@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
-from rest_framework.decorators import action
-from .models import Conversation, Message, FavoriteConversation
+from rest_framework.decorators import action, api_view, permission_classes
+from .models import Conversation, Message, FavoriteConversation, CreditUsageHistory
 from .serializers import ConversationSerializer, MessageSerializer, FavoriteConversationSerializer
 from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
@@ -19,6 +19,7 @@ from openai import OpenAI
 from helpers.vision.ocr import analyze_image_with_crop, extract_text_blocks_from_image
 from helpers._mixpanel.client import mixpanel_client
 import logging
+from rest_framework.permissions import IsAuthenticated
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 logger = logging.getLogger('goldmage')
@@ -290,7 +291,12 @@ class AnalysisViewSet(viewsets.ViewSet):
                     )
 
             # Deduct credit
-            request.user.use_credit()
+            request.user.use_credit(
+                event_type="deepfeel_hit",
+                cost=1,
+                kind="Monthly Credits",
+                model_name="gpt-4.1"
+            )
             
             # Only track if input_type is "text"
             input_type = request.data.get("input_type")
@@ -382,7 +388,12 @@ class AnalysisViewSet(viewsets.ViewSet):
         try:
             blocks = analyze_image_with_crop(image_file)
             # Deduct credit
-            request.user.use_credit()
+            request.user.use_credit(
+                event_type="image_upload",
+                cost=1,
+                kind="Monthly Credits",
+                model_name="google-vision"
+            )
 
             mixpanel_client.track_api_event(
                 user_id=str(request.user.clerk_user_id),
@@ -533,7 +544,12 @@ class ChatViewSet(viewsets.ViewSet):
                 )
 
                 # Deduct credit
-                request.user.use_credit()
+                request.user.use_credit(
+                    event_type="chat",
+                    cost=1,
+                    kind="Monthly Credits",
+                    model_name="gpt-4o"
+                )
 
                 mixpanel_client.track_api_event(
                     user_id=request.user.clerk_user_id,
@@ -561,3 +577,19 @@ class ChatViewSet(viewsets.ViewSet):
         except Exception as e:
             send_error_email(request, "CHAT_ERROR", str(e))
             return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def credit_usage_history(request):
+    history = CreditUsageHistory.objects.filter(user=request.user)
+    data = [
+        {
+            "event_type": h.event_type,
+            "cost": str(h.cost),
+            "date": h.date.strftime("%B %d, %Y"),
+            "kind": h.kind,
+            "model": h.model,
+        }
+        for h in history
+    ]
+    return Response(data)
