@@ -59,7 +59,7 @@ BASE_ALLOWED_HOSTS = [
 
 # Get additional hosts from environment
 ENV_ALLOWED_HOSTS = config("ALLOWED_HOSTS", 
-                         default="52aichan.com,.52aichan.com", 
+                         default="0052.live,.0052.live", 
                          cast=Csv())
 ALLOWED_HOSTS = BASE_ALLOWED_HOSTS + list(ENV_ALLOWED_HOSTS)
 
@@ -79,7 +79,7 @@ STRIPE_CREDIT_LARGE_PRICE_ID = config("STRIPE_CREDIT_LARGE_PRICE_ID", default=""
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = config("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
 CLERK_SECRET_KEY = config("CLERK_SECRET_KEY")
 CLERK_WEBHOOK_SIGNING_SECRET = config("CLERK_WEBHOOK_SIGNING_SECRET")
-CLERK_AUDIENCE = "https://api.52aichan.com"
+CLERK_AUDIENCE = "https://api.0052.live"
 
 CLERK_JWT_PUBLIC_KEY = """
 -----BEGIN PUBLIC KEY-----
@@ -95,9 +95,9 @@ qQIDAQAB
 
 
 CLERK_AUTH_PARTIES = [
-    'https://52aichan.com',
-    'https://www.52aichan.com',
-    'https://api.52aichan.com',
+    'https://0052.live',
+    'https://www.0052.live',
+    'https://api.0052.live',
 ]
 
 FRONTEND_URL=config("FRONTEND_URL")
@@ -311,24 +311,24 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Base CSRF trusted origins
 BASE_CSRF_TRUSTED_ORIGINS = [
-    'https://52aichan.com',
-    'http://52aichan.com',
-    'https://www.52aichan.com',
-    'http://www.52aichan.com',
-    'https://*.52aichan.com',
-    'http://*.52aichan.com',
+    'https://0052.live',
+    'http://0052.live',
+    'https://www.0052.live',
+    'http://www.0052.live',
+    'https://*.0052.live',
+    'http://*.0052.live',
     'http://localhost:3000',
     'http://localhost:8000',
 ]
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    'https://52aichan.com',
-    'http://52aichan.com',
-    'https://www.52aichan.com',
-    'http://www.52aichan.com',
-    'https://api.52aichan.com',
-    'http://api.52aichan.com',
+    'https://0052.live',
+    'http://0052.live',
+    'https://www.0052.live',
+    'http://www.0052.live',
+    'https://api.0052.live',
+    'http://api.0052.live',
     'http://localhost:3000',
     'http://localhost:8000',
 ]
@@ -364,10 +364,10 @@ CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
-    "https://52aichan.com",
-    "http://52aichan.com",
-    "https://api.52aichan.com",
-    "http://api.52aichan.com",
+    "https://0052.live",
+    "http://0052.live",
+    "https://api.0052.live",
+    "http://api.0052.live",
 ]
 # Add this to allow requests without referer
 CSRF_USE_SESSIONS = True
