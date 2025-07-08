@@ -44,7 +44,7 @@ class CustomUser(AbstractBaseUser):
         default='FREE'
     )
     # Credit system fields
-    credits = models.IntegerField(default=10)  # Daily EP points
+    credits = models.IntegerField(default=50)  # Daily EP points
     last_depleted_time = models.DateTimeField(null=True, blank=True)
 
     total_usage_14d = models.IntegerField(default=0)  # Track 14-day usage
@@ -109,7 +109,7 @@ class CustomUser(AbstractBaseUser):
 
             if now >= next_refill:
                 # Refill credits
-                self.credits = 10
+                self.credits = 50
                 self.last_depleted_time = None  # Reset depletion time
                 if self.is_thread_depth_locked:
                     self.is_thread_depth_locked = False
@@ -144,7 +144,7 @@ class CustomUser(AbstractBaseUser):
             self.save()
             return False
 
-        if self.total_usage_14d >= 50:
+        if self.total_usage_14d >= 650:
             self.is_thread_depth_locked = True
             # Reset the 14-day usage counter when thread locked
             self.total_usage_14d = 0
@@ -160,7 +160,7 @@ class CustomUser(AbstractBaseUser):
     def initialize_free_credits(self):
         """Initialize free credits for new users"""
         if self.credits == 0:  # Only initialize if no credits exist
-            self.credits = 10
+            self.credits = 50
             self.save()
             return True
         return False
@@ -168,7 +168,7 @@ class CustomUser(AbstractBaseUser):
     def save(self, *args, **kwargs):
         # Initialize credits if they don't exist
         if not hasattr(self, 'credits'):
-            self.credits = 10
+            self.credits = 50
         super().save(*args, **kwargs)
 
     @property
