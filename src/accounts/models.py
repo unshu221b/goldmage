@@ -189,10 +189,11 @@ class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     sender = models.CharField(max_length=50)  # "user", "assistant", "system"
     input_type = models.CharField(
-        max_length=15,
+        max_length=20,
         choices=[
             ('text', 'Text'),
             ('image_upload', 'Image Upload'),
+            ('social_link_upload', 'Social Link Upload'),
         ]
     )
     text_content = models.TextField(blank=True, null=True)
@@ -203,6 +204,8 @@ class Message(models.Model):
         max_length=20,
         choices=[
             ('builder', 'Builder'),
+            ('creator', 'Creator'),
+            ('editor', 'Editor'),
             ('analysis', 'Analysis'),
             ('system', 'System'),
             ('loading', 'Loading'),
