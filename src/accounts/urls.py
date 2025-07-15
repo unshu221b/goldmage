@@ -1,7 +1,6 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from .views import ConversationListCreateView, AnalysisViewSet, FavoriteConversationViewSet, ChatViewSet, credit_usage_history
-
+from .views import ConversationListCreateView, AnalysisViewSet, FavoriteConversationViewSet, ChatViewSet, credit_usage_history, ProviderViewSet
 
 # Create a router
 router = DefaultRouter()
@@ -16,4 +15,5 @@ urlpatterns = [
     path('credits/status/', AnalysisViewSet.as_view({'get': 'status'}), name='credits-status'),
     path('history/', ConversationListCreateView.as_view({'get': 'history'}), name='history'),
     path('credits/history/', credit_usage_history, name='credit-usage-history'),
+    path('api/providers/submit/', ProviderViewSet.as_view({'post': 'submit_provider'}), name='submit-provider'),
 ] + router.urls

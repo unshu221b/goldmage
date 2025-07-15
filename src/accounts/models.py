@@ -239,3 +239,55 @@ class CreditUsageHistory(models.Model):
     class Meta:
         ordering = ['-date']
 
+class Vault(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    display_name = models.CharField(max_length=150)
+    description = models.TextField(blank=True, null=True)
+    icon = models.CharField(max_length=100, blank=True, null=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.display_name
+
+class Provider(models.Model):
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='providers')
+    vault = models.ForeignKey(Vault, on_delete=models.CASCADE, related_name='providers')
+    name = models.CharField(max_length=150)
+    bio = models.TextField(blank=True, null=True)
+    tone = models.TextField(blank=True, null=True)
+    timezone = models.CharField(max_length=50, blank=True, null=True)
+    contact_link = models.URLField(blank=True, null=True)
+    language_support = models.JSONField(default=list, blank=True)
+    specialties = models.JSONField(default=list, blank=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    approved = models.BooleanField(default=False)  # Add this if you want to approve listings
+
+    def __str__(self):
+        return self.name
+
+class ProviderTag(models.Model):
+    provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='tags')
+    tag = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.tag
+
+class ProviderReview(models.Model):
+    provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='reviews')
+    user_id = models.IntegerField()  # Or ForeignKey to your User model
+    rating = models.PositiveSmallIntegerField()
+    review = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.provider.name} - {self.rating}"
+
+# Embeddings model is optional and depends on your vector DB setup
+class Embedding(models.Model):
+    provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='embeddings')
+    vector = models.JSONField()  # Or use a custom field for your vector DB
+
+    def __str__(self):
+        return f"Embedding for {self.provider.name}"
+

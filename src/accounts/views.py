@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
-from .models import Conversation, Message, FavoriteConversation, CreditUsageHistory
-from .serializers import ConversationSerializer, MessageSerializer, FavoriteConversationSerializer
+from .models import Conversation, Message, FavoriteConversation, CreditUsageHistory, Provider
+from .serializers import ConversationSerializer, MessageSerializer, FavoriteConversationSerializer, ProviderSerializer
 from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
@@ -20,6 +20,7 @@ from helpers.vision.ocr import analyze_image_with_crop, extract_text_blocks_from
 from helpers._mixpanel.client import mixpanel_client
 import logging
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 logger = logging.getLogger('goldmage')
@@ -593,3 +594,13 @@ def credit_usage_history(request):
         for h in history
     ]
     return Response(data)
+
+@method_decorator(api_login_required, name='dispatch')
+class ProviderViewSet(viewsets.ViewSet):
+    @action(detail=False, methods=['post'])
+    def submit_provider(self, request):
+        serializer = ProviderSerializer(data=request.data)
+        if serializer.is_valid():
+            provider = serializer.save(user=request.user)
+            return Response({'id': provider.id, 'message': 'Listing submitted!'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
