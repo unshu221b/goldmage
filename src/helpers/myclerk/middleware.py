@@ -33,7 +33,6 @@ def django_user_session_via_clerk(request):
         logger.warning(f"Failed to create/find Django user for Clerk ID: {clerk_user_id}")
     return django_user
 
-
 class ClerkAuthMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
