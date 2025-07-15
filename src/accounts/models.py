@@ -294,6 +294,7 @@ class Embedding(models.Model):
         return f"Embedding for {self.provider.name}"
 
 class ServiceOffering(models.Model):
+    id = models.BigAutoField(primary_key=True)  # Keep the existing ID
     provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='offerings')
     service_type = models.CharField(max_length=100)
     service_title = models.CharField(max_length=200)
