@@ -608,6 +608,7 @@ class ProviderViewSet(viewsets.ViewSet):
             provider = provider_serializer.save(user=request.user)
         else:
             return Response(provider_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
         # 2. Create ServiceOffering
         offering_serializer = ServiceOfferingSerializer(data=offering_data)
         if offering_serializer.is_valid():
