@@ -298,7 +298,8 @@ class ServiceOffering(models.Model):
     service_type = models.CharField(max_length=100)
     service_title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
-    pricing = models.JSONField(default=dict, blank=True)         # basePrice, serviceFee, etc.
+    offerings = models.JSONField(default=list, blank=True)  # List of {name, price}
+    pricing = models.JSONField(default=dict, blank=True)    # {basePrice, serviceFee}
     availability = models.JSONField(default=dict, blank=True)    # days, hours, duration, etc.
     travel_option = models.CharField(max_length=50, blank=True, null=True)
     venue_address = models.CharField(max_length=255, blank=True, null=True)
