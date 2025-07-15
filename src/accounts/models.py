@@ -254,13 +254,15 @@ class Provider(models.Model):
     vault = models.ForeignKey(Vault, on_delete=models.CASCADE, related_name='providers')
     name = models.CharField(max_length=150)
     bio = models.TextField(blank=True, null=True)
-    tone = models.TextField(blank=True, null=True)
     timezone = models.CharField(max_length=50, blank=True, null=True)
     contact_link = models.URLField(blank=True, null=True)
     language_support = models.JSONField(default=list, blank=True)
     specialties = models.JSONField(default=list, blank=True)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    qualifications = models.JSONField(default=dict, blank=True)  # experience, degree, etc.
+    social_profiles = models.JSONField(default=list, blank=True)
+    agreed_to_terms = models.BooleanField(default=False)
     approved = models.BooleanField(default=False)  # Add this if you want to approve listings
 
     def __str__(self):
@@ -290,4 +292,18 @@ class Embedding(models.Model):
 
     def __str__(self):
         return f"Embedding for {self.provider.name}"
+
+class ServiceOffering(models.Model):
+    provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='offerings')
+    service_type = models.CharField(max_length=100)
+    service_title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    pricing = models.JSONField(default=dict, blank=True)         # basePrice, serviceFee, etc.
+    availability = models.JSONField(default=dict, blank=True)    # days, hours, duration, etc.
+    travel_option = models.CharField(max_length=50, blank=True, null=True)
+    venue_address = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.service_title} ({self.provider.name})"
 

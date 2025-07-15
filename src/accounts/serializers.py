@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Conversation, Message, FavoriteConversation, Provider
+from .models import CustomUser, Conversation, Message, FavoriteConversation, Provider, ServiceOffering
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -55,3 +55,9 @@ class ProviderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Provider
         exclude = ['user', 'approved']
+
+class ServiceOfferingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceOffering
+        fields = '__all__'
+        read_only_fields = ['provider', 'created_at']

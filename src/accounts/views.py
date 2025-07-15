@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
-from .models import Conversation, Message, FavoriteConversation, CreditUsageHistory, Provider
-from .serializers import ConversationSerializer, MessageSerializer, FavoriteConversationSerializer, ProviderSerializer
+from .models import Conversation, Message, FavoriteConversation, CreditUsageHistory, Provider, ServiceOffering
+from .serializers import ConversationSerializer, MessageSerializer, FavoriteConversationSerializer, ProviderSerializer, ServiceOfferingSerializer
 from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
@@ -599,8 +599,26 @@ def credit_usage_history(request):
 class ProviderViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def submit_provider(self, request):
-        serializer = ProviderSerializer(data=request.data)
-        if serializer.is_valid():
-            provider = serializer.save(user=request.user)
-            return Response({'id': provider.id, 'message': 'Listing submitted!'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        provider_data = request.data.get('provider')
+        offering_data = request.data.get('service_offering')
+
+        # 1. Create Provider (or get existing for this user+name)
+        provider_serializer = ProviderSerializer(data=provider_data)
+        if provider_serializer.is_valid():
+            provider = provider_serializer.save(user=request.user)
+        else:
+            return Response(provider_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Create ServiceOffering
+        offering_serializer = ServiceOfferingSerializer(data=offering_data)
+        if offering_serializer.is_valid():
+            offering = offering_serializer.save(provider=provider)
+            return Response({
+                'provider_id': provider.id,
+                'offering_id': offering.id,
+                'message': 'Listing submitted!'
+            }, status=status.HTTP_201_CREATED)
+        else:
+            # If provider was just created, you may want to delete it if offering fails
+            provider.delete()
+            return Response(offering_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
