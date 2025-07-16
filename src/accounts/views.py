@@ -365,7 +365,6 @@ class AnalysisViewSet(viewsets.ViewSet):
             'last_usage': user.last_usage_timestamp.isoformat() if user.last_usage_timestamp else None,
             'usage_limit': 140 if is_free_user else None,
             'daily_limit': 200 if user.membership == 'PREMIUM' else 10,
-            'is_provider': user.is_provider,  # <-- Add this line!
         })
 
     @action(detail=False, methods=['get'])
