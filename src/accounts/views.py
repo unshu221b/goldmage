@@ -611,7 +611,7 @@ class ProviderViewSet(viewsets.ViewSet):
             logger.info(f"Provider data: {provider_data}")
             logger.info(f"Service offering data: {offering_data}")
         else:
-            print(provider_serializer.errors)  # <-- Add this line for logging
+            logger.info(f"Provider serializer errors: {provider_serializer.errors}")
             return Response(provider_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         # 2. Create ServiceOffering
         offering_serializer = ServiceOfferingSerializer(data=offering_data)
@@ -624,5 +624,6 @@ class ProviderViewSet(viewsets.ViewSet):
             }, status=status.HTTP_201_CREATED)
         else:
             # If provider was just created, you may want to delete it if offering fails
+            logger.info(f"Offering serializer errors: {offering_serializer.errors}")
             provider.delete()
             return Response(offering_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
