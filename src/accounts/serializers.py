@@ -55,6 +55,7 @@ class ProviderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Provider
         fields = '__all__'  # or make sure 'availability' is in the explicit list
+        read_only_fields = ['user']
 
 class ServiceOfferingSerializer(serializers.ModelSerializer):
     class Meta:
