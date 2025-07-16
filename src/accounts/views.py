@@ -367,10 +367,6 @@ class AnalysisViewSet(viewsets.ViewSet):
             'daily_limit': 200 if user.membership == 'PREMIUM' else 10,
         })
 
-    @action(detail=False, methods=['get'])
-    def is_provider(self, request):
-        return Response({'is_provider': request.user.is_provider})
-
     @action(detail=False, methods=['post'])
     def analyze_image(self, request):
         logger.info("DEBUG: Entered analyze_image view")  # Debug log
@@ -640,3 +636,7 @@ class ProviderViewSet(viewsets.ViewSet):
         except Exception as e:
             logger.info(f"Exception in submit_provider: {e}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @action(detail=False, methods=['get'])
+    def is_provider(self, request):
+        return Response({'is_provider': request.user.is_provider})
