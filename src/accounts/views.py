@@ -599,6 +599,8 @@ def credit_usage_history(request):
 class ProviderViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def submit_provider(self, request):
+        logger.info(f"Raw request body: {request.body}")
+
         provider_data = request.data.get('provider')
         offering_data = request.data.get('service_offering')
 
@@ -606,6 +608,8 @@ class ProviderViewSet(viewsets.ViewSet):
         provider_serializer = ProviderSerializer(data=provider_data)
         if provider_serializer.is_valid():
             provider = provider_serializer.save(user=request.user)
+            logger.info(f"Provider data: {provider_data}")
+            logger.info(f"Service offering data: {offering_data}")
         else:
             return Response(provider_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         # 2. Create ServiceOffering
