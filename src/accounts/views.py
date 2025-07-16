@@ -599,31 +599,35 @@ def credit_usage_history(request):
 class ProviderViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def submit_provider(self, request):
-        logger.info(f"Raw request body: {request.body}")
+        try:
+            logger.info(f"Raw request body: {request.body}")
 
-        provider_data = request.data.get('provider')
-        offering_data = request.data.get('service_offering')
+            provider_data = request.data.get('provider')
+            offering_data = request.data.get('service_offering')
 
-        # 1. Create Provider (or get existing for this user+name)
-        provider_serializer = ProviderSerializer(data=provider_data)
-        if provider_serializer.is_valid():
-            provider = provider_serializer.save(user=request.user)
-            logger.info(f"Provider data: {provider_data}")
-            logger.info(f"Service offering data: {offering_data}")
-        else:
-            logger.info(f"Provider serializer errors: {provider_serializer.errors}")
-            return Response(provider_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # 2. Create ServiceOffering
-        offering_serializer = ServiceOfferingSerializer(data=offering_data)
-        if offering_serializer.is_valid():
-            offering = offering_serializer.save(provider=provider)
-            return Response({
-                'provider_id': provider.id,
-                'offering_id': offering.id,
-                'message': 'Listing submitted!'
-            }, status=status.HTTP_201_CREATED)
-        else:
-            # If provider was just created, you may want to delete it if offering fails
-            logger.info(f"Offering serializer errors: {offering_serializer.errors}")
-            provider.delete()
-            return Response(offering_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # 1. Create Provider (or get existing for this user+name)
+            provider_serializer = ProviderSerializer(data=provider_data)
+            if provider_serializer.is_valid():
+                provider = provider_serializer.save(user=request.user)
+                logger.info(f"Provider data: {provider_data}")
+                logger.info(f"Service offering data: {offering_data}")
+            else:
+                logger.info(f"Provider serializer errors: {provider_serializer.errors}")
+                return Response(provider_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # 2. Create ServiceOffering
+            offering_serializer = ServiceOfferingSerializer(data=offering_data)
+            if offering_serializer.is_valid():
+                offering = offering_serializer.save(provider=provider)
+                return Response({
+                    'provider_id': provider.id,
+                    'offering_id': offering.id,
+                    'message': 'Listing submitted!'
+                }, status=status.HTTP_201_CREATED)
+            else:
+                # If provider was just created, you may want to delete it if offering fails
+                logger.info(f"Offering serializer errors: {offering_serializer.errors}")
+                provider.delete()
+                return Response(offering_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.info(f"Exception in submit_provider: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
