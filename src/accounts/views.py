@@ -611,6 +611,7 @@ class ProviderViewSet(viewsets.ViewSet):
             logger.info(f"Provider data: {provider_data}")
             logger.info(f"Service offering data: {offering_data}")
         else:
+            print(provider_serializer.errors)  # <-- Add this line for logging
             return Response(provider_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         # 2. Create ServiceOffering
         offering_serializer = ServiceOfferingSerializer(data=offering_data)
