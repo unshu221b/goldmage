@@ -255,6 +255,7 @@ class Provider(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     qualifications = models.JSONField(default=dict, blank=True)  # experience, degree, etc.
     social_profiles = models.JSONField(default=list, blank=True)
+    availability = models.JSONField(default=dict, blank=True)    # days, hours, duration, etc.
     agreed_to_terms = models.BooleanField(default=False)
     approved = models.BooleanField(default=False)  # Add this if you want to approve listings
 
@@ -289,12 +290,10 @@ class Embedding(models.Model):
 class ServiceOffering(models.Model):
     id = models.BigAutoField(primary_key=True)  # Keep the existing ID
     provider = models.ForeignKey(Provider, on_delete=models.CASCADE, related_name='offerings')
-    service_type = models.CharField(max_length=100)
     service_title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
     offerings = models.JSONField(default=list, blank=True)  # List of {name, price}
     pricing = models.JSONField(default=dict, blank=True)    # {basePrice, serviceFee}
-    availability = models.JSONField(default=dict, blank=True)    # days, hours, duration, etc.
     travel_option = models.CharField(max_length=50, blank=True, null=True)
     venue_address = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

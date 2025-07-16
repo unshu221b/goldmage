@@ -54,7 +54,7 @@ class FavoriteConversationSerializer(serializers.ModelSerializer):
 class ProviderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Provider
-        exclude = ['user', 'approved']
+        fields = '__all__'  # or make sure 'availability' is in the explicit list
 
 class ServiceOfferingSerializer(serializers.ModelSerializer):
     class Meta:
