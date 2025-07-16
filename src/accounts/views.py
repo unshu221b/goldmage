@@ -609,6 +609,11 @@ class ProviderViewSet(viewsets.ViewSet):
             provider_serializer = ProviderSerializer(data=provider_data)
             if provider_serializer.is_valid():
                 provider = provider_serializer.save(user=request.user)
+                
+                # Set is_provider to True if not already
+                if not request.user.is_provider:
+                    request.user.is_provider = True
+                    request.user.save()
                 logger.info(f"Provider data: {provider_data}")
                 logger.info(f"Service offering data: {offering_data}")
             else:

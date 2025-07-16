@@ -23,7 +23,8 @@ class CustomUser(AbstractBaseUser):
     email = models.EmailField(null=True, blank=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
-
+    is_provider = models.BooleanField(default=False)
+    
     # django login related
     is_active = models.BooleanField(default=True)
     # django admin related
