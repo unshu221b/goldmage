@@ -368,6 +368,10 @@ class AnalysisViewSet(viewsets.ViewSet):
             'is_provider': user.is_provider,  # <-- Add this line!
         })
 
+    @action(detail=False, methods=['get'])
+    def is_provider(self, request):
+        return Response({'is_provider': request.user.is_provider})
+
     @action(detail=False, methods=['post'])
     def analyze_image(self, request):
         logger.info("DEBUG: Entered analyze_image view")  # Debug log
