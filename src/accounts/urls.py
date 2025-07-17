@@ -16,5 +16,4 @@ urlpatterns = [
     path('credits/status/', AnalysisViewSet.as_view({'get': 'status'}), name='credits-status'),
     path('history/', ConversationListCreateView.as_view({'get': 'history'}), name='history'),
     path('credits/history/', credit_usage_history, name='credit-usage-history'),
-    # path('providers/submit/', ProviderViewSet.as_view({'post': 'submit_provider'}), name='submit-provider'),
 ] + router.urls

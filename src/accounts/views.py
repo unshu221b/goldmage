@@ -640,3 +640,9 @@ class ProviderViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def is_provider(self, request):
         return Response({'is_provider': request.user.is_provider})
+    
+    @action(detail=False, methods=['get'])
+    def promoted_providers(self, request):
+        providers = Provider.objects.filter(is_promoted=True)
+        serializer = ProviderSerializer(providers, many=True)
+        return Response(serializer.data)
