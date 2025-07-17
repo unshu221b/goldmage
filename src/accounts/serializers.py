@@ -60,5 +60,5 @@ class ProviderSerializer(serializers.ModelSerializer):
 class ServiceOfferingSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceOffering
-        fields = ['id', 'provider', 'service_title', 'description', 'offerings', 'pricing', 'travel_option', 'venue_address', 'created_at', 'thumbnail']
+        fields = ['id', 'provider', 'service_title', 'description', 'offerings', 'pricing', 'travel_option', 'venue_address', 'created_at', 'thumbnail_url']
         read_only_fields = ['provider', 'created_at']
