@@ -261,6 +261,7 @@ class Provider(models.Model):
     approved = models.BooleanField(default=False)  # Add this if you want to approve listings
     icon_url = models.URLField(blank=True, null=True)
     is_promoted = models.BooleanField(default=False)
+    completion_count = models.IntegerField(default=0)
     
     def __str__(self):
         return self.name

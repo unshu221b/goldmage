@@ -74,6 +74,6 @@ class ProviderWithOfferingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Provider
         fields = [
-            'id', 'name', 'bio', 'icon_url', 'is_promoted',
+            'id', 'name', 'bio', 'icon_url', 'is_promoted', 'completion_count',
             'offerings'
         ]
