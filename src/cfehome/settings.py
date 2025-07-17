@@ -432,3 +432,9 @@ SECURE_HSTS_PRELOAD = True
 
 # Admin email for error reporting
 ADMIN_EMAIL = 'lungbridgestudio@gmail.com'  # Replace with your admin email
+
+# Set to 10MB (for example)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 * 1024 * 1024 bytes
+
+# You may also want to increase the file upload size limit:
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
