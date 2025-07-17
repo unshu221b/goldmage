@@ -62,3 +62,18 @@ class ServiceOfferingSerializer(serializers.ModelSerializer):
         model = ServiceOffering
         fields = ['id', 'provider', 'service_title', 'description', 'offerings', 'pricing', 'travel_option', 'venue_address', 'created_at', 'thumbnail_url']
         read_only_fields = ['provider', 'created_at']
+
+class ServiceOfferingSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceOffering
+        fields = ['id', 'service_title', 'description', 'thumbnail_url']
+
+class ProviderWithOfferingsSerializer(serializers.ModelSerializer):
+    offerings = ServiceOfferingSummarySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Provider
+        fields = [
+            'id', 'name', 'bio', 'icon_url', 'is_promoted',
+            'offerings'
+        ]

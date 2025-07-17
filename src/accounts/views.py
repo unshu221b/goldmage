@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
 from .models import Conversation, Message, FavoriteConversation, CreditUsageHistory, Provider, ServiceOffering
-from .serializers import ConversationSerializer, MessageSerializer, FavoriteConversationSerializer, ProviderSerializer, ServiceOfferingSerializer
+from .serializers import ConversationSerializer, MessageSerializer, FavoriteConversationSerializer, ProviderSerializer, ServiceOfferingSerializer, ProviderWithOfferingsSerializer
 from helpers.myclerk.auth import ClerkAuthentication
 from helpers.myclerk.decorators import api_login_required
 from django.utils.decorators import method_decorator
@@ -644,5 +644,5 @@ class ProviderViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def promoted_providers(self, request):
         providers = Provider.objects.filter(is_promoted=True)
-        serializer = ProviderSerializer(providers, many=True)
+        serializer = ProviderWithOfferingsSerializer(providers, many=True)
         return Response(serializer.data)
