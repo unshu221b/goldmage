@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils import timezone
 from datetime import timedelta
+from cloudinary.models import CloudinaryField
 import uuid
 
 class CustomUserManager(BaseUserManager):
@@ -24,7 +25,6 @@ class CustomUser(AbstractBaseUser):
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     is_provider = models.BooleanField(default=False)
-    
     # django login related
     is_active = models.BooleanField(default=True)
     # django admin related
@@ -259,6 +259,7 @@ class Provider(models.Model):
     availability = models.JSONField(default=dict, blank=True)    # days, hours, duration, etc.
     agreed_to_terms = models.BooleanField(default=False)
     approved = models.BooleanField(default=False)  # Add this if you want to approve listings
+    icon = CloudinaryField('icon', blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -298,6 +299,7 @@ class ServiceOffering(models.Model):
     travel_option = models.CharField(max_length=50, blank=True, null=True)
     venue_address = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    thumbnail = CloudinaryField('thumbnail', blank=True, null=True)
 
     def __str__(self):
         return f"{self.service_title} ({self.provider.name})"
