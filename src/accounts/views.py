@@ -470,7 +470,7 @@ class ChatViewSet(viewsets.ViewSet):
                 'is_thread_locked': request.user.is_thread_depth_locked,
             }, status=402)
 
-        # Get or create conversation
+        # Get data from request
         conversation_uuid = request.data.get('conversation_uuid')
         message_content = request.data.get('message')
         
@@ -485,6 +485,9 @@ class ChatViewSet(viewsets.ViewSet):
                         title=message_content[:50] + "..." if len(message_content) > 50 else message_content
                     )
 
+                # Parse structured context from the message
+                context_info = self._parse_context_from_message(message_content)
+                
                 # Create user message
                 user_message = Message.objects.create(
                     conversation=conversation,
@@ -505,42 +508,122 @@ class ChatViewSet(viewsets.ViewSet):
                     for msg in conversation_history
                 ])
 
-                # Create a simple bond analyst system prompt
-                system_prompt = "You are a bond analyst assigned to help understand relationship patterns. Your job is to:\n\n"
-                system_prompt += "Help the user name patterns in their relationship\n"
-                system_prompt += "Reflect on whether those patterns are healthy, manipulative, or confusing\n"
-                system_prompt += "Offer framing questions but do not tell them what to feel or do\n\n"
-                system_prompt += "**CONVERSATION HISTORY:**\n"
-                system_prompt += conversation_text if conversation_text else "No previous messages"
-                system_prompt += "\n\nRemember: You are analyzing patterns and helping the user understand their relationship dynamics. Do not tell them what to feel or do - help them see patterns and ask thoughtful questions."
+                # Create system prompt with context awareness
+                system_prompt = """You are a friendly, thoughtful local companion assistant.
+
+Your job is to help the user find a suitable guide or experience, by first understanding the **context** behind their message.
+
+## Your Goals:
+1. Determine if the user's message is **casual chat** or has clear intent (e.g. request for a companion, help, or activity).
+2. If intent is unclear, respond naturally, ask light questions to clarify. Keep it friendly and non-intrusive.
+3. If intent is clear, check if the following fields are provided:
+   - Location / city (Where)
+   - Date / time (When)
+   - Desired vibe / activity style (What they want to feel or do)
+
+## What to Do:
+- If **any context is missing**, ask 1–2 natural questions to fill it in.
+- Once you have all 3 fields, summarize what you understand and **ask if they'd like you to find a match**.
+- When user confirms they want to search, call search_companion_cards function.
+- Keep your tone warm, not robotic. Think like a local who enjoys helping travelers get the best experience.
+
+## Examples:
+- "Want me to check who's free on that date?"
+- "Should I look for someone who matches that vibe?"
+- "Happy to show you a few matches — want me to?"
+
+Be conversational, helpful, and precise. Avoid assumptions.
+
+**CONVERSATION HISTORY:**
+{conversation_history}
+
+Remember: You're helping travelers find the perfect local companion. Be warm, engaging, and genuinely excited about connecting them with amazing local experiences."""
+
+                # Add context information to the prompt if available
+                if context_info and any(context_info.values()):
+                    context_section = "\n**USER'S CONTEXT:**\n"
+                    if context_info.get('where') and context_info['where'] != "not provided":
+                        context_section += f"- Where: {context_info['where']}\n"
+                    if context_info.get('date') and context_info['date'] != "not provided":
+                        context_section += f"- Date: {context_info['date']}\n"
+                    if context_info.get('vibes') and context_info['vibes'] != "not provided":
+                        context_section += f"- Vibes: {context_info['vibes']}\n"
+                    if context_info.get('user_request'):
+                        context_section += f"- User Request: {context_info['user_request']}\n"
+                    
+                    system_prompt += context_section
+
+                # Define the search function
+                functions = [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "search_companion_cards",
+                            "description": "Search for local companion cards based on travel preferences",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "location": {
+                                        "type": "string",
+                                        "description": "City or region where the user wants to meet the guide"
+                                    },
+                                    "date": {
+                                        "type": "string",
+                                        "description": "Date of the requested experience, in YYYY-MM-DD format"
+                                    },
+                                    "vibes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "description": "A list of keywords capturing activity types or personality traits requested"
+                                    }
+                                },
+                                "required": ["location", "date", "vibes"]
+                            }
+                        }
+                    }
+                ]
 
                 # Format messages for OpenAI
                 messages = [
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": system_prompt.format(conversation_history=conversation_text)},
                 ]
                 
+                # Add conversation history
                 for msg in conversation_history:
                     role = "user" if msg.sender == "user" else "assistant"
                     messages.append({
                         "role": role,
                         "content": msg.text_content
                     })
+                
+                # Add current user message
+                messages.append({
+                    "role": "user",
+                    "content": message_content
+                })
 
-                # Call OpenAI
+                # Call OpenAI with function calling
                 response = client.chat.completions.create(
                     model="gpt-4",
                     messages=messages,
+                    functions=functions,
+                    function_call="auto",
                     max_tokens=1024,
                     temperature=0.7,
                 )
 
+                # Get the response
+                ai_response = response.choices[0].message
+                function_call = ai_response.function_call
+                
                 # Create AI response message
-                ai_response = response.choices[0].message.content
                 ai_message = Message.objects.create(
                     conversation=conversation,
                     sender='ai',
                     input_type='text',
-                    text_content=ai_response,
+                    text_content=ai_response.content,
                     type='chat'
                 )
 
@@ -552,6 +635,43 @@ class ChatViewSet(viewsets.ViewSet):
                     model_name="gpt-4o"
                 )
 
+                # Prepare response data
+                response_data = {
+                    'conversation_uuid': conversation.uuid,
+                    'messages': [
+                        MessageSerializer(user_message).data,
+                        MessageSerializer(ai_message).data
+                    ]
+                }
+
+                # If function was called, execute the search and add results
+                if function_call and function_call.name == "search_companion_cards":
+                    try:
+                        search_params = json.loads(function_call.arguments)
+                        
+                        # Execute the actual search
+                        search_results = self._execute_companion_search(search_params)
+                        
+                        response_data['search_parameters'] = search_params
+                        response_data['search_results'] = search_results
+                        
+                        # Track function call in analytics
+                        mixpanel_client.track_api_event(
+                            user_id=request.user.clerk_user_id,
+                            event_name="companion_search_triggered",
+                            properties={
+                                "conversation_uuid": request.data.get("conversation_uuid"),
+                                "search_params": search_params,
+                                "results_count": len(search_results),
+                                "user_email": request.user.email,
+                                "ip_address": request.META.get("REMOTE_ADDR"),
+                                "user_agent": request.META.get("HTTP_USER_AGENT"),
+                            }
+                        )
+                    except json.JSONDecodeError:
+                        logger.error(f"Invalid function call arguments: {function_call.arguments}")
+
+                # Track regular chat event
                 mixpanel_client.track_api_event(
                     user_id=request.user.clerk_user_id,
                     event_name="chat",
@@ -563,21 +683,105 @@ class ChatViewSet(viewsets.ViewSet):
                         "user_email": request.user.email,
                         "ip_address": request.META.get("REMOTE_ADDR"),
                         "user_agent": request.META.get("HTTP_USER_AGENT"),
+                        "function_called": function_call is not None,
+                        "context_info": context_info,
                     }
                 )
-                return Response({
-                    'conversation_uuid': conversation.uuid,
-                    'messages': [
-                        MessageSerializer(user_message).data,
-                        MessageSerializer(ai_message).data
-                    ]
-                })
+
+                return Response(response_data)
 
         except Conversation.DoesNotExist:
             return Response({'error': 'Conversation not found'}, status=404)
         except Exception as e:
             send_error_email(request, "CHAT_ERROR", str(e))
             return Response({'error': str(e)}, status=500)
+
+    def _parse_context_from_message(self, message_content):
+        """
+        Parse structured context information from the message content.
+        Expected format:
+        Context: 
+        - Where: [location]
+        - Date: [date]
+        - Vibes: [vibes]
+        
+        User Request: [user message]
+        """
+        context_info = {}
+        
+        try:
+            # Check if the message contains the structured format
+            if "Context:" in message_content and "User Request:" in message_content:
+                # Split the message into context and user request
+                parts = message_content.split("User Request:")
+                if len(parts) == 2:
+                    context_section = parts[0].strip()
+                    user_request = parts[1].strip()
+                    
+                    # Parse context lines
+                    lines = context_section.split('\n')
+                    for line in lines:
+                        line = line.strip()
+                        if line.startswith('- Where:'):
+                            context_info['where'] = line.replace('- Where:', '').strip()
+                        elif line.startswith('- Date:'):
+                            context_info['date'] = line.replace('- Date:', '').strip()
+                        elif line.startswith('- Vibes:'):
+                            context_info['vibes'] = line.replace('- Vibes:', '').strip()
+                    
+                    # Store the actual user request
+                    context_info['user_request'] = user_request
+                    
+        except Exception as e:
+            logger.error(f"Error parsing context from message: {e}")
+            # If parsing fails, just return the original message as user_request
+            context_info['user_request'] = message_content
+        
+        return context_info
+
+    def _execute_companion_search(self, search_params):
+        """
+        Execute the actual companion search based on the parameters.
+        This is where you'd implement your guide/provider search logic.
+        """
+        location = search_params.get('location')
+        date = search_params.get('date')
+        vibes = search_params.get('vibes', [])
+        
+        # Here you would query your database for matching guides/providers
+        # For now, returning mock data
+        mock_results = [
+            {
+                'id': 1,
+                'name': 'Yuki Tanaka',
+                'location': location,
+                'specialties': vibes,
+                'rating': 4.9,
+                'reviews': 156,
+                'price_range': '$$',
+                'availability': 'Available',
+                'description': f'Local expert in {location} specializing in {", ".join(vibes)}',
+                'avatar': 'https://example.com/avatar1.jpg',
+                'languages': ['English', 'Japanese'],
+                'experience_years': 5
+            },
+            {
+                'id': 2,
+                'name': 'Hiroshi Yamamoto',
+                'location': location,
+                'specialties': vibes,
+                'rating': 4.7,
+                'reviews': 89,
+                'price_range': '$$$',
+                'availability': 'Available',
+                'description': f'Cultural expert and local guide in {location}',
+                'avatar': 'https://example.com/avatar2.jpg',
+                'languages': ['English', 'Japanese', 'Spanish'],
+                'experience_years': 8
+            }
+        ]
+        
+        return mock_results
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
