@@ -764,7 +764,7 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 'price_range': '$$',
                 'availability': 'Available',
                 'description': f'Local expert in {location} specializing in {", ".join(vibes)}',
-                'icon_url': 'https://example.com/avatar1.jpg',
+                'icon_url': 'https://res.cloudinary.com/dkaouxk4m/image/upload/v1752747308/0052/host/service/sg1j7si9qrjcf5hsx9cm.png',
                 'languages': ['English', 'Japanese'],
                 'experience_years': 5
             },
