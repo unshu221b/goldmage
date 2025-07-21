@@ -610,7 +610,6 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                     model_name="gpt-4o"
                 )
 
-
                 # Prepare response data
                 response_data = {
                     'conversation_uuid': conversation.uuid,
@@ -897,10 +896,10 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 logger.info(f"DEBUG: AI response content: {ai_response.content}")
                 logger.info(f"DEBUG: Function call: {function_call}")
                 
-                # Only create an AI chat message if there is content
+                # Create AI response message
                 ai_message = None
-                if ai_response.content and ai_response.content.strip():
-                    try:
+                try:
+                    if ai_response.content and ai_response.content.strip():
                         ai_message = Message.objects.create(
                             conversation=conversation,
                             sender='ai',
@@ -909,9 +908,9 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                             type='chat'
                         )
                         logger.info(f"DEBUG: ✅ Created AI message: {ai_message.id}")
-                    except Exception as e:
-                        logger.error(f"DEBUG: ❌ Failed to create AI message: {e}")
-                        raise
+                except Exception as e:
+                    logger.error(f"DEBUG: ❌ Failed to create AI message: {e}")
+                    raise
 
                 # Prepare response data
                 response_data = {
