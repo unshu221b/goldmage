@@ -615,11 +615,10 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 response_data = {
                     'conversation_uuid': conversation.uuid,
                     'messages': [
-                        MessageSerializer(user_message).data
+                        MessageSerializer(user_message).data,
+                        MessageSerializer(ai_message).data
                     ]
                 }
-                if ai_message:
-                    response_data['messages'].append(MessageSerializer(ai_message).data)
 
                 # If function was called, execute the search and add results
                 if function_call and function_call.name == "search_companion_cards":
