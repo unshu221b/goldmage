@@ -588,13 +588,14 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 
                 # Create AI response message
                 try:
-                    ai_message = Message.objects.create(
-                        conversation=conversation,
-                        sender='ai',
-                        input_type='text',
-                        text_content=ai_response.content,
-                        type='chat'
-                    )
+                    if ai_response.content and ai_response.content.strip():
+                        ai_message = Message.objects.create(
+                            conversation=conversation,
+                            sender='ai',
+                            input_type='text',
+                            text_content=ai_response.content,
+                            type='chat'
+                        )
                     logger.info(f"DEBUG: ✅ Created AI message: {ai_message.id}")
                 except Exception as e:
                     logger.error(f"DEBUG: ❌ Failed to create AI message: {e}")
@@ -614,10 +615,11 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 response_data = {
                     'conversation_uuid': conversation.uuid,
                     'messages': [
-                        MessageSerializer(user_message).data,
-                        MessageSerializer(ai_message).data
+                        MessageSerializer(user_message).data
                     ]
                 }
+                if ai_message:
+                    response_data['messages'].append(MessageSerializer(ai_message).data)
 
                 # If function was called, execute the search and add results
                 if function_call and function_call.name == "search_companion_cards":
@@ -897,13 +899,14 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 
                 # Create AI response message
                 try:
-                    ai_message = Message.objects.create(
-                        conversation=conversation,
-                        sender='ai',
-                        input_type='text',
-                        text_content=ai_response.content,
-                        type='chat'
-                    )
+                    if ai_response.content and ai_response.content.strip():
+                            ai_message = Message.objects.create(
+                                conversation=conversation,
+                                sender='ai',
+                                input_type='text',
+                                text_content=ai_response.content,
+                                type='chat'
+                            )
                     logger.info(f"DEBUG: ✅ Created AI message: {ai_message.id}")
                 except Exception as e:
                     logger.error(f"DEBUG: ❌ Failed to create AI message: {e}")
@@ -923,10 +926,11 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 response_data = {
                     'conversation_uuid': conversation.uuid,
                     'messages': [
-                        MessageSerializer(user_message).data,
-                        MessageSerializer(ai_message).data
+                        MessageSerializer(user_message).data
                     ]
                 }
+                if ai_message:
+                    response_data['messages'].append(MessageSerializer(ai_message).data)
 
                 # If function was called, execute the search and add results
                 if function_call and function_call.name == "search_companion_cards":
