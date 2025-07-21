@@ -601,7 +601,6 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                     logger.error(f"DEBUG: ❌ Failed to create AI message: {e}")
                     raise
 
-                logger.info(f"DEBUG: === DEDUCTING CREDITS ===")
                 # Deduct credit
                 request.user.use_credit(
                     event_type="chat",
@@ -609,7 +608,6 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                     kind="Monthly Credits",
                     model_name="gpt-4o"
                 )
-                logger.info(f"DEBUG: ✅ Credits deducted")
 
                 # Only create an AI chat message if there is content
                 ai_message = None
@@ -634,7 +632,7 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                         MessageSerializer(user_message).data
                     ]
                 }
-                if ai_message:
+                if ai_message is not None:
                     response_data['messages'].append(MessageSerializer(ai_message).data)
 
                 # If function was called, execute the search and add results
@@ -936,7 +934,7 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                         MessageSerializer(user_message).data
                     ]
                 }
-                if ai_message:
+                if ai_message is not None:
                     response_data['messages'].append(MessageSerializer(ai_message).data)
 
                 # If function was called, execute the search and add results
