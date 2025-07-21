@@ -299,34 +299,6 @@ class AnalysisViewSet(viewsets.ViewSet):
                 model_name="gpt-4.1"
             )
             
-            # Only track if input_type is "text"
-            input_type = request.data.get("input_type")
-            if input_type == "text":
-                mixpanel_client.track_api_event(
-                    user_id=request.user.clerk_user_id,
-                    event_name="text_builder_used",
-                    properties={
-                        "conversation_id": request.data.get("conversation_id"),
-                        "messages_count": len(request.data.get("messages", [])),
-                        "user_credits_before": request.user.credits + 1,
-                        "user_email": request.user.email,
-                        "ip_address": request.META.get("REMOTE_ADDR"),
-                        "user_agent": request.META.get("HTTP_USER_AGENT"),
-                    }
-                )
-
-            mixpanel_client.track_api_event(
-                    user_id=request.user.clerk_user_id,
-                    event_name="deepfeel_hit",
-                    properties={
-                        "conversation_id": request.data.get("conversation_id"),
-                        "messages_count": len(request.data.get("messages", [])),
-                        "user_credits_before": request.user.credits + 1,
-                        "user_email": request.user.email,
-                        "ip_address": request.META.get("REMOTE_ADDR"),
-                        "user_agent": request.META.get("HTTP_USER_AGENT"),
-                    }
-                )
             # Return the analysis data directly
             return Response(analysis_data)
 
@@ -416,59 +388,12 @@ class AnalysisViewSet(viewsets.ViewSet):
             return Response({'error': str(e)}, status=500)
 
 @method_decorator(api_login_required, name='dispatch')
-class FavoriteConversationViewSet(viewsets.ModelViewSet):
-    serializer_class = FavoriteConversationSerializer
-    
-    def get_queryset(self):
-        return FavoriteConversation.objects.filter(user=self.request.user)
-    
-    def perform_create(self, serializer):
-        conversation_uuid = self.request.data.get('conversation_uuid')
-        try:
-            conversation = Conversation.objects.get(uuid=conversation_uuid, user=self.request.user)
-            serializer.save(user=self.request.user, conversation=conversation)
-        except Conversation.DoesNotExist:
-            raise Http404("Conversation not found")
-    
-    @action(detail=False, methods=['get'])
-    def list_favorites(self, request):
-        favorites = self.get_queryset().select_related('conversation')
-        serializer = self.get_serializer(favorites, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['post'])
-    def toggle_favorite(self, request):
-        conversation_uuid = request.data.get('conversation_uuid')
-        try:
-            conversation = Conversation.objects.get(uuid=conversation_uuid, user=request.user)
-            favorite, created = FavoriteConversation.objects.get_or_create(
-                user=request.user,
-                conversation=conversation
-            )
-            
-            if not created:
-                favorite.delete()
-                return Response({'status': 'removed'})
-            
-            serializer = self.get_serializer(favorite)
-            return Response(serializer.data)
-            
-        except Conversation.DoesNotExist:
-            raise Http404("Conversation not found")
-
-@method_decorator(api_login_required, name='dispatch')
 class ChatViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def send_message(self, request):
-        logger.info(f"DEBUG: === ENTERED send_message ===")
-        logger.info(f"DEBUG: Request data keys: {list(request.data.keys())}")
-        logger.info(f"DEBUG: Request data: {request.data}")
-        logger.info(f"DEBUG: User: {request.user}")
-        logger.info(f"DEBUG: User credits: {request.user.credits}")
         
         # Check credits
         if not request.user.credits > 0:
-            logger.info(f"DEBUG: ❌ User has no credits")
             next_refill = request.user.get_daily_refill_time()
             return Response({
                 'error': 'Insufficient credits',
@@ -476,8 +401,6 @@ class ChatViewSet(viewsets.ViewSet):
                 'next_refill': next_refill,
                 'is_thread_locked': request.user.is_thread_depth_locked,
             }, status=402)
-
-        logger.info(f"DEBUG: ✅ Credits check passed")
 
         # Get data from request
         conversation_uuid = request.data.get('conversation_uuid')

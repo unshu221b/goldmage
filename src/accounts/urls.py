@@ -1,12 +1,11 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from .views import ConversationListCreateView, AnalysisViewSet, FavoriteConversationViewSet, ChatViewSet, credit_usage_history, ProviderViewSet
+from .views import ConversationListCreateView, AnalysisViewSet, ChatViewSet, credit_usage_history, ProviderViewSet
 
 # Create a router
 router = DefaultRouter()
 router.register(r'conversations', ConversationListCreateView, basename='conversation')
 router.register(r'analysis', AnalysisViewSet, basename='analysis')
-router.register(r'favorites', FavoriteConversationViewSet, basename='favorite')
 router.register(r'chat', ChatViewSet, basename='chat')
 router.register(r'providers', ProviderViewSet, basename='provider')
 

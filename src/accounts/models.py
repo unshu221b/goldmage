@@ -199,8 +199,6 @@ class Message(models.Model):
     )
     text_content = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
-    builder_data = models.JSONField(blank=True, null=True)
-    analysis_data = models.JSONField(blank=True, null=True)  # For analysis data
     type = models.CharField(
         max_length=25,
         choices=[
@@ -216,6 +214,7 @@ class Message(models.Model):
         ]
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    search_results = models.JSONField(blank=True, null=True)
     
     class Meta:
         ordering = ['created_at']  # Always get messages in order
