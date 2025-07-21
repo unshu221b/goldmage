@@ -253,22 +253,23 @@ class Provider(models.Model):
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='providers')
     vault = models.ForeignKey(Vault, on_delete=models.CASCADE, related_name='providers')
     name = models.CharField(max_length=150)
+    location = models.CharField(max_length=255, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
-    timezone = models.CharField(max_length=50, blank=True, null=True)
     contact_link = models.URLField(blank=True, null=True)
-    language_support = models.JSONField(default=list, blank=True)
     specialties = models.JSONField(default=list, blank=True)
-    active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    qualifications = models.JSONField(default=dict, blank=True)  # experience, degree, etc.
     social_profiles = models.JSONField(default=list, blank=True)
     availability = models.JSONField(default=dict, blank=True)    # days, hours, duration, etc.
-    agreed_to_terms = models.BooleanField(default=False)
-    approved = models.BooleanField(default=False)  # Add this if you want to approve listings
+    price_range = models.CharField(max_length=50, blank=True, null=True)
     icon_url = models.URLField(blank=True, null=True)
+    languages = models.JSONField(default=list, blank=True)
+    experience_years = models.IntegerField(default=0)  # experience, degree, etc.
     is_promoted = models.BooleanField(default=False)
     completion_count = models.IntegerField(default=0)
-    
+    created_at = models.DateTimeField(auto_now_add=True)
+    agreed_to_terms = models.BooleanField(default=False)
+    approved = models.BooleanField(default=False)  # Add this if you want to approve listings
+    active = models.BooleanField(default=True)
+
     def __str__(self):
         return self.name
 

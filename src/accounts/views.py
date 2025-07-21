@@ -764,7 +764,7 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 'price_range': '$$',
                 'availability': 'Available',
                 'description': f'Local expert in {location} specializing in {", ".join(vibes)}',
-                'avatar': 'https://example.com/avatar1.jpg',
+                'icon_url': 'https://example.com/avatar1.jpg',
                 'languages': ['English', 'Japanese'],
                 'experience_years': 5
             },
@@ -778,7 +778,7 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 'price_range': '$$$',
                 'availability': 'Available',
                 'description': f'Cultural expert and local guide in {location}',
-                'avatar': 'https://example.com/avatar2.jpg',
+                'icon_url': 'https://example.com/avatar2.jpg',
                 'languages': ['English', 'Japanese', 'Spanish'],
                 'experience_years': 8
             }
