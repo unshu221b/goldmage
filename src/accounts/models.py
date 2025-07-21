@@ -195,6 +195,7 @@ class Message(models.Model):
             ('text', 'Text'),
             ('image_upload', 'Image Upload'),
             ('social_link_upload', 'Social Link Upload'),
+            ('json', 'JSON'),
         ]
     )
     text_content = models.TextField(blank=True, null=True)
@@ -215,7 +216,7 @@ class Message(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     search_results = models.JSONField(blank=True, null=True)
-    
+
     class Meta:
         ordering = ['created_at']  # Always get messages in order
 

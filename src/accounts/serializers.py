@@ -15,9 +15,8 @@ class MessageSerializer(serializers.ModelSerializer):
             'input_type',
             'text_content',
             'image',
-            'builder_data',
             'type',
-            'analysis_data',
+            'search_results',
             'created_at'
         ]
 

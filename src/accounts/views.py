@@ -390,6 +390,315 @@ class AnalysisViewSet(viewsets.ViewSet):
 @method_decorator(api_login_required, name='dispatch')
 class ChatViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
+    def initial_send(self, request):
+        
+        # Check credits
+        if not request.user.credits > 0:
+            next_refill = request.user.get_daily_refill_time()
+            return Response({
+                'error': 'Insufficient credits',
+                'remaining_credits': request.user.credits,
+                'next_refill': next_refill,
+                'is_thread_locked': request.user.is_thread_depth_locked,
+            }, status=402)
+
+        # Get data from request
+        conversation_uuid = request.data.get('conversation_uuid')
+        message_content = request.data.get('message')
+        
+        logger.info(f"DEBUG: conversation_uuid: {conversation_uuid}")
+        logger.info(f"DEBUG: message_content: {message_content}")
+        
+        if not message_content:
+            logger.error(f"DEBUG: ❌ No message content provided")
+            return Response({'error': 'Message content is required'}, status=400)
+        
+        try:
+            logger.info(f"DEBUG: === STARTING TRANSACTION ===")
+            with transaction.atomic():
+                logger.info(f"DEBUG: Transaction started")
+                
+                if conversation_uuid:
+                    logger.info(f"DEBUG: Looking for existing conversation: {conversation_uuid}")
+                    try:
+                        conversation = Conversation.objects.get(uuid=conversation_uuid, user=request.user)
+                        logger.info(f"DEBUG: ✅ Found existing conversation: {conversation.id}")
+                    except Conversation.DoesNotExist:
+                        logger.error(f"DEBUG: ❌ Conversation not found: {conversation_uuid}")
+                        return Response({'error': 'Conversation not found'}, status=404)
+                else:
+                    logger.info(f"DEBUG: Creating new conversation")
+                    try:
+                        conversation = Conversation.objects.create(
+                            user=request.user,
+                            title=message_content[:50] + "..." if len(message_content) > 50 else message_content
+                        )
+                        logger.info(f"DEBUG: ✅ Created new conversation: {conversation.id}")
+                    except Exception as e:
+                        logger.error(f"DEBUG: ❌ Failed to create conversation: {e}")
+                        raise
+
+                logger.info(f"DEBUG: === PARSING CONTEXT ===")
+                # Parse structured context from the message
+                context_info = self._parse_context_from_message(message_content)
+                logger.info(f"DEBUG: Parsed context: {context_info}")
+                
+                logger.info(f"DEBUG: === CREATING USER MESSAGE ===")
+                # Create user message
+                try:
+                    user_message = Message.objects.create(
+                        conversation=conversation,
+                        sender='user',
+                        input_type='text',
+                        text_content=message_content,
+                        type='chat'
+                    )
+                    logger.info(f"DEBUG: ✅ Created user message: {user_message.id}")
+                except Exception as e:
+                    logger.error(f"DEBUG: ❌ Failed to create user message: {e}")
+                    raise
+
+                logger.info(f"DEBUG: === GETTING CONVERSATION HISTORY ===")
+                # Get conversation history for context
+                conversation_history = Message.objects.filter(
+                    conversation=conversation
+                ).order_by('created_at')
+                logger.info(f"DEBUG: Found {len(conversation_history)} previous messages")
+
+                # Format conversation history for AI
+                conversation_text = "\n".join([
+                    f"{msg.sender}: {msg.text_content}"
+                    for msg in conversation_history
+                ])
+
+                logger.info(f"DEBUG: === PREPARING OPENAI CALL ===")
+                
+                # Create system prompt with context awareness
+                system_prompt = """You are a friendly, thoughtful local companion assistant.
+
+Your job is to help the user find a suitable guide or experience, by first understanding the **context** behind their message.
+
+## Your Goals:
+1. Determine if the user's message is **casual chat** or has clear intent (e.g. request for a companion, help, or activity).
+2. If intent is unclear, respond naturally, ask light questions to clarify. Keep it friendly and non-intrusive.
+3. If intent is clear, check if the following fields are provided:
+   - Location / city (Where)
+   - Date / time (When)
+   - Desired vibe / activity style (What they want to feel or do)
+
+## What to Do:
+- If **any context is missing**, ask 1–2 natural questions to fill it in.
+- Once you have all 3 fields, summarize what you understand and **ask if they'd like you to find a match**.
+- When user confirms they want to search, call search_companion_cards function.
+- Keep your tone warm, not robotic. Think like a local who enjoys helping travelers get the best experience.
+
+## Examples:
+- "Want me to check who's free on that date?"
+- "Should I look for someone who matches that vibe?"
+- "Happy to show you a few matches — want me to?"
+
+Be conversational, helpful, and precise. Avoid assumptions.
+
+**CONVERSATION HISTORY:**
+{conversation_history}
+
+Remember: You're helping travelers find the perfect local companion. Be warm, engaging, and genuinely excited about connecting them with amazing local experiences."""
+
+                # Add context information to the prompt if available
+                if context_info and any(context_info.values()):
+                    context_section = "\n**USER'S CONTEXT:**\n"
+                    if context_info.get('where') and context_info['where'] != "not provided":
+                        context_section += f"- Where: {context_info['where']}\n"
+                    if context_info.get('date') and context_info['date'] != "not provided":
+                        context_section += f"- Date: {context_info['date']}\n"
+                    if context_info.get('vibes') and context_info['vibes'] != "not provided":
+                        context_section += f"- Vibes: {context_info['vibes']}\n"
+                    if context_info.get('user_request'):
+                        context_section += f"- User Request: {context_info['user_request']}\n"
+                    
+                    system_prompt += context_section
+
+                # Define the search function
+                functions = [
+                    {
+                        "name": "search_companion_cards",
+                        "description": "Search for local companion cards based on travel preferences",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "location": {
+                                    "type": "string",
+                                    "description": "City or region where the user wants to meet the guide"
+                                },
+                                "date": {
+                                    "type": "string",
+                                    "description": "Date of the requested experience, in YYYY-MM-DD format"
+                                },
+                                "vibes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "A list of keywords capturing activity types or personality traits requested"
+                                }
+                            },
+                            "required": ["location", "date", "vibes"]
+                        }
+                    }
+                ]
+
+                # Format messages for OpenAI
+                messages = [
+                    {"role": "system", "content": system_prompt.format(conversation_history=conversation_text)},
+                ]              
+                
+                # Add current user message
+                messages.append({
+                    "role": "user",
+                    "content": message_content
+                })
+
+                logger.info(f"DEBUG: === CALLING OPENAI ===")
+                logger.info(f"DEBUG: Messages count: {len(messages)}")
+                logger.info(f"DEBUG: First message: {messages[0]}")
+                logger.info(f"DEBUG: Last message: {messages[-1]}")
+                
+                # Call OpenAI with function calling
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=messages,
+                        functions=functions,
+                        function_call="auto",
+                        max_tokens=1024,
+                        temperature=0.7,
+                    )
+                    logger.info(f"DEBUG: ✅ OpenAI call successful")
+                except Exception as e:
+                    logger.error(f"DEBUG: ❌ OpenAI call failed: {e}")
+                    raise
+
+                logger.info(f"DEBUG: === PROCESSING OPENAI RESPONSE ===")
+                # Get the response
+                ai_response = response.choices[0].message
+                function_call = ai_response.function_call
+                
+                logger.info(f"DEBUG: AI response content: {ai_response.content}")
+                logger.info(f"DEBUG: Function call: {function_call}")
+                
+                # Create AI response message
+                try:
+                    ai_message = Message.objects.create(
+                        conversation=conversation,
+                        sender='ai',
+                        input_type='text',
+                        text_content=ai_response.content,
+                        type='chat'
+                    )
+                    logger.info(f"DEBUG: ✅ Created AI message: {ai_message.id}")
+                except Exception as e:
+                    logger.error(f"DEBUG: ❌ Failed to create AI message: {e}")
+                    raise
+
+                logger.info(f"DEBUG: === DEDUCTING CREDITS ===")
+                # Deduct credit
+                request.user.use_credit(
+                    event_type="chat",
+                    cost=1,
+                    kind="Monthly Credits",
+                    model_name="gpt-4o"
+                )
+                logger.info(f"DEBUG: ✅ Credits deducted")
+
+                # Prepare response data
+                response_data = {
+                    'conversation_uuid': conversation.uuid,
+                    'messages': [
+                        MessageSerializer(user_message).data,
+                        MessageSerializer(ai_message).data
+                    ]
+                }
+
+                # If function was called, execute the search and add results
+                if function_call and function_call.name == "search_companion_cards":
+                    logger.info(f"DEBUG: === FUNCTION CALL DETECTED ===")
+                    try:
+                        search_params = json.loads(function_call.arguments)
+                        logger.info(f"DEBUG: Search params: {search_params}")
+                        
+                        # Execute the actual search
+                        search_results = self._execute_companion_search(search_params)
+                        logger.info(f"DEBUG: Search results count: {len(search_results)}")
+                        
+                        # Create a companion_cards message with the search results in search_results field
+                        companion_cards_message = Message.objects.create(
+                            conversation=conversation,
+                            sender='ai',
+                            input_type='json',
+                            text_content="",  # Optionally leave blank or add a summary
+                            type='companion_cards',
+                            search_results=search_results
+                        )
+                        logger.info(f"DEBUG: ✅ Created companion_cards message: {companion_cards_message.id}")
+                        
+                        response_data['search_parameters'] = search_params
+                        response_data['search_results'] = search_results
+                        
+                        # Add the companion_cards message to the response
+                        response_data['messages'].append(MessageSerializer(companion_cards_message).data)
+                        
+                        # Track function call in analytics
+                        mixpanel_client.track_api_event(
+                            user_id=request.user.clerk_user_id,
+                            event_name="companion_search_triggered",
+                            properties={
+                                "conversation_uuid": request.data.get("conversation_uuid"),
+                                "search_params": search_params,
+                                "results_count": len(search_results),
+                                "user_email": request.user.email,
+                                "ip_address": request.META.get("REMOTE_ADDR"),
+                                "user_agent": request.META.get("HTTP_USER_AGENT"),
+                            }
+                        )
+                        logger.info(f"DEBUG: ✅ Function call tracked")
+                    except json.JSONDecodeError:
+                        logger.error(f"DEBUG: ❌ Invalid function call arguments: {function_call.arguments}")
+
+                logger.info(f"DEBUG: === TRACKING ANALYTICS ===")
+                # Track regular chat event
+                mixpanel_client.track_api_event(
+                    user_id=request.user.clerk_user_id,
+                    event_name="chat",
+                    properties={
+                        "conversation_uuid": request.data.get("conversation_uuid"),
+                        "message_length": len(request.data.get("message", "")),
+                        "is_new_conversation": not request.data.get("conversation_uuid"),
+                        "user_credits_before": request.user.credits + 1,
+                        "user_email": request.user.email,
+                        "ip_address": request.META.get("REMOTE_ADDR"),
+                        "user_agent": request.META.get("HTTP_USER_AGENT"),
+                        "function_called": function_call is not None,
+                        "context_info": context_info,
+                    }
+                )
+                logger.info(f"DEBUG: ✅ Analytics tracked")
+
+                logger.info(f"DEBUG: === RETURNING RESPONSE ===")
+                logger.info(f"DEBUG: Response data keys: {list(response_data.keys())}")
+                return Response(response_data)
+
+        except Conversation.DoesNotExist:
+            logger.error(f"DEBUG: ❌ Conversation not found")
+            return Response({'error': 'Conversation not found'}, status=404)
+        except Exception as e:
+            logger.error(f"DEBUG: ❌ Exception in send_message: {str(e)}")
+            logger.error(f"DEBUG: ❌ Exception type: {type(e)}")
+            import traceback
+            logger.error(f"DEBUG: ❌ Traceback: {traceback.format_exc()}")
+            send_error_email(request, "CHAT_ERROR", str(e))
+            return Response({'error': str(e)}, status=500)
+        
+    @action(detail=False, methods=['post'])
     def send_message(self, request):
         
         # Check credits
