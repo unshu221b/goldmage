@@ -587,6 +587,7 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 logger.info(f"DEBUG: Function call: {function_call}")
                 
                 # Create AI response message
+                ai_message = None
                 try:
                     if ai_response.content and ai_response.content.strip():
                         ai_message = Message.objects.create(
@@ -596,7 +597,7 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                             text_content=ai_response.content,
                             type='chat'
                         )
-                    logger.info(f"DEBUG: ✅ Created AI message: {ai_message.id}")
+                        logger.info(f"DEBUG: ✅ Created AI message: {ai_message.id}")
                 except Exception as e:
                     logger.error(f"DEBUG: ❌ Failed to create AI message: {e}")
                     raise
@@ -609,21 +610,6 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                     model_name="gpt-4o"
                 )
 
-                # Only create an AI chat message if there is content
-                ai_message = None
-                if ai_response.content and ai_response.content.strip():
-                    try:
-                        ai_message = Message.objects.create(
-                            conversation=conversation,
-                            sender='ai',
-                            input_type='text',
-                            text_content=ai_response.content,
-                            type='chat'
-                        )
-                        logger.info(f"DEBUG: ✅ Created AI message: {ai_message.id}")
-                    except Exception as e:
-                        logger.error(f"DEBUG: ❌ Failed to create AI message: {e}")
-                        raise
 
                 # Prepare response data
                 response_data = {
