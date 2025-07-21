@@ -598,31 +598,28 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 # Define the search function
                 functions = [
                     {
-                        "type": "function",
-                        "function": {
-                            "name": "search_companion_cards",
-                            "description": "Search for local companion cards based on travel preferences",
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "location": {
-                                        "type": "string",
-                                        "description": "City or region where the user wants to meet the guide"
-                                    },
-                                    "date": {
-                                        "type": "string",
-                                        "description": "Date of the requested experience, in YYYY-MM-DD format"
-                                    },
-                                    "vibes": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        },
-                                        "description": "A list of keywords capturing activity types or personality traits requested"
-                                    }
+                        "name": "search_companion_cards",
+                        "description": "Search for local companion cards based on travel preferences",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "location": {
+                                    "type": "string",
+                                    "description": "City or region where the user wants to meet the guide"
                                 },
-                                "required": ["location", "date", "vibes"]
-                            }
+                                "date": {
+                                    "type": "string",
+                                    "description": "Date of the requested experience, in YYYY-MM-DD format"
+                                },
+                                "vibes": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "A list of keywords capturing activity types or personality traits requested"
+                                }
+                            },
+                            "required": ["location", "date", "vibes"]
                         }
                     }
                 ]
