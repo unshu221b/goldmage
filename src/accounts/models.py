@@ -202,14 +202,17 @@ class Message(models.Model):
     builder_data = models.JSONField(blank=True, null=True)
     analysis_data = models.JSONField(blank=True, null=True)  # For analysis data
     type = models.CharField(
-        max_length=20,
+        max_length=25,
         choices=[
-            ('builder', 'Builder'),
-            ('creator', 'Creator'),
-            ('editor', 'Editor'),
-            ('analysis', 'Analysis'),
+            ('initial_chat', 'Initial Chat'),
+            ('chat', 'Chat'),
+            ('booking', 'Booking'),
+            ('afterpayment', 'Afterpayment'),
             ('system', 'System'),
             ('loading', 'Loading'),
+            ('companion_cards', 'Companion Cards'),
+            ('companion_cards_select', 'Companion Cards Select'),
+            ('loading_companion_cards', 'Loading Companion Cards'),
         ]
     )
     created_at = models.DateTimeField(auto_now_add=True)
