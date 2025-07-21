@@ -627,15 +627,7 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                 # Format messages for OpenAI
                 messages = [
                     {"role": "system", "content": system_prompt.format(conversation_history=conversation_text)},
-                ]
-                
-                # Add conversation history
-                for msg in conversation_history:
-                    role = "user" if msg.sender == "user" else "assistant"
-                    messages.append({
-                        "role": role,
-                        "content": msg.text_content
-                    })
+                ]              
                 
                 # Add current user message
                 messages.append({
