@@ -20,6 +20,9 @@ class MessageSerializer(serializers.ModelSerializer):
             'total_amount',
             'currency',
             'payment_status',
+            'companion_id',
+            'booking_date',
+            'booking_time',
             'created_at'
         ]
 

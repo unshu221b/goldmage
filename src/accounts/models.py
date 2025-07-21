@@ -220,6 +220,9 @@ class Message(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     currency = models.CharField(max_length=10, blank=True, null=True)
     payment_status = models.CharField(max_length=20, blank=True, null=True)
+    companion_id = models.IntegerField(blank=True, null=True)
+    booking_date = models.DateField(blank=True, null=True)
+    booking_time = models.TimeField(blank=True, null=True)
     search_results = models.JSONField(blank=True, null=True)
 
     class Meta:
