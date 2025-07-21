@@ -201,17 +201,20 @@ class Message(models.Model):
     text_content = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='chat_images/', blank=True, null=True)
     type = models.CharField(
-        max_length=25,
+        max_length=30,
         choices=[
             ('initial_chat', 'Initial Chat'),
             ('chat', 'Chat'),
             ('booking', 'Booking'),
-            ('afterpayment', 'Afterpayment'),
             ('system', 'System'),
             ('loading', 'Loading'),
             ('companion_cards', 'Companion Cards'),
             ('companion_cards_select', 'Companion Cards Select'),
+            ('companion_cards_select_confirm', 'Companion Cards Select Confirm'),
             ('loading_companion_cards', 'Loading Companion Cards'),
+            ('itinerary_summary', 'Itinerary Summary'),
+            ('meetup_instructions', 'Meetup Instructions'),
+            ('payment_response', 'Payment Response'),
         ]
     )
     created_at = models.DateTimeField(auto_now_add=True)
