@@ -460,8 +460,15 @@ class FavoriteConversationViewSet(viewsets.ModelViewSet):
 class ChatViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def send_message(self, request):
+        logger.info(f"DEBUG: === ENTERED send_message ===")
+        logger.info(f"DEBUG: Request data keys: {list(request.data.keys())}")
+        logger.info(f"DEBUG: Request data: {request.data}")
+        logger.info(f"DEBUG: User: {request.user}")
+        logger.info(f"DEBUG: User credits: {request.user.credits}")
+        
         # Check credits
         if not request.user.credits > 0:
+            logger.info(f"DEBUG: ❌ User has no credits")
             next_refill = request.user.get_daily_refill_time()
             return Response({
                 'error': 'Insufficient credits',
@@ -470,37 +477,70 @@ class ChatViewSet(viewsets.ViewSet):
                 'is_thread_locked': request.user.is_thread_depth_locked,
             }, status=402)
 
+        logger.info(f"DEBUG: ✅ Credits check passed")
+
         # Get data from request
         conversation_uuid = request.data.get('conversation_uuid')
         message_content = request.data.get('message')
         
+        logger.info(f"DEBUG: conversation_uuid: {conversation_uuid}")
+        logger.info(f"DEBUG: message_content: {message_content}")
+        
+        if not message_content:
+            logger.error(f"DEBUG: ❌ No message content provided")
+            return Response({'error': 'Message content is required'}, status=400)
+        
         try:
+            logger.info(f"DEBUG: === STARTING TRANSACTION ===")
             with transaction.atomic():
+                logger.info(f"DEBUG: Transaction started")
+                
                 if conversation_uuid:
-                    conversation = Conversation.objects.get(uuid=conversation_uuid, user=request.user)
+                    logger.info(f"DEBUG: Looking for existing conversation: {conversation_uuid}")
+                    try:
+                        conversation = Conversation.objects.get(uuid=conversation_uuid, user=request.user)
+                        logger.info(f"DEBUG: ✅ Found existing conversation: {conversation.id}")
+                    except Conversation.DoesNotExist:
+                        logger.error(f"DEBUG: ❌ Conversation not found: {conversation_uuid}")
+                        return Response({'error': 'Conversation not found'}, status=404)
                 else:
-                    # Create new conversation with initial title
-                    conversation = Conversation.objects.create(
-                        user=request.user,
-                        title=message_content[:50] + "..." if len(message_content) > 50 else message_content
-                    )
+                    logger.info(f"DEBUG: Creating new conversation")
+                    try:
+                        conversation = Conversation.objects.create(
+                            user=request.user,
+                            title=message_content[:50] + "..." if len(message_content) > 50 else message_content
+                        )
+                        logger.info(f"DEBUG: ✅ Created new conversation: {conversation.id}")
+                    except Exception as e:
+                        logger.error(f"DEBUG: ❌ Failed to create conversation: {e}")
+                        raise
 
+                logger.info(f"DEBUG: === PARSING CONTEXT ===")
                 # Parse structured context from the message
                 context_info = self._parse_context_from_message(message_content)
+                logger.info(f"DEBUG: Parsed context: {context_info}")
                 
+                logger.info(f"DEBUG: === CREATING USER MESSAGE ===")
                 # Create user message
-                user_message = Message.objects.create(
-                    conversation=conversation,
-                    sender='user',
-                    input_type='text',
-                    text_content=message_content,
-                    type='chat'
-                )
+                try:
+                    user_message = Message.objects.create(
+                        conversation=conversation,
+                        sender='user',
+                        input_type='text',
+                        text_content=message_content,
+                        type='chat'
+                    )
+                    logger.info(f"DEBUG: ✅ Created user message: {user_message.id}")
+                except Exception as e:
+                    logger.error(f"DEBUG: ❌ Failed to create user message: {e}")
+                    raise
 
+                logger.info(f"DEBUG: === GETTING CONVERSATION HISTORY ===")
                 # Get conversation history for context
                 conversation_history = Message.objects.filter(
                     conversation=conversation
                 ).order_by('created_at')
+                logger.info(f"DEBUG: Found {len(conversation_history)} previous messages")
 
                 # Format conversation history for AI
                 conversation_text = "\n".join([
@@ -508,6 +548,8 @@ class ChatViewSet(viewsets.ViewSet):
                     for msg in conversation_history
                 ])
 
+                logger.info(f"DEBUG: === PREPARING OPENAI CALL ===")
+                
                 # Create system prompt with context awareness
                 system_prompt = """You are a friendly, thoughtful local companion assistant.
 
@@ -604,29 +646,49 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                     "content": message_content
                 })
 
+                logger.info(f"DEBUG: === CALLING OPENAI ===")
+                logger.info(f"DEBUG: Messages count: {len(messages)}")
+                logger.info(f"DEBUG: First message: {messages[0]}")
+                logger.info(f"DEBUG: Last message: {messages[-1]}")
+                
                 # Call OpenAI with function calling
-                response = client.chat.completions.create(
-                    model="gpt-4",
-                    messages=messages,
-                    functions=functions,
-                    function_call="auto",
-                    max_tokens=1024,
-                    temperature=0.7,
-                )
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=messages,
+                        functions=functions,
+                        function_call="auto",
+                        max_tokens=1024,
+                        temperature=0.7,
+                    )
+                    logger.info(f"DEBUG: ✅ OpenAI call successful")
+                except Exception as e:
+                    logger.error(f"DEBUG: ❌ OpenAI call failed: {e}")
+                    raise
 
+                logger.info(f"DEBUG: === PROCESSING OPENAI RESPONSE ===")
                 # Get the response
                 ai_response = response.choices[0].message
                 function_call = ai_response.function_call
                 
+                logger.info(f"DEBUG: AI response content: {ai_response.content}")
+                logger.info(f"DEBUG: Function call: {function_call}")
+                
                 # Create AI response message
-                ai_message = Message.objects.create(
-                    conversation=conversation,
-                    sender='ai',
-                    input_type='text',
-                    text_content=ai_response.content,
-                    type='chat'
-                )
+                try:
+                    ai_message = Message.objects.create(
+                        conversation=conversation,
+                        sender='ai',
+                        input_type='text',
+                        text_content=ai_response.content,
+                        type='chat'
+                    )
+                    logger.info(f"DEBUG: ✅ Created AI message: {ai_message.id}")
+                except Exception as e:
+                    logger.error(f"DEBUG: ❌ Failed to create AI message: {e}")
+                    raise
 
+                logger.info(f"DEBUG: === DEDUCTING CREDITS ===")
                 # Deduct credit
                 request.user.use_credit(
                     event_type="chat",
@@ -634,6 +696,7 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                     kind="Monthly Credits",
                     model_name="gpt-4o"
                 )
+                logger.info(f"DEBUG: ✅ Credits deducted")
 
                 # Prepare response data
                 response_data = {
@@ -646,11 +709,14 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
 
                 # If function was called, execute the search and add results
                 if function_call and function_call.name == "search_companion_cards":
+                    logger.info(f"DEBUG: === FUNCTION CALL DETECTED ===")
                     try:
                         search_params = json.loads(function_call.arguments)
+                        logger.info(f"DEBUG: Search params: {search_params}")
                         
                         # Execute the actual search
                         search_results = self._execute_companion_search(search_params)
+                        logger.info(f"DEBUG: Search results count: {len(search_results)}")
                         
                         response_data['search_parameters'] = search_params
                         response_data['search_results'] = search_results
@@ -668,9 +734,11 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                                 "user_agent": request.META.get("HTTP_USER_AGENT"),
                             }
                         )
+                        logger.info(f"DEBUG: ✅ Function call tracked")
                     except json.JSONDecodeError:
-                        logger.error(f"Invalid function call arguments: {function_call.arguments}")
+                        logger.error(f"DEBUG: ❌ Invalid function call arguments: {function_call.arguments}")
 
+                logger.info(f"DEBUG: === TRACKING ANALYTICS ===")
                 # Track regular chat event
                 mixpanel_client.track_api_event(
                     user_id=request.user.clerk_user_id,
@@ -687,12 +755,20 @@ Remember: You're helping travelers find the perfect local companion. Be warm, en
                         "context_info": context_info,
                     }
                 )
+                logger.info(f"DEBUG: ✅ Analytics tracked")
 
+                logger.info(f"DEBUG: === RETURNING RESPONSE ===")
+                logger.info(f"DEBUG: Response data keys: {list(response_data.keys())}")
                 return Response(response_data)
 
         except Conversation.DoesNotExist:
+            logger.error(f"DEBUG: ❌ Conversation not found")
             return Response({'error': 'Conversation not found'}, status=404)
         except Exception as e:
+            logger.error(f"DEBUG: ❌ Exception in send_message: {str(e)}")
+            logger.error(f"DEBUG: ❌ Exception type: {type(e)}")
+            import traceback
+            logger.error(f"DEBUG: ❌ Traceback: {traceback.format_exc()}")
             send_error_email(request, "CHAT_ERROR", str(e))
             return Response({'error': str(e)}, status=500)
 
