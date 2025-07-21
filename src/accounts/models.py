@@ -210,7 +210,6 @@ class Message(models.Model):
             ('loading', 'Loading'),
             ('companion_cards', 'Companion Cards'),
             ('companion_cards_select', 'Companion Cards Select'),
-            ('companion_cards_select_confirm', 'Companion Cards Select Confirm'),
             ('loading_companion_cards', 'Loading Companion Cards'),
             ('itinerary_summary', 'Itinerary Summary'),
             ('meetup_instructions', 'Meetup Instructions'),
@@ -218,6 +217,9 @@ class Message(models.Model):
         ]
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    currency = models.CharField(max_length=10, blank=True, null=True)
+    payment_status = models.CharField(max_length=20, blank=True, null=True)
     search_results = models.JSONField(blank=True, null=True)
 
     class Meta:

@@ -17,6 +17,9 @@ class MessageSerializer(serializers.ModelSerializer):
             'image',
             'type',
             'search_results',
+            'total_amount',
+            'currency',
+            'payment_status',
             'created_at'
         ]
 
