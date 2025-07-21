@@ -117,9 +117,13 @@ class ConversationListCreateView(viewsets.ModelViewSet):
                             sender=msg_data.get('sender'),
                             input_type=msg_data.get('input_type', 'text'),
                             text_content=msg_data.get('text_content', ''),
-                            builder_data=msg_data.get('builder_data'),
                             type=msg_data.get('type'),
-                            analysis_data=msg_data.get('analysis_data'),
+                            total_amount=msg_data.get('total_amount'),
+                            currency=msg_data.get('currency'),
+                            payment_status=msg_data.get('payment_status'),
+                            companion_id=msg_data.get('companion_id'),
+                            booking_date=msg_data.get('booking_date'),
+                            booking_time=msg_data.get('booking_time'),
                         )
 
                 # Return the updated conversation with all its related data
